@@ -32,13 +32,13 @@ public static class GenerateWizard
         for (var index = 0; index < forms.Count; index++)
         {
             if (index != 0 && forms[index].Length == 0) continue;
-            var label = index == 0 || forms[index].Length == 0 ? "Standard" : forms[index];
+            var label = index == 0 || forms[index].Length == 0 ? "Padrão" : forms[index];
             formOptions.Add(new PadOption(label, IconPath: await FormSpritePathAsync(species.Id, index)));
         }
         if (formOptions.Count > 1)
         {
-            var chosen = await PadMenu.ShowAsync(host, $"Form of {species.Name}",
-                "This species has multiple forms in this game.", [.. formOptions]);
+            var chosen = await PadMenu.ShowAsync(host, $"Forma de {species.Name}",
+                "Esta espécie tem várias formas neste jogo.", [.. formOptions]);
             if (chosen is null) return null;
             var index = formOptions.FindIndex(o => o.Label == chosen);
             form = Math.Max(0, index);
@@ -185,15 +185,15 @@ public static class GenerateWizard
         var shinyTap = new TapGestureRecognizer();
         shinyTap.Tapped += (_, _) => { shiny = !shiny; RefreshStar(); };
         shinyHalf.GestureRecognizers.Add(shinyTap);
-        var levelHalf = EditorBand(new HorizontalStackLayout { Spacing = Design(20), Children = { EditorCaption("Level", Design(128)), level } }, dark: true);
+        var levelHalf = EditorBand(new HorizontalStackLayout { Spacing = Design(20), Children = { EditorCaption("Nível", Design(128)), level } }, dark: true);
         level.WidthRequest = Design(160);
         var levelShiny = new Grid { ColumnDefinitions = [new(GridLength.Star), new(GridLength.Star)], Children = { levelHalf, shinyHalf } };
         Grid.SetColumn(shinyHalf, 1);
 
-        var natureRow = Chooser("Nature", false, NatureItems, () => nature, v => nature = v, OpenNature);
+        var natureRow = Chooser("Natureza", false, NatureItems, () => nature, v => nature = v, OpenNature);
         natureRow.IsVisible = session.Generation >= 3; // Gen 1/2 have no natures
-        var abilityRow = Chooser("Ability", true, AbilityItems, () => ability, v => ability = v);
-        var ballRow = Chooser("Ball", false, BallItems, () => ball, v => ball = v,
+        var abilityRow = Chooser("Habilidade", true, AbilityItems, () => ability, v => ability = v);
+        var ballRow = Chooser("Bola", false, BallItems, () => ball, v => ball = v,
             leading: id => id is { } b && sprites is not null ? BallArt(sprites, b) : null);
         var moveRows = new View[4];
         for (var i = 0; i < 4; i++)
@@ -214,9 +214,9 @@ public static class GenerateWizard
                 pickedMoves.Count > 0 ? pickedMoves : null, form, Services.HaXMode.IsOn));
         }
 
-        var generate = EditorTool("Generate", primary: true);
+        var generate = EditorTool("Gerar", primary: true);
         generate.Clicked += (_, _) => Generate();
-        var cancel = EditorTool("Cancel");
+        var cancel = EditorTool("Cancelar");
         cancel.Clicked += (_, _) => Close(null);
         var buttons = new Grid
         {
@@ -229,7 +229,7 @@ public static class GenerateWizard
 
         var note = new Label
         {
-            Text = "Everything left on \"auto\" is chosen by the legalizer, so the Pokémon comes out legal.",
+            Text = "Tudo o que ficar em \"auto\" é escolhido pelo legalizador, então o Pokémon sai legal.",
             FontFamily = DsChrome.PixelFont,
             FontSize = EditorText * 0.8,
             TextColor = EditorPaint.ExpInk.ToMauiColor(),
@@ -240,8 +240,8 @@ public static class GenerateWizard
         {
             Children =
             {
-                EditorSection("Features"), note, levelShiny, natureRow, abilityRow, ballRow,
-                EditorSection("Moves"), moveRows[0], moveRows[1], moveRows[2], moveRows[3],
+                EditorSection("Características"), note, levelShiny, natureRow, abilityRow, ballRow,
+                EditorSection("Golpes"), moveRows[0], moveRows[1], moveRows[2], moveRows[3],
                 buttons,
             },
         };

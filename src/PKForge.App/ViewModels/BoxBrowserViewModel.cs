@@ -43,7 +43,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     [ObservableProperty] private SaveSnapshot? _save;
     [ObservableProperty] private int _boxIndex;
     [ObservableProperty] private int _selectedSlot = -1;
-    [ObservableProperty] private string _status = "NO STORAGE CONNECTED - PRESS ACCESS STORAGE";
+    [ObservableProperty] private string _status = "NENHUM ARMAZENAMENTO CONECTADO - ABRA UM SAVE";
     [ObservableProperty] private bool _isBusy;
 
     // Structured connection facts for the blueprint chips (never merged into one status blob).
@@ -88,7 +88,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     public int BoxCount => _slots.Length == 0 ? 0 : _slots.Max(x => x.Box) + 1;
 
     /// <summary>LCD readout above the grid; the party rides before box 1.</summary>
-    public string BoxLabel => Save is null ? "NO DATA" : BoxIndex == -1 ? "PARTY" : $"{BoxIndex + 1:00} / {BoxCount:00}";
+    public string BoxLabel => Save is null ? "SEM DADOS" : BoxIndex == -1 ? "EQUIPE" : $"{BoxIndex + 1:00} / {BoxCount:00}";
 
     partial void OnBoxIndexChanged(int value)
     {
@@ -104,9 +104,9 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         try
         {
             IsBusy = true;
-            Status = "Choose a save file…";
+            Status = "Escolha um arquivo de save…";
             var document = await _picker.PickSaveAsync();
-            if (document is null) { Status = "Open cancelled."; return; }
+            if (document is null) { Status = "Abertura cancelada."; return; }
             var session = await _sessions.OpenAsync(document);
             _slots = session.Snapshot.Slots.ToArray();
             Save = session.Snapshot;
@@ -122,7 +122,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         }
         catch (Exception error)
         {
-            Status = $"Could not open save: {error.Message}";
+            Status = $"Não foi possível abrir o save: {error.Message}";
         }
         finally
         {
@@ -146,7 +146,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         if (detail.IsEmpty)
         {
             LegalityBadge = string.Empty;
-            LegalityText = "Empty slot.";
+            LegalityText = "Slot vazio.";
             return;
         }
 
@@ -218,7 +218,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         var detail = Selected;
         if (engineSession is null || session is null || detail is null || detail.IsEmpty)
         {
-            Status = "Nothing to save.";
+            Status = "Nada para salvar.";
             return;
         }
 
@@ -244,14 +244,14 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
                 OriginalTrainer: EditOt.Length == 0 ? null : EditOt,
                 Gender: ParseInt(EditGender));
 
-            Status = "Applying edit…";
+            Status = "Aplicando a edição…";
             engineSession.ApplyEdit(detail.Box, detail.Slot, edit);
             var candidate = engineSession.Serialize();
 
-            Status = "Validating, backing up, writing…";
+            Status = "Validando, fazendo backup, gravando…";
             var receipt = await _writer.WriteScopedAsync(session.Document.DocumentId, session.Snapshot, candidate,
                 WriteScope.Only(new SlotRef(detail.Box, detail.Slot)),
-                $"Edit {EditorSubject(detail)} ({SlotLabel(detail.Box, detail.Slot)})");
+                $"Editar {EditorSubject(detail)} ({SlotLabel(detail.Box, detail.Slot)})");
             if (receipt.Changed)
             {
                 _sessions.MarkWritten(session.Document.DocumentId, candidate);
@@ -261,7 +261,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
             var updated = engineSession.ReadEntity(detail.Box, detail.Slot);
             var askedAbility = ParseInt(EditAbility);
             if (askedAbility is { } wanted && updated.Ability != wanted)
-                Status = $"Ability did not stick: asked for {wanted}, the mon holds {updated.Ability}. This is the diagnostic the developer needs.";
+                Status = $"A habilidade não foi aplicada: pedido {wanted}, o Pokémon tem {updated.Ability}. Esta é a informação de diagnóstico que o desenvolvedor precisa.";
             var index = Array.FindIndex(_slots, x => x.Box == detail.Box && x.Slot == detail.Slot);
             if (index >= 0)
                 _slots[index] = _slots[index] with { Species = updated.Species, Nickname = updated.Nickname, IsShiny = updated.IsShiny, Form = updated.Form, HeldItem = updated.HeldItem };
@@ -269,13 +269,13 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
             SelectSlot(detail.Slot);
 
             Status = receipt.Changed
-                ? $"Saved. Restore point {ShortBackupId(receipt)} · {receipt.WrittenSha256[..8]}…"
-                : "Nothing changed - no write, no restore point.";
+                ? $"Salvo. Ponto de restauração {ShortBackupId(receipt)} · {receipt.WrittenSha256[..8]}…"
+                : "Nada mudou - sem gravação, sem ponto de restauração.";
         }
         catch (Exception error)
         {
             DiscardPartialEdits();
-            Status = $"Write aborted: {error.Message}";
+            Status = $"Gravação interrompida: {error.Message}";
         }
         finally
         {
@@ -316,7 +316,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         ConnectedGeneration = session.Snapshot.Generation;
         IsConnected = true;
         BumpMutationGeneration();
-        Status = "READY";
+        Status = "PRONTO";
     }
 
     // ── Legality sweep: cached verdicts for the whole save ──
@@ -415,11 +415,11 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         var legalizer = _legalizer;
         if (legalizer is null)
         {
-            Status = "Legalizer unavailable.";
+            Status = "Legalizador indisponível.";
             return Task.FromResult(false);
         }
         var description = Selected is { IsEmpty: false } detail
-            ? $"Legalize {EditorSubject(detail)} ({SlotLabel(BoxIndex, slot)})"
+            ? $"Legalizar {EditorSubject(detail)} ({SlotLabel(BoxIndex, slot)})"
             : null;
         return RunMutationAsync(session => operation(legalizer, session), slot, changeDescription: description, action: action);
     }
@@ -441,7 +441,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         var session = _sessions.Current;
         if (engineSession is null || session is null)
         {
-            Status = "No save connected.";
+            Status = "Nenhum save conectado.";
             return false;
         }
 
@@ -503,15 +503,15 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
                 SelectSlot(slot);
             }
             Status = receipt.Changed
-                ? $"{outcome.Message} · restore point {ShortBackupId(receipt)}"
-                : $"{outcome.Message} Nothing changed - no write, no restore point.";
+                ? $"{outcome.Message} · ponto de restauração {ShortBackupId(receipt)}"
+                : $"{outcome.Message} Nada mudou - sem gravação, sem ponto de restauração.";
             return true;
         }
         catch (Exception error)
         {
             DiscardPartialEdits();
             AppLog.Error("edit", $"Edit aborted ({action})", error);
-            Status = $"Aborted: {error.Message}";
+            Status = $"Interrompido: {error.Message}";
             return false;
         }
         finally
@@ -567,7 +567,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     {
         CancelCarry();
         SelectMode = true;
-        Status = "MULTI-SELECT - A MARKS · Y WHOLE BOX · X ACTIONS";
+        Status = "SELEÇÃO MÚLTIPLA - A MARCA · Y BOX INTEIRA · X AÇÕES";
         OnPropertyChanged(nameof(MarkedCount));
     }
 
@@ -576,7 +576,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         SelectMode = false;
         PendingRectangle = null;
         _marks.Clear();
-        Status = "READY";
+        Status = "PRONTO";
         OnPropertyChanged(nameof(MarkedCount));
     }
 
@@ -585,7 +585,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     public bool ToggleBoxMarks()
     {
         var marked = _marks.TogglePage(_slots, BoxIndex);
-        AnnounceMarks(marked ? $"{PageName} MARKED" : $"{PageName} CLEARED");
+        AnnounceMarks(marked ? $"{PageName} MARCADA" : $"{PageName} LIMPA");
         return marked;
     }
 
@@ -593,7 +593,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     public int MarkBox()
     {
         _marks.MarkPage(_slots, BoxIndex);
-        AnnounceMarks($"{PageName} MARKED");
+        AnnounceMarks($"{PageName} MARCADA");
         return _marks.Count;
     }
 
@@ -601,7 +601,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     public int MarkAllBoxes()
     {
         _marks.MarkAllBoxes(_slots);
-        AnnounceMarks("ALL BOXES MARKED");
+        AnnounceMarks("TODAS AS BOXES MARCADAS");
         return _marks.Count;
     }
 
@@ -609,7 +609,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     public int MarkBoxes(IReadOnlyCollection<int> boxes)
     {
         _marks.MarkBoxes(_slots, boxes);
-        AnnounceMarks($"{boxes.Count} BOX(ES) MARKED");
+        AnnounceMarks($"{boxes.Count} BOX(ES) MARCADA(S)");
         return _marks.Count;
     }
 
@@ -620,7 +620,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     public int MarkSlots(IReadOnlyCollection<(int Box, int Slot)> targets)
     {
         _marks.MarkSlots(_slots, targets);
-        AnnounceMarks($"{targets.Count} MARKED");
+        AnnounceMarks($"{targets.Count} MARCADOS");
         return _marks.Count;
     }
 
@@ -628,13 +628,13 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     public void InvertBoxMarks()
     {
         _marks.InvertPage(_slots, BoxIndex);
-        AnnounceMarks($"{PageName} INVERTED");
+        AnnounceMarks($"{PageName} INVERTIDA");
     }
 
     public void ClearMarks()
     {
         _marks.Clear();
-        AnnounceMarks("MARKS CLEARED");
+        AnnounceMarks("MARCAÇÕES LIMPAS");
     }
 
     /// <summary>Clears the marks after a write without overwriting the write's own status line.</summary>
@@ -667,7 +667,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         if (PendingRectangle is not { } r || slot < 0) return;
         PendingRectangle = r with { To = slot };
         var span = VisibleSlots.Count(s => s.Species is not null && InPendingRectangle(s.Slot));
-        Status = $"MULTI-SELECT - {(r.Mark ? "MARKING" : "UNMARKING")} {span} · RELEASE TO APPLY";
+        Status = $"SELEÇÃO MÚLTIPLA - {(r.Mark ? "MARCANDO" : "DESMARCANDO")} {span} · SOLTE PARA APLICAR";
     }
 
     /// <summary>Applies the rectangle; false when it never grew past its anchor (a plain tap).</summary>
@@ -681,13 +681,13 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         return true;
     }
 
-    private string PageName => BoxIndex == -1 ? "PARTY" : $"BOX {BoxIndex + 1:00}";
+    private string PageName => BoxIndex == -1 ? "EQUIPE" : $"BOX {BoxIndex + 1:00}";
 
     private void AnnounceMarks(string? what)
     {
         Status = what is null
-            ? $"MULTI-SELECT - {_marks.Count} MARKED"
-            : $"MULTI-SELECT - {what} · {_marks.Count} MARKED";
+            ? $"SELEÇÃO MÚLTIPLA - {_marks.Count} MARCADOS"
+            : $"SELEÇÃO MÚLTIPLA - {what} · {_marks.Count} MARCADOS";
         OnPropertyChanged(nameof(MarkedCount));
     }
 
@@ -709,8 +709,8 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         }
         var leftBehind = marked.Count - moved;
         return new GenerationOutcome(moved > 0,
-            moved == 0 ? $"No free slot from box {start.Box + 1} slot {start.Slot + 1} onward."
-                : $"Moved {moved} Pokémon from box {start.Box + 1} slot {start.Slot + 1} on." + (leftBehind > 0 ? $" {leftBehind} stayed (no room)." : ""));
+            moved == 0 ? $"Nenhum slot livre a partir da box {start.Box + 1} slot {start.Slot + 1}."
+                : $"{moved} Pokémon movidos a partir da box {start.Box + 1} slot {start.Slot + 1}." + (leftBehind > 0 ? $" {leftBehind} ficaram (sem espaço)." : ""));
     }, Math.Max(0, SelectedSlot), action: SaveAction.Move).ContinueWith(t =>
     {
         RefreshAllSlots();
@@ -727,7 +727,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         var targets = only ?? _marks.Ordered;
         foreach (var (box, slot) in targets)
             session.ReleaseSlot(box, slot);
-        return new GenerationOutcome(true, $"Released {targets.Count} Pokémon. Bye-bye!");
+        return new GenerationOutcome(true, $"{targets.Count} Pokémon soltos. Tchau, tchau!");
     }, Math.Max(0, SelectedSlot), action: SaveAction.Release).ContinueWith(t =>
     {
         RefreshAllSlots();
@@ -802,7 +802,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         if (SelectedSlot >= slots.Count || slots[SelectedSlot].Species is null) return false;
         CarriedSummary = slots[SelectedSlot];
         CarrySource = (BoxIndex, SelectedSlot);
-        Status = "CARRYING - place with A, cancel with B";
+        Status = "CARREGANDO - coloque com A, cancele com B";
         return true;
     }
 
@@ -810,7 +810,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     {
         CarrySource = null;
         CarriedSummary = null;
-        Status = "READY";
+        Status = "PRONTO";
     }
 
     // Moves write in the order they were dropped, each against the bytes the previous one wrote.
@@ -844,7 +844,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
         CarriedSummary = null;
         if (source.Box == target.Box && source.Slot == target.Slot)
         {
-            Status = "READY";
+            Status = "PRONTO";
             return;
         }
 
@@ -886,17 +886,17 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
                 : throw new InvalidOperationException("The save was closed before the move was written.");
             var receipt = await Task.Run(() => _writer.WriteScopedAsync(documentId, original, candidate,
                 WriteScope.Only(new SlotRef(source.Box, source.Slot), new SlotRef(target.Box, target.Slot)),
-                $"Move {(carried is { } summary ? summary.Nickname ?? $"#{summary.Species}" : "Pokémon")}: {SlotLabel(source.Box, source.Slot)} -> {SlotLabel(target.Box, target.Slot)}").AsTask());
+                $"Mover {(carried is { } summary ? summary.Nickname ?? $"#{summary.Species}" : "Pokémon")}: {SlotLabel(source.Box, source.Slot)} -> {SlotLabel(target.Box, target.Slot)}").AsTask());
             if (receipt.Changed)
                 _sessions.MarkWritten(documentId, candidate);
             Status = receipt.Changed
-                ? $"MOVED · restore point {ShortBackupId(receipt)}"
-                : "Nothing changed - no write, no restore point.";
+                ? $"MOVIDO · ponto de restauração {ShortBackupId(receipt)}"
+                : "Nada mudou - sem gravação, sem ponto de restauração.";
         }
         catch (Exception error)
         {
             AppLog.Error("edit", "Move aborted", error);
-            Status = $"Move aborted: {error.Message}";
+            Status = $"Movimento interrompido: {error.Message}";
         }
         finally
         {
@@ -959,7 +959,7 @@ public partial class BoxBrowserViewModel : ObservableObject, IBoxPager
     private static int? ParseInt(string text) =>
         int.TryParse(text.Trim(), out var value) ? value : null;
 
-    internal static string SlotLabel(int box, int slot) => box == -1 ? $"Party {slot + 1}" : $"Box {box + 1}, Slot {slot + 1}";
+    internal static string SlotLabel(int box, int slot) => box == -1 ? $"Equipe {slot + 1}" : $"Box {box + 1}, slot {slot + 1}";
 
     private static string EditorSubject(Domain.EntityDetail detail) =>
         string.IsNullOrWhiteSpace(detail.Nickname) ? "Pokémon" : detail.Nickname;

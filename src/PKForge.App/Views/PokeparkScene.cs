@@ -474,15 +474,15 @@ public sealed class PokeparkScene(ISpriteService sprites, PokeparkSpriteService 
         var seconds = Math.Max(0, (game.Deadline - _life.Now) / 1000);
         var text = (game.Kind, game.Stage) switch
         {
-            (ParkGameKind.HideAndSeek, ParkGameStage.Starting) => $"Eyes closed… counting to ten while {name} hides",
-            (ParkGameKind.HideAndSeek, _) => $"Find {name}! Tap where it hides  ·  {seconds / 60}:{seconds % 60:D2}  ·  {game.Tries} tries",
-            (ParkGameKind.Race, ParkGameStage.Starting) => "The racers line up…",
+            (ParkGameKind.HideAndSeek, ParkGameStage.Starting) => $"Olhos fechados… contando até dez enquanto {name} se esconde",
+            (ParkGameKind.HideAndSeek, _) => $"Encontre {name}! Toque onde ele se escondeu  ·  {seconds / 60}:{seconds % 60:D2}  ·  {game.Tries} tentativas",
+            (ParkGameKind.Race, ParkGameStage.Starting) => "Os corredores se alinham…",
             (ParkGameKind.Race, ParkGameStage.Countdown) => $"{3 - (_life.Now - game.StageSince) / 1000}…",
-            (ParkGameKind.Race, _) => _life.Now - game.StageSince < 900 ? "GO!" : $"Tap {name} to cheer it on!  ·  {game.Finished.Count}/{game.Players.Count} at the flag",
-            (ParkGameKind.Brush, _) => $"Brush {name} with your finger  ·  {(int)(game.Progress * 100)}%",
-            (ParkGameKind.Spar, ParkGameStage.Countdown) => $"{name} takes its stance…",
-            (ParkGameKind.Spar, _) => game.Striking ? "BLOCK!" : $"Round {Math.Min(game.Round + 1, ParkLife.SparRounds)}/{ParkLife.SparRounds}  ·  {game.Blocked} blocked  ·  tap or A as it strikes",
-            _ => $"{name} is digging…"
+            (ParkGameKind.Race, _) => _life.Now - game.StageSince < 900 ? "JÁ!" : $"Toque em {name} para torcer!  ·  {game.Finished.Count}/{game.Players.Count} na bandeira",
+            (ParkGameKind.Brush, _) => $"Escove {name} com o dedo  ·  {(int)(game.Progress * 100)}%",
+            (ParkGameKind.Spar, ParkGameStage.Countdown) => $"{name} entra em posição…",
+            (ParkGameKind.Spar, _) => game.Striking ? "BLOQUEIA!" : $"Rodada {Math.Min(game.Round + 1, ParkLife.SparRounds)}/{ParkLife.SparRounds}  ·  {game.Blocked} bloqueados  ·  toque ou A quando ele atacar",
+            _ => $"{name} está cavando…"
         };
         DrawBanner(c, p, width, text, game.Kind == ParkGameKind.Brush ? game.Progress : null);
     }
@@ -514,7 +514,7 @@ public sealed class PokeparkScene(ISpriteService sprites, PokeparkSpriteService 
             // A released Pokémon back from the Wilds keeps its form and its colors.
             var friend = _life.OldFriendOf(actor.Resident.Id);
             _visitors[actor.Resident.Id] = look = new ParkPokemon(actor.Resident.Id, actor.Resident.Species, friend?.Form ?? 0, friend?.Shiny ?? actor.Resident.Shiny,
-                actor.Resident.Name, ParkLife.IsKeeper(actor.Resident.Id) ? "Daycare" : friend is null ? "Wild" : "Old friend");
+                actor.Resident.Name, ParkLife.IsKeeper(actor.Resident.Id) ? "Creche" : friend is null ? "Selvagem" : "Velho amigo");
             walking.Warm(look.Species, look.Form, look.Shiny, static () => { });
             sprites.Warm(look.Species, look.Form, look.Shiny, static () => { });
         }

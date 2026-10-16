@@ -14,10 +14,10 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class HoneyTreeEditor
 {
-    private const string MunchlaxReady = "Munchlax waits here";
-    private const string Slather = "Slather honey (catchable now)";
-    private const string SetEncounter = "Set encounter…";
-    private const string SetShakes = "Set shakes…";
+    private const string MunchlaxReady = "Munchlax espera aqui";
+    private const string Slather = "Passar mel (dá para capturar agora)";
+    private const string SetEncounter = "Definir encontro…";
+    private const string SetShakes = "Definir sacudidas…";
 
     // Hex-editor-grade data edit: no dedicated SaveAction exists for world state yet.
     private const SaveAction Action = SaveAction.EditWorld;
@@ -26,7 +26,7 @@ public static class HoneyTreeEditor
     {
         if (!HoneyTreeService.IsSupported(session))
         {
-            await EditorMenu.ShowAsync(host, "Honey trees", "Honey trees exist only in Diamond, Pearl and Platinum.", "OK");
+            await EditorMenu.ShowAsync(host, "Árvores de mel", "Árvores de mel só existem em Diamond, Pearl e Platinum.", "OK");
             return;
         }
 
@@ -35,11 +35,11 @@ public static class HoneyTreeEditor
         {
             var trees = HoneyTreeService.GetTrees(session);
             var munchlax = HoneyTreeService.GetMunchlaxTrees(session);
-            var summary = "Munchlax trees for this trainer: " +
+            var summary = "Árvores de Munchlax deste treinador: " +
                 string.Join(", ", munchlax.Select(i => HoneyTreeService.Locations[i])) + ".";
             var options = trees.Select(tree => new PadOption(TreeLabel(tree),
                 Accent: tree.IsMunchlaxTree ? UiTokens.Green : null)).ToArray();
-            var choice = await EditorMenu.ShowAsync(host, "Honey trees", summary, options);
+            var choice = await EditorMenu.ShowAsync(host, "Árvores de mel", summary, options);
             if (choice is null) return;
             var index = Array.FindIndex(options, o => o.Label == choice);
             if (index < 0) continue;
@@ -52,8 +52,8 @@ public static class HoneyTreeEditor
         HoneyTree tree, int slot)
     {
         var detail = $"{HoneyTreeService.GroupNames[Math.Min(tree.Group, HoneyTreeService.GroupMunchlax)]} · slot {tree.Slot + 1} · " +
-            $"{tree.SpeciesName} · {tree.Shakes} shake(s) · timer {tree.Time} min" +
-            (tree.IsMunchlaxTree ? Environment.NewLine + "This is one of your Munchlax trees." : "");
+            $"{tree.SpeciesName} · {tree.Shakes} sacudida(s) · timer {tree.Time} min" +
+            (tree.IsMunchlaxTree ? Environment.NewLine + "Esta é uma das suas árvores de Munchlax." : "");
 
         if (HardcoreMode.Blocks(Action, out var status))
         {
@@ -63,19 +63,19 @@ public static class HoneyTreeEditor
 
         var actions = new List<PadOption>();
         if (tree.IsMunchlaxTree)
-            actions.Add(new PadOption(MunchlaxReady, Accent: UiTokens.Green, Detail: "Puts a Munchlax in this tree, ready to catch."));
-        actions.Add(new PadOption(Slather, Detail: "Spreads honey so the tree's Pokémon can be caught right away."));
-        actions.Add(new PadOption(SetEncounter, Detail: "Choose which Pokémon this tree attracts."));
+            actions.Add(new PadOption(MunchlaxReady, Accent: UiTokens.Green, Detail: "Coloca um Munchlax nesta árvore, pronto para capturar."));
+        actions.Add(new PadOption(Slather, Detail: "Passa mel para os Pokémon da árvore poderem ser capturados na hora."));
+        actions.Add(new PadOption(SetEncounter, Detail: "Escolha qual Pokémon esta árvore atrai."));
         actions.Add(new PadOption(SetShakes));
         var choice = await EditorMenu.ShowAsync(host, tree.Location, detail, actions.ToArray());
         switch (choice)
         {
             case MunchlaxReady:
                 return await WriteAsync(viewModel, slot, s => HoneyTreeService.SetMunchlaxReady(s, tree.Index),
-                    t => $"Munchlax is waiting in the {t.Location} tree.");
+                    t => $"Munchlax está esperando na árvore de {t.Location}.");
             case Slather:
                 return await WriteAsync(viewModel, slot, s => HoneyTreeService.Slather(s, tree.Index),
-                    t => $"{t.Location}: honey slathered, {t.SpeciesName} catchable.");
+                    t => $"{t.Location}: mel passado, {t.SpeciesName} pode ser capturado.");
             case SetEncounter:
             {
                 var group = await PickGroupAsync(host, tree);
@@ -89,11 +89,11 @@ public static class HoneyTreeEditor
             }
             case SetShakes:
             {
-                var shakes = await StatsPopup.ShowSingleAsync(host, "Shakes", tree.Shakes, HoneyTreeService.MaxShakes);
+                var shakes = await StatsPopup.ShowSingleAsync(host, "Sacudidas", tree.Shakes, HoneyTreeService.MaxShakes);
                 if (shakes is not { } next || next == tree.Shakes) return true;
                 return await WriteAsync(viewModel, slot,
                     s => HoneyTreeService.SetTree(s, tree.Index, tree.Time, tree.Group, tree.Slot, next),
-                    t => $"{t.Location}: {t.Shakes} shake(s).");
+                    t => $"{t.Location}: {t.Shakes} sacudida(s).");
             }
             default:
                 return true;
@@ -108,7 +108,7 @@ public static class HoneyTreeEditor
             .Where(g => g != HoneyTreeService.GroupMunchlax || tree.IsMunchlaxTree)
             .ToArray();
         var labels = groups.Select(g => HoneyTreeService.GroupNames[g]).ToArray();
-        var choice = await EditorMenu.ShowAsync(host, "Encounter group", null, labels);
+        var choice = await EditorMenu.ShowAsync(host, "Grupo de encontro", null, labels);
         var index = Array.IndexOf(labels, choice);
         return index < 0 ? null : groups[index];
     }
@@ -116,7 +116,7 @@ public static class HoneyTreeEditor
     private static async Task<int?> PickSlotAsync(Grid host, IReadOnlyList<string> species)
     {
         var labels = species.Select((name, i) => $"Slot {i + 1} · {name}").ToArray();
-        var choice = await EditorMenu.ShowAsync(host, "Encounter slot", null, labels);
+        var choice = await EditorMenu.ShowAsync(host, "Slot de encontro", null, labels);
         var index = Array.IndexOf(labels, choice);
         return index < 0 ? null : index;
     }

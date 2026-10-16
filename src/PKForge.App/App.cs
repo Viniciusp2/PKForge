@@ -112,7 +112,7 @@ public sealed class App : Application
                 {
                     Content = new Label
                     {
-                        Text = $"PKForge failed to start:\n\n{error}",
+                        Text = $"O PKForge não conseguiu iniciar:\n\n{error}",
                         TextColor = Colors.White,
                         Margin = new Thickness(20),
                     },

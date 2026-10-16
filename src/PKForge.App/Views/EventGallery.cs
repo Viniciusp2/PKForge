@@ -32,7 +32,7 @@ public static class EventGallery
 
         // Loading the archive (extract + index once per generation) and describing ~1k cards
         // happens off the UI thread; a small overlay covers the first-open beat.
-        var loading = LoadingOverlay.Show(host, "Mystery gift", "Opening the card album…");
+        var loading = LoadingOverlay.Show(host, "Mystery Gift", "Abrindo o álbum de cartões…");
         EventGiftSaveProfile? profile;
         IReadOnlyList<WonderCardEntry> entries;
         try
@@ -54,8 +54,8 @@ public static class EventGallery
 
         if (entries.Count == 0)
         {
-            await PadMenu.ShowAsync(host, "Mystery gift",
-                "No event distributions exist for this game's format in the archive.", "OK");
+            await PadMenu.ShowAsync(host, "Mystery Gift",
+                "Não há distribuições de evento para o formato deste jogo no arquivo.", "OK");
             return;
         }
 
@@ -69,13 +69,13 @@ public static class EventGallery
         if (gift.Kind == EventGiftKind.Item)
         {
             received = await viewModel.RunMutationAsync(s => service.ReceiveItems(s, gift.Id), 0, refreshSlot: false,
-                changeDescription: $"Mystery gift: {chosen.Title}", action: SaveAction.InjectEvent);
+                changeDescription: $"Mystery Gift: {chosen.Title}", action: SaveAction.InjectEvent);
         }
         else
         {
             if (slot < 0)
             {
-                viewModel.Status = "No empty slot in this box for the gift.";
+                viewModel.Status = "Nenhum slot vazio nesta box para o presente.";
                 return;
             }
             received = await viewModel.RunMutationAsync(s => service.Receive(s, gift.Id, viewModel.BoxIndex, slot), slot, action: SaveAction.InjectEvent);
@@ -347,7 +347,7 @@ public static class EventGallery
         c.DrawCircle(center, radius, ring);
     }
 
-    private static string CardNumber(EventGift gift) => $"No. {gift.CardId:0000}";
+    private static string CardNumber(EventGift gift) => $"Nº {gift.CardId:0000}";
 
     /// <summary>"Pikachu · Lv. 20" / "Rare Candy ×5 + 1 more".</summary>
     private static string Subject(WonderCardEntry e)
@@ -358,13 +358,13 @@ public static class EventGallery
             var items = gift.Details?.Items ?? [];
             if (items.Count == 0) return "Item";
             var first = items[0].Quantity > 1 ? $"{items[0].Name} x{items[0].Quantity}" : items[0].Name;
-            return items.Count > 1 ? $"{first} + {items.Count - 1} more" : first;
+            return items.Count > 1 ? $"{first} + mais {items.Count - 1}" : first;
         }
-        return gift.Details?.IsEgg == true ? $"{e.SpeciesName} Egg" : $"{e.SpeciesName} · Lv. {gift.Level}";
+        return gift.Details?.IsEgg == true ? $"Ovo de {e.SpeciesName}" : $"{e.SpeciesName} · Lv. {gift.Level}";
     }
 
     private static string DateText(WonderCardEntry e) =>
-        e.Date is { } d ? d.ToString("yyyy-MM-dd") : e.Year?.ToString() ?? "Undated";
+        e.Date is { } d ? d.ToString("yyyy-MM-dd") : e.Year?.ToString() ?? "Sem data";
 
     // ── Item icons (bag art, cached) ────────────────────────────────────────────
 
@@ -450,7 +450,7 @@ public static class EventGallery
             _header.PaintSurface += PaintHeader;
 
             _search = Kit.TextField();
-            _search.Placeholder = "Search title, Pokémon, OT, move…";
+            _search.Placeholder = "Buscar título, Pokémon, TO, golpe…";
             _search.HeightRequest = 34;
             _search.FontSize = UiTokens.TextSmall;
             _search.TextChanged += (_, args) => OnSearchChanged(args.NewTextValue ?? "");
@@ -492,12 +492,12 @@ public static class EventGallery
             Grid.SetColumn(_preview, 1);
 
             var hints = Kit.WindowHints(
-                ("A", "Open", OpenCard),
-                ("X", "Search", FocusSearch),
-                ("Y", "Filters", () => _ = ShowFilterMenuAsync()),
-                ("LR", "Section", () => OnPadButton(PadButton.R)),
-                ("+", "Sort", CycleSort),
-                ("B", "Back", () => Close(null)));
+                ("A", "Abrir", OpenCard),
+                ("X", "Buscar", FocusSearch),
+                ("Y", "Filtros", () => _ = ShowFilterMenuAsync()),
+                ("LR", "Seção", () => OnPadButton(PadButton.R)),
+                ("+", "Ordenar", CycleSort),
+                ("B", "Voltar", () => Close(null)));
 
             var content = new Grid
             {
@@ -636,7 +636,7 @@ public static class EventGallery
             var counts = _page.Items.Count == _page.Total
                 ? $"{_page.Total} cards"
                 : $"{_page.Items.Count} of {_page.Total}";
-            var received = _page.ReceivedCount > 0 ? $"  ·  {_page.ReceivedCount} received" : "";
+            var received = _page.ReceivedCount > 0 ? $"  ·  {_page.ReceivedCount} recebidos" : "";
             using var ink = new SKPaint { Color = Pksm.Ink, IsAntialias = true };
             var text = Fit(small, counts + received, strip.Width - title.MeasureText("Mystery Gift") - 34);
             Text(c, text, strip.Right - 10, strip.MidY + small.Size * 0.36f, SKTextAlign.Right, small, ink);
@@ -646,18 +646,18 @@ public static class EventGallery
         {
             var q = _query;
             if (_ctx.Profile is not null)
-                yield return ("Fits save", q.CompatibleOnly, () => Set(q with { CompatibleOnly = !q.CompatibleOnly }));
-            yield return (q.Kind switch { WonderCardKindFilter.Pokemon => "Pokémon", WonderCardKindFilter.Items => "Items", _ => "All gifts" },
+                yield return ("Serve no save", q.CompatibleOnly, () => Set(q with { CompatibleOnly = !q.CompatibleOnly }));
+            yield return (q.Kind switch { WonderCardKindFilter.Pokemon => "Pokémon", WonderCardKindFilter.Items => "Itens", _ => "Todos os presentes" },
                 q.Kind != WonderCardKindFilter.All,
                 () => Set(q with { Kind = (WonderCardKindFilter)(((int)q.Kind + 1) % 3) }));
             yield return ("Shiny", q.ShinyOnly, () => Set(q with { ShinyOnly = !q.ShinyOnly }));
-            yield return (q.Received switch { WonderCardReceivedFilter.NotReceived => "New only", WonderCardReceivedFilter.Received => "Received", _ => "Any status" },
+            yield return (q.Received switch { WonderCardReceivedFilter.NotReceived => "Só novos", WonderCardReceivedFilter.Received => "Recebidos", _ => "Qualquer status" },
                 q.Received != WonderCardReceivedFilter.Any,
                 () => Set(q with { Received = (WonderCardReceivedFilter)(((int)q.Received + 1) % 3) }));
             var extra = (q.Year is null ? 0 : 1) + (q.Species is null ? 0 : 1) + (q.Language is null ? 0 : 1) + (q.Series is null ? 0 : 1);
-            yield return (extra > 0 ? $"More · {extra}" : "More…", extra > 0, () => _ = ShowFilterMenuAsync());
-            yield return ($"Sort: {SortLabel(q.Sort)}", false, CycleSort);
-            yield return ($"Group: {GroupLabel(q.Grouping)}", false, CycleGrouping);
+            yield return (extra > 0 ? $"Mais · {extra}" : "Mais…", extra > 0, () => _ = ShowFilterMenuAsync());
+            yield return ($"Ordem: {SortLabel(q.Sort)}", false, CycleSort);
+            yield return ($"Agrupar: {GroupLabel(q.Grouping)}", false, CycleGrouping);
         }
 
         private void PaintChips(object? sender, SKPaintSurfaceEventArgs args)
@@ -702,22 +702,22 @@ public static class EventGallery
 
         private static string SortLabel(WonderCardSort sort) => sort switch
         {
-            WonderCardSort.Newest => "Newest",
-            WonderCardSort.Oldest => "Oldest",
-            WonderCardSort.CardNumber => "Card no.",
-            WonderCardSort.DexNumber => "Dex no.",
+            WonderCardSort.Newest => "Mais novos",
+            WonderCardSort.Oldest => "Mais antigos",
+            WonderCardSort.CardNumber => "Nº do cartão",
+            WonderCardSort.DexNumber => "Nº da dex",
             WonderCardSort.Title => "A-Z",
-            WonderCardSort.Level => "Level",
+            WonderCardSort.Level => "Nível",
             _ => sort.ToString(),
         };
 
         private static string GroupLabel(WonderCardGrouping grouping) => grouping switch
         {
-            WonderCardGrouping.Year => "Year",
-            WonderCardGrouping.Series => "Event",
-            WonderCardGrouping.Games => "Game",
+            WonderCardGrouping.Year => "Ano",
+            WonderCardGrouping.Series => "Evento",
+            WonderCardGrouping.Games => "Jogo",
             WonderCardGrouping.Species => "Pokémon",
-            _ => "None",
+            _ => "Nenhum",
         };
 
         private void CycleSort() => Set(_query with { Sort = (WonderCardSort)(((int)_query.Sort + 1) % 6) });
@@ -750,8 +750,8 @@ public static class EventGallery
 
             if (_page.Items.Count == 0)
             {
-                Text(c, "No cards match.", panel.MidX, panel.MidY - 6, SKTextAlign.Center, title, ink);
-                Text(c, "Clear the search or relax the filters (Y).", panel.MidX, panel.MidY + 14, SKTextAlign.Center, small, soft);
+                Text(c, "Nenhum cartão corresponde.", panel.MidX, panel.MidY - 6, SKTextAlign.Center, title, ink);
+                Text(c, "Limpe a busca ou afrouxe os filtros (Y).", panel.MidX, panel.MidY + 14, SKTextAlign.Center, small, soft);
                 c.Restore();
                 return;
             }
@@ -768,9 +768,9 @@ public static class EventGallery
                     var group = _page.Groups[line.Group];
                     var baseline = y + HeaderH * 0.68f;
                     Text(c, Fit(title, group.Title, right - left - 70), left + 4, baseline, SKTextAlign.Left, title, groupInk);
-                    Text(c, group.Count == 1 ? "1 card" : $"{group.Count} cards", right - 2, baseline, SKTextAlign.Right, small, soft);
+                    Text(c, group.Count == 1 ? "1 cartão" : $"{group.Count} cards", right - 2, baseline, SKTextAlign.Right, small, soft);
                     var tw = title.MeasureText(Fit(title, group.Title, right - left - 70));
-                    var countW = small.MeasureText(group.Count == 1 ? "1 card" : $"{group.Count} cards");
+                    var countW = small.MeasureText(group.Count == 1 ? "1 cartão" : $"{group.Count} cards");
                     c.DrawLine(left + 12 + tw, y + HeaderH * 0.5f, right - countW - 10, y + HeaderH * 0.5f, hair);
                     continue;
                 }
@@ -809,12 +809,12 @@ public static class EventGallery
             var textLeft = art.Right + 8;
             var status = r.Right - 6;
             // Right column: language tag (+ variant count) above, received mark below.
-            var tagText = e.LanguageTag ?? "ALL";
+            var tagText = e.LanguageTag ?? "TODOS";
             if (e.Variants.Count > 1) tagText += $" +{e.Variants.Count - 1}";
             var tagLeft = DrawTag(c, status, r.Top + 17, tagText, tagFont,
                 selected ? Pksm.LogoVoid.WithAlpha(0xA0) : Pksm.LogoDeck, Pksm.InkSoft, alignRight: true);
             if (e.Received) DrawCheck(c, status - 8, r.Bottom - 12, 7f);
-            else if (!e.Compatible) DrawTag(c, status, r.Bottom - 7, "Other lang.", tagFont, PksmPaint.Tone(Pksm.Illegal), Pksm.Ink, alignRight: true);
+            else if (!e.Compatible) DrawTag(c, status, r.Bottom - 7, "Outro idioma", tagFont, PksmPaint.Tone(Pksm.Illegal), Pksm.Ink, alignRight: true);
 
             var titleW = tagLeft - textLeft - 6;
             Text(c, Fit(title, e.Title, titleW), textLeft, r.Top + 19, SKTextAlign.Left, title, ink);
@@ -888,10 +888,10 @@ public static class EventGallery
             using var ink = new SKPaint { Color = Pksm.Ink, IsAntialias = true };
             using var soft = new SKPaint { Color = Pksm.InkSoft, IsAntialias = true };
             using var faint = new SKPaint { Color = Pksm.Ink.WithAlpha(0xB8), IsAntialias = true };
-            Text(c, "WONDER CARD", card.Left + 12, card.Top + 18.5f, SKTextAlign.Left, bandFont, ink);
+            Text(c, "CARTÃO MÁGICO", card.Left + 12, card.Top + 18.5f, SKTextAlign.Left, bandFont, ink);
             if (Current is not { } e)
             {
-                Text(c, "No card selected", card.MidX, card.MidY, SKTextAlign.Center, title, soft);
+                Text(c, "Nenhum cartão selecionado", card.MidX, card.MidY, SKTextAlign.Center, title, soft);
                 return;
             }
             Text(c, CardNumber(e.Gift), card.Right - 20, card.Top + 18.5f, SKTextAlign.Right, bandFont, faint);
@@ -923,11 +923,11 @@ public static class EventGallery
             // Tag row: language, region, status.
             var tagY = Math.Max(center.Y + stageR + 18, ty + 22);
             var x = card.Left + 12;
-            x = DrawTag(c, x, tagY, e.LanguageTag is { } lang ? lang : "ALL LANG.", tagFont, Pksm.LogoDeck.WithAlpha(0xD0), Pksm.Ink) + 4;
+            x = DrawTag(c, x, tagY, e.LanguageTag is { } lang ? lang : "TODOS OS IDIOMAS", tagFont, Pksm.LogoDeck.WithAlpha(0xD0), Pksm.Ink) + 4;
             if (e.Source?.Region is { } region) x = DrawTag(c, x, tagY, region, tagFont, Pksm.LogoDeck.WithAlpha(0xD0), Pksm.Ink) + 4;
-            if (e.Received) x = DrawTag(c, x, tagY, "Received", tagFont, PksmPaint.Tone(Pksm.Legal), Pksm.Ink) + 4;
-            else if (!e.Compatible) x = DrawTag(c, x, tagY, "Other language", tagFont, PksmPaint.Tone(Pksm.Illegal), Pksm.Ink) + 4;
-            else x = DrawTag(c, x, tagY, "New", tagFont, PksmPaint.Tone(Pksm.GiftRed), Pksm.Ink) + 4;
+            if (e.Received) x = DrawTag(c, x, tagY, "Recebidos", tagFont, PksmPaint.Tone(Pksm.Legal), Pksm.Ink) + 4;
+            else if (!e.Compatible) x = DrawTag(c, x, tagY, "Outro idioma", tagFont, PksmPaint.Tone(Pksm.Illegal), Pksm.Ink) + 4;
+            else x = DrawTag(c, x, tagY, "Novo", tagFont, PksmPaint.Tone(Pksm.GiftRed), Pksm.Ink) + 4;
 
             // Printed facts, as many as fit.
             var facts = PreviewFacts(e).ToArray();
@@ -945,21 +945,21 @@ public static class EventGallery
         private static IEnumerable<(string, string)> PreviewFacts(WonderCardEntry e)
         {
             var d = e.Gift.Details;
-            yield return ("Date", DateText(e));
+            yield return ("Data", DateText(e));
             if (e.Gift.Kind == EventGiftKind.Item)
             {
                 foreach (var item in d?.Items.Skip(1) ?? [])
-                    yield return ("Also", item.Quantity > 1 ? $"{item.Name} x{item.Quantity}" : item.Name);
+                    yield return ("Também", item.Quantity > 1 ? $"{item.Name} x{item.Quantity}" : item.Name);
                 yield break;
             }
-            yield return ("OT", d is { OriginalTrainer.Length: > 0 } ? $"{d.OriginalTrainer}  ID {d.TrainerId}" : "Yours (your name & ID)");
+            yield return ("TO", d is { OriginalTrainer.Length: > 0 } ? $"{d.OriginalTrainer}  ID {d.TrainerId}" : "Seu (seu nome e ID)");
             if (e.Source is { Name.Length: > 0 } s) yield return ("Event", GiftTitles.TranslateEventName(s.Name) is { Length: > 0 } n ? n : s.Name);
-            if (d is { Moves.Count: > 0 }) yield return ("Moves", string.Join(", ", d.Moves));
-            yield return ("Item", d is { HeldItemName.Length: > 0 } ? d.HeldItemName : "None");
-            if (d is { BallName.Length: > 0 }) yield return ("Ball", d.BallName);
-            if (d is { MetLocation.Length: > 0 }) yield return ("Met", d.MetLocation);
-            if (e.Source is { Games.Length: > 0 } g) yield return ("Game", g.Games);
-            if (e.Variants.Count > 1) yield return ("Copies", string.Join(" ", e.Variants.Select(v => v.LanguageTag ?? "?").Distinct()));
+            if (d is { Moves.Count: > 0 }) yield return ("Golpes", string.Join(", ", d.Moves));
+            yield return ("Item", d is { HeldItemName.Length: > 0 } ? d.HeldItemName : "Nenhum");
+            if (d is { BallName.Length: > 0 }) yield return ("Bola", d.BallName);
+            if (d is { MetLocation.Length: > 0 }) yield return ("Encontro", d.MetLocation);
+            if (e.Source is { Games.Length: > 0 } g) yield return ("Jogo", g.Games);
+            if (e.Variants.Count > 1) yield return ("Cópias", string.Join(" ", e.Variants.Select(v => v.LanguageTag ?? "?").Distinct()));
         }
 
         // ── Filters menu (Y) ─────────────────────────────────────────────────
@@ -975,55 +975,55 @@ public static class EventGallery
                     var q = _query;
                     var options = new List<PadOption>();
                     if (_ctx.Profile is not null)
-                        options.Add(new PadOption(Check(q.CompatibleOnly) + "Fits this save", IconPath: "game", Detail: "Only cards for this save's generation and language."));
-                    options.Add(new PadOption($"Gifts: {q.Kind switch { WonderCardKindFilter.Pokemon => "Pokémon", WonderCardKindFilter.Items => "Items", _ => "All" }}", IconPath: "events"));
-                    options.Add(new PadOption(Check(q.ShinyOnly) + "Shiny only", IconPath: "shiny", Detail: "Only cards that give a shiny Pokémon."));
-                    options.Add(new PadOption($"Status: {q.Received switch { WonderCardReceivedFilter.NotReceived => "New only", WonderCardReceivedFilter.Received => "Received", _ => "Any" }}", IconPath: "check", Detail: "Show cards you already received here, or only new ones."));
-                    options.Add(new PadOption($"Pokémon: {(q.Species is { } sp ? SpeciesName(_ctx.Data, sp) : "Any")}", IconPath: "pokedex"));
-                    options.Add(new PadOption($"Year: {q.Year?.ToString() ?? "Any"}", IconPath: "calendar"));
-                    options.Add(new PadOption($"Language: {q.Language ?? "Any"}", IconPath: "info"));
-                    options.Add(new PadOption($"Event: {(q.Series is { Length: > 14 } lengthy ? lengthy[..13] + "…" : q.Series ?? "Any")}", IconPath: "ribbons", Detail: "Only cards from one event series."));
-                    options.Add(new PadOption(Check(q.OnePerEvent) + "One card per event", IconPath: "compact", Detail: "Show one card for each event instead of one per language."));
-                    options.Add(new PadOption($"Sort: {SortLabel(q.Sort)}", IconPath: "sort"));
-                    options.Add(new PadOption($"Group: {GroupLabel(q.Grouping)}", IconPath: "blocks"));
+                        options.Add(new PadOption(Check(q.CompatibleOnly) + "Serve neste save", IconPath: "game", Detail: "Só cartões da geração e do idioma deste save."));
+                    options.Add(new PadOption($"Presentes: {q.Kind switch { WonderCardKindFilter.Pokemon => "Pokémon", WonderCardKindFilter.Items => "Itens", _ => "Todos" }}", IconPath: "events"));
+                    options.Add(new PadOption(Check(q.ShinyOnly) + "Só shiny", IconPath: "shiny", Detail: "Só cartões que dão um Pokémon shiny."));
+                    options.Add(new PadOption($"Status: {q.Received switch { WonderCardReceivedFilter.NotReceived => "Só novos", WonderCardReceivedFilter.Received => "Recebidos", _ => "Qualquer" }}", IconPath: "check", Detail: "Mostre os cartões que você já recebeu aqui, ou só os novos."));
+                    options.Add(new PadOption($"Pokémon: {(q.Species is { } sp ? SpeciesName(_ctx.Data, sp) : "Qualquer")}", IconPath: "pokedex"));
+                    options.Add(new PadOption($"Ano: {q.Year?.ToString() ?? "Qualquer"}", IconPath: "calendar"));
+                    options.Add(new PadOption($"Idioma: {q.Language ?? "Qualquer"}", IconPath: "info"));
+                    options.Add(new PadOption($"Evento: {(q.Series is { Length: > 14 } lengthy ? lengthy[..13] + "…" : q.Series ?? "Qualquer")}", IconPath: "ribbons", Detail: "Só cartões de uma série de eventos."));
+                    options.Add(new PadOption(Check(q.OnePerEvent) + "Um cartão por evento", IconPath: "compact", Detail: "Mostra um cartão por evento, em vez de um por idioma."));
+                    options.Add(new PadOption($"Ordem: {SortLabel(q.Sort)}", IconPath: "sort"));
+                    options.Add(new PadOption($"Agrupar: {GroupLabel(q.Grouping)}", IconPath: "blocks"));
                     if (q.ActiveFilterCount > 0 || q.Search.Length > 0)
-                        options.Add(new PadOption("Clear all filters", IconPath: "clear", Detail: "Turn off every filter and clear the search."));
-                    options.Add(new PadOption($"Clear marks ({_ctx.History.Count})", IconPath: "delete", Detail: "Remove every received mark, for all your saves."));
+                        options.Add(new PadOption("Limpar todos os filtros", IconPath: "clear", Detail: "Desliga todos os filtros e limpa a busca."));
+                    options.Add(new PadOption($"Limpar marcações ({_ctx.History.Count})", IconPath: "delete", Detail: "Remove todas as marcas de recebido, de todos os seus saves."));
 
-                    var choice = await PadMenu.ShowAsync(_ctx.Host, "Filter cards",
-                        $"{_page.Items.Count} of {_page.Total} cards shown. Filters never block receiving.", options.ToArray());
+                    var choice = await PadMenu.ShowAsync(_ctx.Host, "Filtrar cartões",
+                        $"{_page.Items.Count} de {_page.Total} cartões mostrados. Os filtros nunca impedem de receber.", options.ToArray());
                     if (choice is null) return;
                     var label = choice.StartsWith("✓ ", StringComparison.Ordinal) ? choice[2..] : choice;
                     switch (label)
                     {
-                        case "Fits this save": Set(q with { CompatibleOnly = !q.CompatibleOnly }); break;
-                        case "Shiny only": Set(q with { ShinyOnly = !q.ShinyOnly }); break;
-                        case "One card per event": Set(q with { OnePerEvent = !q.OnePerEvent }); break;
-                        case "Clear all filters":
+                        case "Serve neste save": Set(q with { CompatibleOnly = !q.CompatibleOnly }); break;
+                        case "Só shiny": Set(q with { ShinyOnly = !q.ShinyOnly }); break;
+                        case "Um cartão por evento": Set(q with { OnePerEvent = !q.OnePerEvent }); break;
+                        case "Limpar todos os filtros":
                             _search.Text = "";
                             Set(new WonderCardQuery { Sort = q.Sort, Grouping = q.Grouping, OnePerEvent = q.OnePerEvent });
                             break;
-                        case { } s when s.StartsWith("Gifts:", StringComparison.Ordinal):
-                            await PickAsync("Gifts", [(0, "All gifts"), (1, "Pokémon"), (2, "Items")], (int)q.Kind,
+                        case { } s when s.StartsWith("Presentes:", StringComparison.Ordinal):
+                            await PickAsync("Presentes", [(0, "Todos os presentes"), (1, "Pokémon"), (2, "Itens")], (int)q.Kind,
                                 id => q with { Kind = (WonderCardKindFilter)id });
                             break;
                         case { } s when s.StartsWith("Status:", StringComparison.Ordinal):
-                            await PickAsync("Status", [(0, "Any"), (1, "New (not received)"), (2, "Received")], (int)q.Received,
+                            await PickAsync("Status", [(0, "Qualquer"), (1, "Novo (não recebido)"), (2, "Recebidos")], (int)q.Received,
                                 id => q with { Received = (WonderCardReceivedFilter)id });
                             break;
                         case { } s when s.StartsWith("Pokémon:", StringComparison.Ordinal): await PickSpeciesAsync(); break;
-                        case { } s when s.StartsWith("Year:", StringComparison.Ordinal): await PickYearAsync(); break;
-                        case { } s when s.StartsWith("Language:", StringComparison.Ordinal): await PickLanguageAsync(); break;
-                        case { } s when s.StartsWith("Event:", StringComparison.Ordinal): await PickSeriesAsync(); break;
-                        case { } s when s.StartsWith("Sort:", StringComparison.Ordinal):
-                            await PickAsync("Sort", [(0, "Newest first"), (1, "Oldest first"), (2, "Card number"), (3, "Pokédex number"), (4, "Title A-Z"), (5, "Level (high first)")],
+                        case { } s when s.StartsWith("Ano:", StringComparison.Ordinal): await PickYearAsync(); break;
+                        case { } s when s.StartsWith("Idioma:", StringComparison.Ordinal): await PickLanguageAsync(); break;
+                        case { } s when s.StartsWith("Evento:", StringComparison.Ordinal): await PickSeriesAsync(); break;
+                        case { } s when s.StartsWith("Ordem:", StringComparison.Ordinal):
+                            await PickAsync("Ordenar", [(0, "Mais novos primeiro"), (1, "Mais antigos primeiro"), (2, "Número do cartão"), (3, "Número da Pokédex"), (4, "Título A-Z"), (5, "Nível (maior primeiro)")],
                                 (int)q.Sort, id => q with { Sort = (WonderCardSort)id });
                             break;
-                        case { } s when s.StartsWith("Group:", StringComparison.Ordinal):
-                            await PickAsync("Group by", [(0, "Year"), (1, "Event series"), (2, "Game"), (3, "Pokémon"), (4, "No groups")],
+                        case { } s when s.StartsWith("Agrupar:", StringComparison.Ordinal):
+                            await PickAsync("Agrupar por", [(0, "Ano"), (1, "Série de eventos"), (2, "Jogo"), (3, "Pokémon"), (4, "Sem grupos")],
                                 (int)q.Grouping, id => q with { Grouping = (WonderCardGrouping)id });
                             break;
-                        case { } s when s.StartsWith("Clear marks", StringComparison.Ordinal):
+                        case { } s when s.StartsWith("Limpar marcações", StringComparison.Ordinal):
                             await ClearHistoryAsync();
                             break;
                     }
@@ -1047,8 +1047,8 @@ public static class EventGallery
         {
             var items = _all.Where(e => e.Gift.Kind == EventGiftKind.Pokemon)
                 .GroupBy(e => e.Gift.Species).OrderBy(g => g.Key)
-                .Select(g => new PickItem(g.Key, $"{SpeciesName(_ctx.Data, g.Key)}", Detail: $"No. {g.Key:000} · {g.Count()} cards"))
-                .Prepend(new PickItem(0, "Any Pokémon")).ToArray();
+                .Select(g => new PickItem(g.Key, $"{SpeciesName(_ctx.Data, g.Key)}", Detail: $"Nº {g.Key:000} · {g.Count()} cartões"))
+                .Prepend(new PickItem(0, "Qualquer Pokémon")).ToArray();
             var picked = await PickerMenu.ShowAsync(_ctx.Host, "Pokémon", items, currentId: _query.Species ?? 0);
             if (picked is not null) Set(_query with { Species = picked.Id == 0 ? null : picked.Id });
         }
@@ -1057,18 +1057,18 @@ public static class EventGallery
         {
             var items = _all.Where(e => e.Year is not null).GroupBy(e => e.Year!.Value).OrderByDescending(g => g.Key)
                 .Select(g => new PickItem(g.Key, g.Key.ToString(), Detail: $"{g.Count()} cards"))
-                .Prepend(new PickItem(0, "Any year")).ToArray();
-            var picked = await PickerMenu.ShowAsync(_ctx.Host, "Year", items, currentId: _query.Year ?? 0);
+                .Prepend(new PickItem(0, "Qualquer ano")).ToArray();
+            var picked = await PickerMenu.ShowAsync(_ctx.Host, "Ano", items, currentId: _query.Year ?? 0);
             if (picked is not null) Set(_query with { Year = picked.Id == 0 ? null : picked.Id });
         }
 
         private async Task PickLanguageAsync()
         {
             var tags = _all.Select(e => e.LanguageTag).Where(t => t is not null).Distinct().Order().ToArray();
-            var items = tags.Select((t, i) => new PickItem(i + 1, GiftLanguages.DisplayName(t!), Detail: $"{t} · {_all.Count(e => e.LanguageTag == t)} cards"))
-                .Prepend(new PickItem(0, "Any language")).ToArray();
+            var items = tags.Select((t, i) => new PickItem(i + 1, GiftLanguages.DisplayName(t!), Detail: $"{t} · {_all.Count(e => e.LanguageTag == t)} cartões"))
+                .Prepend(new PickItem(0, "Qualquer idioma")).ToArray();
             var current = _query.Language is { } l ? Array.IndexOf(tags, l) + 1 : 0;
-            var picked = await PickerMenu.ShowAsync(_ctx.Host, "Language", items, currentId: current);
+            var picked = await PickerMenu.ShowAsync(_ctx.Host, "Idioma", items, currentId: current);
             if (picked is not null) Set(_query with { Language = picked.Id == 0 ? null : tags[picked.Id - 1] });
         }
 
@@ -1077,17 +1077,17 @@ public static class EventGallery
             var series = _all.GroupBy(e => e.Series, StringComparer.OrdinalIgnoreCase).OrderByDescending(g => g.Count())
                 .Select(g => (Name: g.Key, Count: g.Count())).ToArray();
             var items = series.Select((s, i) => new PickItem(i + 1, s.Name, Detail: $"{s.Count} cards"))
-                .Prepend(new PickItem(0, "Any event")).ToArray();
+                .Prepend(new PickItem(0, "Qualquer evento")).ToArray();
             var current = _query.Series is { } cur ? Array.FindIndex(series, s => string.Equals(s.Name, cur, StringComparison.OrdinalIgnoreCase)) + 1 : 0;
-            var picked = await PickerMenu.ShowAsync(_ctx.Host, "Event series", items, currentId: current);
+            var picked = await PickerMenu.ShowAsync(_ctx.Host, "Série de eventos", items, currentId: current);
             if (picked is not null) Set(_query with { Series = picked.Id == 0 ? null : series[picked.Id - 1].Name });
         }
 
         private async Task ClearHistoryAsync()
         {
             if (_ctx.History.Count == 0) return;
-            var confirmed = await PadMenu.ConfirmAsync(_ctx.Host, "Forget received marks",
-                $"Forget all {_ctx.History.Count} recorded gifts? The marks disappear; receiving again still works.", "Forget");
+            var confirmed = await PadMenu.ConfirmAsync(_ctx.Host, "Esquecer marcas de recebido",
+                $"Esquecer todos os {_ctx.History.Count} presentes registrados? As marcas somem; receber de novo continua funcionando.", "Esquecer");
             if (!confirmed) return;
             _ctx.History.Clear();
             _all = _all.Select(e => e with { Received = false }).ToArray();
@@ -1192,13 +1192,13 @@ public static class EventGallery
             _facts = new SKCanvasView { InputTransparent = true };
             _facts.PaintSurface += PaintFacts;
 
-            _receive = Kit.Capsule("Receive", UiTokens.Green, primary: true, icon: "events");
+            _receive = Kit.Capsule("Receber", UiTokens.Green, primary: true, icon: "events");
             _receive.Clicked += (_, _) => Receive();
-            _bank = Kit.Capsule("To Bank", UiTokens.Ink1, icon: "bank");
+            _bank = Kit.Capsule("Para o Banco", UiTokens.Ink1, icon: "bank");
             _bank.Clicked += (_, _) => _ = SendToBankAsync();
-            _exportCard = Kit.Capsule("Card file", UiTokens.Ink1, icon: "export");
+            _exportCard = Kit.Capsule("Arquivo do cartão", UiTokens.Ink1, icon: "export");
             _exportCard.Clicked += (_, _) => _ = ExportAsync(entity: false);
-            _exportPk = Kit.Capsule(".pk file", UiTokens.Ink1, icon: "export");
+            _exportPk = Kit.Capsule("Arquivo .pk", UiTokens.Ink1, icon: "export");
             _exportPk.Clicked += (_, _) => _ = ExportAsync(entity: true);
             _note = new Label
             {
@@ -1227,11 +1227,11 @@ public static class EventGallery
             Grid.SetColumn(_facts, 1);
 
             var itemCard = Shown.Gift.Kind == EventGiftKind.Item;
-            var hintList = new List<(string, string, Action?)> { ("A", itemCard ? "Add to bag" : "Receive", Receive) };
-            if (!itemCard) hintList.Add(("X", "To Bank", () => _ = SendToBankAsync()));
-            hintList.Add(("Y", "Export", () => _ = ExportMenuAsync()));
-            if (_variants.Count > 1) hintList.Add(("LR", "Language", () => OnPadButton(PadButton.R)));
-            hintList.Add(("B", "Close", () => Close(null)));
+            var hintList = new List<(string, string, Action?)> { ("A", itemCard ? "Pôr na mochila" : "Receber", Receive) };
+            if (!itemCard) hintList.Add(("X", "Para o Banco", () => _ = SendToBankAsync()));
+            hintList.Add(("Y", "Exportar", () => _ = ExportMenuAsync()));
+            if (_variants.Count > 1) hintList.Add(("LR", "Idioma", () => OnPadButton(PadButton.R)));
+            hintList.Add(("B", "Fechar", () => Close(null)));
             var hints = Kit.WindowHints([.. hintList]);
 
             var content = new Grid
@@ -1278,19 +1278,19 @@ public static class EventGallery
         {
             var gift = Shown.Gift;
             var item = gift.Kind == EventGiftKind.Item;
-            _receive.Text = item ? "Add to bag"
-                : _ctx.TargetSlot < 0 ? "Box is full"
-                : _ctx.SlotChosen ? $"Receive into slot {_ctx.TargetSlot + 1}"
-                : _ctx.ViewModel.BoxIndex < 0 ? "Receive into party" : $"Receive into Box {_ctx.ViewModel.BoxIndex + 1}";
+            _receive.Text = item ? "Pôr na mochila"
+                : _ctx.TargetSlot < 0 ? "A box está cheia"
+                : _ctx.SlotChosen ? $"Receber no slot {_ctx.TargetSlot + 1}"
+                : _ctx.ViewModel.BoxIndex < 0 ? "Receber na equipe" : $"Receber na Box {_ctx.ViewModel.BoxIndex + 1}";
             _receive.IsEnabled = !Blocked && (item || _ctx.TargetSlot >= 0);
             _bank.IsVisible = !item;
             _exportPk.IsVisible = !item;
             _bank.IsEnabled = !Blocked;
             _exportPk.IsEnabled = !Blocked;
-            _note.Text = Blocked ? "Hardcore mode: receiving is off."
-                : !item && _ctx.TargetSlot < 0 ? "Free a slot in this box to receive."
-                : Shown.Received ? "Already received once - receiving again still works."
-                : !Shown.Compatible ? "Card is for another language; it still converts."
+            _note.Text = Blocked ? "Modo Hardcore: receber está desligado."
+                : !item && _ctx.TargetSlot < 0 ? "Libere um slot nesta box para receber."
+                : Shown.Received ? "Já recebido uma vez - receber de novo continua funcionando."
+                : !Shown.Compatible ? "O cartão é de outro idioma; ele é convertido mesmo assim."
                 : "";
             _card.InvalidateSurface();
             _facts.InvalidateSurface();
@@ -1315,7 +1315,7 @@ public static class EventGallery
             using var tagFont = Font(11f);
             using var ink = new SKPaint { Color = Pksm.Ink, IsAntialias = true };
             using var soft = new SKPaint { Color = Pksm.InkSoft, IsAntialias = true };
-            Text(c, "WONDER CARD", card.Left + 14, card.Top + 21, SKTextAlign.Left, bandFont, ink);
+            Text(c, "CARTÃO MÁGICO", card.Left + 14, card.Top + 21, SKTextAlign.Left, bandFont, ink);
             Text(c, CardNumber(e.Gift), card.Right - 24, card.Top + 21, SKTextAlign.Right, bandFont, ink);
 
             var stageR = Math.Min(Math.Min(card.Height * 0.27f, card.Width * 0.19f), 80f);
@@ -1352,23 +1352,23 @@ public static class EventGallery
                     c.DrawRoundRect(strip, 5, 5, well);
                 var y = strip.Top + 18;
                 var x = strip.Left + 10;
-                x = DrawTag(c, x, y, e.LanguageTag is { } lang ? GiftLanguages.DisplayName(lang) : "All languages", tagFont, Pksm.LogoDeck, Pksm.Ink) + 5;
+                x = DrawTag(c, x, y, e.LanguageTag is { } lang ? GiftLanguages.DisplayName(lang) : "Todos os idiomas", tagFont, Pksm.LogoDeck, Pksm.Ink) + 5;
                 if (e.Source?.Region is { } region) x = DrawTag(c, x, y, region, tagFont, Pksm.LogoDeck, Pksm.Ink) + 5;
                 if (e.Source?.Games is { Length: > 0 } games) x = DrawTag(c, x, y, games, tagFont, Pksm.LogoDeck, Pksm.Ink) + 5;
-                if (e.Received) DrawTag(c, x, y, "Received", tagFont, PksmPaint.Tone(Pksm.Legal), Pksm.Ink);
-                else DrawTag(c, x, y, "New", tagFont, PksmPaint.Tone(Pksm.GiftRed), Pksm.Ink);
+                if (e.Received) DrawTag(c, x, y, "Recebidos", tagFont, PksmPaint.Tone(Pksm.Legal), Pksm.Ink);
+                else DrawTag(c, x, y, "Novo", tagFont, PksmPaint.Tone(Pksm.GiftRed), Pksm.Ink);
                 y += 20;
                 var eventName = e.Source is { } s ? (GiftTitles.TranslateEventName(s.Name) is { Length: > 0 } n ? n : s.Name) : e.Series;
                 if (y < strip.Bottom - 4)
-                    Text(c, Fit(body, $"Event: {eventName}", strip.Width - 20), strip.Left + 10, y, SKTextAlign.Left, body, ink);
+                    Text(c, Fit(body, $"Evento: {eventName}", strip.Width - 20), strip.Left + 10, y, SKTextAlign.Left, body, ink);
                 y += 17;
                 if (y < strip.Bottom - 4)
-                    Text(c, Fit(body, $"Distributed: {DateText(e)}", strip.Width - 20), strip.Left + 10, y, SKTextAlign.Left, body, soft);
+                    Text(c, Fit(body, $"Distribuído: {DateText(e)}", strip.Width - 20), strip.Left + 10, y, SKTextAlign.Left, body, soft);
                 y += 17;
                 if (_variants.Count > 1 && y < strip.Bottom - 4)
                 {
                     var langs = string.Join(" ", _variants.Select(v => v.LanguageTag ?? "?"));
-                    Text(c, Fit(body, $"Copies: {langs}  (L/R)", strip.Width - 20), strip.Left + 10, y, SKTextAlign.Left, body, soft);
+                    Text(c, Fit(body, $"Cópias: {langs}  (L/R)", strip.Width - 20), strip.Left + 10, y, SKTextAlign.Left, body, soft);
                 }
             }
         }
@@ -1405,7 +1405,7 @@ public static class EventGallery
 
             if (e.Gift.Kind == EventGiftKind.Item)
             {
-                Header("Items");
+                Header("Itens");
                 foreach (var item in d.Items)
                 {
                     if (y > panel.Bottom - 22) break;
@@ -1417,25 +1417,25 @@ public static class EventGallery
                     y += 20;
                 }
                 y += 4;
-                Header("Card");
-                Row("Goes to", "The bag");
-                Row("Card No.", $"{e.Gift.CardId:0000} · {d.Format}");
-                Row("Status", e.Received ? "Received before" : "Never received");
+                Header("Cartão");
+                Row("Vai para", "A mochila");
+                Row("Nº do cartão", $"{e.Gift.CardId:0000} · {d.Format}");
+                Row("Status", e.Received ? "Já recebido" : "Nunca recebido");
                 return;
             }
 
             Header("Pokémon");
-            Row("OT", d.OriginalTrainer.Length > 0 ? d.OriginalTrainer : "Yours");
-            Row("ID No.", d.TrainerId.Length > 0 ? d.TrainerId : "Yours");
-            Row("Ball", d.BallName.Length > 0 ? d.BallName : "—");
-            Row("Item", d.HeldItemName.Length > 0 ? d.HeldItemName : "None");
-            Row("Met", d.MetLocation.Length > 0 ? d.MetLocation : "—");
-            if (d.IsEgg) Row("Hatch", "Arrives as an Egg");
+            Row("TO", d.OriginalTrainer.Length > 0 ? d.OriginalTrainer : "Seu");
+            Row("Nº de ID", d.TrainerId.Length > 0 ? d.TrainerId : "Seu");
+            Row("Bola", d.BallName.Length > 0 ? d.BallName : "—");
+            Row("Item", d.HeldItemName.Length > 0 ? d.HeldItemName : "Nenhum");
+            Row("Encontro", d.MetLocation.Length > 0 ? d.MetLocation : "—");
+            if (d.IsEgg) Row("Choca", "Chega como ovo");
 
             if (d.Moves.Count > 0 && y < panel.Bottom - 40)
             {
                 y += 2;
-                Header("Moves");
+                Header("Golpes");
                 // Two columns of move pills.
                 var colW = (right - left - 6) / 2;
                 for (var i = 0; i < d.Moves.Count; i++)
@@ -1454,11 +1454,11 @@ public static class EventGallery
             {
                 if (y > panel.Bottom - 60) return;
                 y += 2;
-                Header("Card");
-                Row("Card No.", $"{e.Gift.CardId:0000} · {d.Format}");
-                Row("Status", e.Received ? "Received before" : "Never received");
-                if (_variants.Count > 1) Row("Copies", string.Join(" ", _variants.Select(v => v.LanguageTag ?? "?")));
-                else Row("Language", e.LanguageTag is { } l ? GiftLanguages.DisplayName(l) : "Every language");
+                Header("Cartão");
+                Row("Nº do cartão", $"{e.Gift.CardId:0000} · {d.Format}");
+                Row("Status", e.Received ? "Já recebido" : "Nunca recebido");
+                if (_variants.Count > 1) Row("Cópias", string.Join(" ", _variants.Select(v => v.LanguageTag ?? "?")));
+                else Row("Idioma", e.LanguageTag is { } l ? GiftLanguages.DisplayName(l) : "Todos os idiomas");
             }
         }
 
@@ -1519,7 +1519,7 @@ public static class EventGallery
                     var info = engine.TryDescribeEntity(export.Data, $"Mystery Gift · {Shown.Title}", export.Format);
                     return info is null ? null : bank.Add(export.Data, info);
                 });
-                _note.Text = added is null ? "This card could not be converted for the Bank." : $"Sent to the Bank (Box {added.Box + 1}).";
+                _note.Text = added is null ? "Não foi possível converter este cartão para o Banco." : $"Enviado para o Banco (Box {added.Box + 1}).";
             }
             finally
             {
@@ -1539,15 +1539,15 @@ public static class EventGallery
             string? choice;
             try
             {
-                choice = await PadMenu.ShowAsync(_ctx.Host, "Export", "Share the wonder card itself, or the Pokémon it gives as a .pk file.",
-                    new PadOption("Card file", IconPath: "events", Detail: "The wonder card as a file."),
-                    new PadOption("Pokémon (.pk)", IconPath: "export", Detail: "The Pokémon the card gives, as a .pk file."));
+                choice = await PadMenu.ShowAsync(_ctx.Host, "Exportar", "Compartilhe o próprio Cartão Mágico, ou o Pokémon que ele dá como arquivo .pk.",
+                    new PadOption("Arquivo do cartão", IconPath: "events", Detail: "O Cartão Mágico como arquivo."),
+                    new PadOption("Pokémon (.pk)", IconPath: "export", Detail: "O Pokémon que o cartão dá, como arquivo .pk."));
             }
             finally
             {
                 _busy = false;
             }
-            if (choice == "Card file") await ExportAsync(entity: false);
+            if (choice == "Arquivo do cartão") await ExportAsync(entity: false);
             else if (choice == "Pokémon (.pk)") await ExportAsync(entity: true);
         }
 
@@ -1566,17 +1566,17 @@ public static class EventGallery
                 var export = await Task.Run(() => entity ? _ctx.Service.ExportEntity(_ctx.Session, gift.Id) : _ctx.Service.ExportCard(_ctx.Session, gift.Id));
                 if (export is null)
                 {
-                    _note.Text = "Nothing to export for this card.";
+                    _note.Text = "Nada para exportar deste cartão.";
                     return;
                 }
                 var path = System.IO.Path.Combine(FileSystem.CacheDirectory, export.FileName);
                 await File.WriteAllBytesAsync(path, export.Data);
                 await Share.Default.RequestAsync(new ShareFileRequest { Title = Shown.Title, File = new ShareFile(path) });
-                _note.Text = $"Exported {export.FileName}";
+                _note.Text = $"{export.FileName} exportado";
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException or InvalidOperationException)
             {
-                _note.Text = $"Export failed: {error.Message}";
+                _note.Text = $"A exportação falhou: {error.Message}";
             }
             finally
             {

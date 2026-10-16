@@ -90,7 +90,7 @@ public static class LivingDexAutopilot
                 colors[save.DocumentId] = save.Identity?.ColorKey;
                 // "HeartGold", not "Pokémon HeartGold": every label on the plan and the map is a cartridge name.
                 var label = CartridgeName(save.Identity?.DisplayName ?? save.GameLabel);
-                progress?.Report($"Reading {label}…");
+                progress?.Report($"Lendo {label}…");
                 if (save.Identity?.IsHidden == true)
                 {
                     sources.Add(Excluded(save, label, LivingDexExclusion.Hidden));
@@ -106,7 +106,7 @@ public static class LivingDexAutopilot
                 catch (OperationCanceledException) { throw; }
                 catch (Exception error)
                 {
-                    sources.Add(Excluded(save, label, LivingDexExclusion.Unreadable, $"Could not be read: {error.Message}"));
+                    sources.Add(Excluded(save, label, LivingDexExclusion.Unreadable, $"Não foi possível ler: {error.Message}"));
                 }
             }
             if (bank is not null) sources.Add(LivingDexSources.FromBank(bank));
@@ -146,9 +146,9 @@ public static class LivingDexAutopilot
     /// <summary>No API tells whether an emulator holds the file; a fresh write is the tell.</summary>
     private static string? Caution(DetectedSave save)
     {
-        if (save.RequiresExtraCare) return $"{save.Emulator} console storage: close the emulator before applying.";
+        if (save.RequiresExtraCare) return $"Armazenamento de console do {save.Emulator}: feche o emulador antes de aplicar.";
         if (save.LastModified is { } modified && DateTimeOffset.UtcNow - modified < TimeSpan.FromMinutes(10))
-            return $"Saved {Math.Max(1, (int)(DateTimeOffset.UtcNow - modified).TotalMinutes)} min ago: close the game in the emulator first.";
+            return $"Salvo há {Math.Max(1, (int)(DateTimeOffset.UtcNow - modified).TotalMinutes)} min: feche o jogo no emulador primeiro.";
         return null;
     }
 

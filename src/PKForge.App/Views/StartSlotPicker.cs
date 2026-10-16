@@ -9,7 +9,7 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class StartSlotPicker
 {
-    private const string FirstFree = "First free space";
+    private const string FirstFree = "Primeiro espaço livre";
 
     /// <summary>The player's choice: <see cref="Start"/> is null for "first free space".</summary>
     public sealed record Choice(SlotRef? Start);
@@ -20,24 +20,24 @@ public static class StartSlotPicker
         var boxes = slots.Where(s => s.Box >= 0).GroupBy(s => s.Box).OrderBy(g => g.Key).ToList();
         var options = new List<PadOption>();
         if (offerFirstFree)
-            options.Add(new PadOption(FirstFree, IconPath: "fill", Detail: "Wherever there is room, box by box."));
+            options.Add(new PadOption(FirstFree, IconPath: "fill", Detail: "Onde tiver espaço, box por box."));
         foreach (var box in boxes)
         {
             var free = box.Count(s => s.Species is null);
-            options.Add(new PadOption($"Box {box.Key + 1:00}", IconPath: "box", Detail: free == 0 ? "Full" : $"{free} free"));
+            options.Add(new PadOption($"Box {box.Key + 1:00}", IconPath: "box", Detail: free == 0 ? "Cheia" : $"{free} free"));
         }
 
-        var boxChoice = await PadMenu.ShowAsync(host, title, $"{count} Pokémon. Pick where they start.", [.. options]);
+        var boxChoice = await PadMenu.ShowAsync(host, title, $"{count} Pokémon. Escolha onde eles começam.", [.. options]);
         if (boxChoice is null) return null;
         if (boxChoice == FirstFree) return new Choice(null);
         var boxIndex = boxes[options.FindIndex(o => o.Label == boxChoice) - (offerFirstFree ? 1 : 0)].Key;
 
         var boxSlots = boxes.First(g => g.Key == boxIndex).OrderBy(s => s.Slot).ToList();
         var slotOptions = boxSlots
-            .Select(s => new PadOption($"Slot {s.Slot + 1:00}", Detail: s.Species is null ? "Free" : "Taken, skipped"))
+            .Select(s => new PadOption($"Slot {s.Slot + 1:00}", Detail: s.Species is null ? "Livre" : "Ocupado, pulado"))
             .ToArray();
-        var slotChoice = await PadMenu.ShowAsync(host, $"Box {boxIndex + 1:00}: start at which slot?",
-            "They fill the free slots from here on, then the next boxes. Taken slots are skipped.", slotOptions);
+        var slotChoice = await PadMenu.ShowAsync(host, $"Box {boxIndex + 1:00}: começar em qual slot?",
+            "Eles preenchem os slots livres daqui em diante e depois as próximas boxes. Os slots ocupados são pulados.", slotOptions);
         if (slotChoice is null) return null;
         var slot = boxSlots[Array.FindIndex(slotOptions, o => o.Label == slotChoice)].Slot;
         return new Choice(new SlotRef(boxIndex, slot));
@@ -47,9 +47,9 @@ public static class StartSlotPicker
     public static string Describe(IReadOnlyList<SlotSummary> slots, SlotRef? start, int count)
     {
         var landing = SlotPlanning.FreeSlotsFrom(slots, start).Take(count).ToList();
-        if (landing.Count == 0) return "There is no free slot from there on.";
+        if (landing.Count == 0) return "Não há slot livre dali em diante.";
         static string Name(SlotRef s) => $"box {s.Box + 1:00} slot {s.Slot + 1:00}";
         var range = landing.Count == 1 ? Name(landing[0]) : $"{Name(landing[0])} to {Name(landing[^1])}";
-        return landing.Count < count ? $"{range}; {count - landing.Count} will not fit." : range;
+        return landing.Count < count ? $"{range}; {count - landing.Count} não vão caber." : range;
     }
 }

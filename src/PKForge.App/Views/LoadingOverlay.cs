@@ -27,11 +27,11 @@ public sealed class LoadingOverlay
             FontFamily = DsChrome.PixelFont,
             FontSize = 14,
             HorizontalTextAlignment = TextAlignment.Center,
-            Text = "Starting…",
+            Text = "Começando…",
         };
         _bar = new ProgressBar { ProgressColor = UiTokens.Green };
 
-        var cancel = Kit.Capsule("Cancel", UiTokens.Ink1);
+        var cancel = Kit.Capsule("Cancelar", UiTokens.Ink1);
         cancel.HorizontalOptions = LayoutOptions.Center;
         cancel.Clicked += (_, _) => Cancellation.Cancel();
 

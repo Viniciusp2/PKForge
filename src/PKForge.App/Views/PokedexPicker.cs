@@ -40,9 +40,9 @@ public sealed class PokedexPicker : IPadHandler
     private readonly SecondScreenClaim? _claim;
     private readonly List<Border> _typeChips = [];
     private readonly List<Border> _genChips = [];
-    private string _category = "Any";
-    private string _power = "Any";
-    private string _theme = "Any";
+    private string _category = "Qualquer";
+    private string _power = "Qualquer";
+    private string _theme = "Qualquer";
     private Label _categoryLabel = null!;
     private Label _powerLabel = null!;
     private Label _themeLabel = null!;
@@ -215,7 +215,7 @@ public sealed class PokedexPicker : IPadHandler
 
         var search = new Entry
         {
-            Placeholder = "Search a Pokémon…",
+            Placeholder = "Buscar um Pokémon…",
             FontSize = 14,
             TextColor = UiTokens.Ink0,
             PlaceholderColor = UiTokens.Ink1,
@@ -249,12 +249,12 @@ public sealed class PokedexPicker : IPadHandler
         content.Add(filters); Grid.SetRow(filters, 2);
         content.Add(_grid); Grid.SetRow(_grid, 3);
         var hints = Kit.WindowHints(
-            ("A", "Choose", () => OnPadButton(PadButton.A)),
-            ("B", "Cancel", () => Close(null)),
+            ("A", "Escolher", () => OnPadButton(PadButton.A)),
+            ("B", "Cancelar", () => Close(null)),
             ("LR", "Gen", () => OnPadButton(PadButton.R)),
-            ("X", "Types", () => _ = ShowTypeFilterMenuAsync()),
-            ("+", "Filters", () => _ = ShowFilterAxisMenuAsync()),
-            ("Y", "Clear", ClearFilters));
+            ("X", "Tipos", () => _ = ShowTypeFilterMenuAsync()),
+            ("+", "Filtros", () => _ = ShowFilterAxisMenuAsync()),
+            ("Y", "Limpar", ClearFilters));
         content.Add(hints); Grid.SetRow(hints, 4);
 
         var window = Kit.DevicePanel(content, padding: 12);
@@ -313,9 +313,9 @@ public sealed class PokedexPicker : IPadHandler
     {
         _typeFilters.Clear();
         _genFilter = null;
-        _category = "Any";
-        _power = "Any";
-        _theme = "Any";
+        _category = "Qualquer";
+        _power = "Qualquer";
+        _theme = "Qualquer";
         RefreshCapsules();
         RefreshChipStates();
         Refilter();
@@ -324,9 +324,9 @@ public sealed class PokedexPicker : IPadHandler
     private void RefreshCapsules()
     {
         if (_categoryLabel is null) return;
-        _categoryLabel.Text = $"Category: {_category}";
-        _powerLabel.Text = $"Power: {_power}";
-        _themeLabel.Text = $"Theme: {_theme}";
+        _categoryLabel.Text = $"Categoria: {_category}";
+        _powerLabel.Text = $"Poder: {_power}";
+        _themeLabel.Text = $"Tema: {_theme}";
     }
 
     private void RefreshChipStates()
@@ -386,7 +386,7 @@ public sealed class PokedexPicker : IPadHandler
             StrokeThickness = 0,
             StrokeShape = new RoundRectangle { CornerRadius = 6 },
             Padding = new Thickness(10, 3),
-            Content = new Label { Text = "Clear", TextColor = Colors.White, FontSize = UiTokens.TextSmall, FontAttributes = FontAttributes.Bold },
+            Content = new Label { Text = "Limpar", TextColor = Colors.White, FontSize = UiTokens.TextSmall, FontAttributes = FontAttributes.Bold },
         };
         var clearTap = new TapGestureRecognizer();
         clearTap.Tapped += (_, _) => ClearFilters();
@@ -394,9 +394,9 @@ public sealed class PokedexPicker : IPadHandler
         genRow.Children.Add(clear);
 
         var extras = new HorizontalStackLayout { Spacing = 5 };
-        extras.Children.Add(FilterCapsule("Category", () => _ = ShowCategoryMenuAsync(), ref _categoryLabel));
-        extras.Children.Add(FilterCapsule("Power", () => _ = ShowPowerMenuAsync(), ref _powerLabel));
-        extras.Children.Add(FilterCapsule("Theme", () => _ = ShowThemeMenuAsync(), ref _themeLabel));
+        extras.Children.Add(FilterCapsule("Categoria", () => _ = ShowCategoryMenuAsync(), ref _categoryLabel));
+        extras.Children.Add(FilterCapsule("Poder", () => _ = ShowPowerMenuAsync(), ref _powerLabel));
+        extras.Children.Add(FilterCapsule("Tema", () => _ = ShowThemeMenuAsync(), ref _themeLabel));
 
         return new VerticalStackLayout
         {
@@ -413,7 +413,7 @@ public sealed class PokedexPicker : IPadHandler
     /// <summary>A live capsule showing the current selection of one filter axis.</summary>
     private Border FilterCapsule(string caption, Action open, ref Label valueLabel)
     {
-        valueLabel = new Label { Text = $"{caption}: Any", TextColor = Colors.White, FontSize = UiTokens.TextSmall, FontAttributes = FontAttributes.Bold };
+        valueLabel = new Label { Text = $"{caption}: Qualquer", TextColor = Colors.White, FontSize = UiTokens.TextSmall, FontAttributes = FontAttributes.Bold };
         var capsule = new Border
         {
             BackgroundColor = UiTokens.MenuBlue,
@@ -441,29 +441,29 @@ public sealed class PokedexPicker : IPadHandler
             source = source.Where(e => _typeFilters.All(t => e.Types.Contains(t)));
         if (!string.IsNullOrWhiteSpace(_query))
             source = source.Where(e => e.Name.Contains(_query, StringComparison.OrdinalIgnoreCase));
-        if (_category != "Any")
+        if (_category != "Qualquer")
             source = source.Where(e => MatchesCategory(e, _category));
-        if (_power != "Any")
+        if (_power != "Qualquer")
             source = source.Where(e => MatchesPower(e, _power));
-        if (_theme != "Any")
+        if (_theme != "Qualquer")
             source = source.Where(e => MatchesTheme(e, _theme));
         return source.ToList();
     }
 
     private static bool MatchesCategory(DexEntry e, string category) => category switch
     {
-        "Legendary" => SpeciesCategories.Legendary.Contains(e.Id),
-        "Mythical" => SpeciesCategories.Mythical.Contains(e.Id),
+        "Lendário" => SpeciesCategories.Legendary.Contains(e.Id),
+        "Mítico" => SpeciesCategories.Mythical.Contains(e.Id),
         "Ultra Beast" => SpeciesCategories.UltraBeast.Contains(e.Id),
-        "Paradox" => SpeciesCategories.Paradox.Contains(e.Id),
+        "Paradoxo" => SpeciesCategories.Paradox.Contains(e.Id),
         "Pseudo-Legendary" => SpeciesCategories.PseudoLegendary.Contains(e.Id),
-        "Starter" => SpeciesCategories.Starter.Contains(e.Id),
-        "Fossil" => SpeciesCategories.Fossil.Contains(e.Id),
-        "Baby" => SpeciesCategories.Baby.Contains(e.Id),
-        "Regional Form" => e.Forms.Regional,
+        "Inicial" => SpeciesCategories.Starter.Contains(e.Id),
+        "Fóssil" => SpeciesCategories.Fossil.Contains(e.Id),
+        "Bebê" => SpeciesCategories.Baby.Contains(e.Id),
+        "Forma regional" => e.Forms.Regional,
         "Mega-capable" => e.Forms.Mega,
         "Gigantamax-capable" => SpeciesCategories.GigantamaxCapable.Contains(e.Id),
-        "Has Alternate Forms" => e.Forms.HasForms,
+        "Tem formas alternativas" => e.Forms.HasForms,
         _ => true,
     };
 
@@ -475,22 +475,22 @@ public sealed class PokedexPicker : IPadHandler
             "400+ BST" => total >= 400,
             "500+ BST" => total >= 500,
             "600+ BST" => total >= 600,
-            "Physical Attacker" => e.Stats.Atk >= 100 && e.Stats.Atk >= e.Stats.SpA + 15,
-            "Special Attacker" => e.Stats.SpA >= 100 && e.Stats.SpA >= e.Stats.Atk + 15,
-            "Fast" => e.Stats.Spe >= 100,
-            "Sturdy" => e.Stats.Hp + e.Stats.Def + e.Stats.SpD >= 280,
+            "Atacante físico" => e.Stats.Atk >= 100 && e.Stats.Atk >= e.Stats.SpA + 15,
+            "Atacante especial" => e.Stats.SpA >= 100 && e.Stats.SpA >= e.Stats.Atk + 15,
+            "Rápido" => e.Stats.Spe >= 100,
+            "Resistente" => e.Stats.Hp + e.Stats.Def + e.Stats.SpD >= 280,
             _ => true,
         };
     }
 
     private static bool MatchesTheme(DexEntry e, string theme) => theme switch
     {
-        "Dragons" => e.Types.Contains(15) || SpeciesCategories.Themes.DragonExtras.Contains(e.Id),
-        "Aquatic" => e.Types.Contains(10) || SpeciesCategories.Themes.AquaticExtras.Contains(e.Id),
-        "Felines" => SpeciesCategories.Themes.Felines.Contains(e.Id),
-        "Canines" => SpeciesCategories.Themes.Canines.Contains(e.Id),
-        "Birds" => SpeciesCategories.Themes.Birds.Contains(e.Id),
-        "Dinosaurs" => SpeciesCategories.Themes.Dinosaurs.Contains(e.Id),
+        "Dragões" => e.Types.Contains(15) || SpeciesCategories.Themes.DragonExtras.Contains(e.Id),
+        "Aquáticos" => e.Types.Contains(10) || SpeciesCategories.Themes.AquaticExtras.Contains(e.Id),
+        "Felinos" => SpeciesCategories.Themes.Felines.Contains(e.Id),
+        "Caninos" => SpeciesCategories.Themes.Canines.Contains(e.Id),
+        "Aves" => SpeciesCategories.Themes.Birds.Contains(e.Id),
+        "Dinossauros" => SpeciesCategories.Themes.Dinosaurs.Contains(e.Id),
         _ => true,
     };
 
@@ -562,11 +562,11 @@ public sealed class PokedexPicker : IPadHandler
     {
         var options = Enumerable.Range(0, TypeNames.Length)
             .Select(t => (_typeFilters.Contains(t) ? "✓ " : "") + TypeNames[t])
-            .Append("Clear all filters")
+            .Append("Limpar todos os filtros")
             .ToArray();
-        var choice = await PadMenu.ShowAsync(_host, "FILTER BY TYPE (toggle)", "A Pokémon must match every checked type.", options);
+        var choice = await PadMenu.ShowAsync(_host, "FILTRAR POR TIPO (alternar)", "O Pokémon precisa ter todos os tipos marcados.", options);
         if (choice is null) return;
-        if (choice == "Clear all filters") { ClearFilters(); return; }
+        if (choice == "Limpar todos os filtros") { ClearFilters(); return; }
         var name = choice.StartsWith("✓ ", StringComparison.Ordinal) ? choice[2..] : choice;
         var type = Array.IndexOf(TypeNames, name);
         if (type >= 0) ToggleType(type);
@@ -575,28 +575,28 @@ public sealed class PokedexPicker : IPadHandler
     /// <summary>Pad path into the three deep-filter axes (the capsules are the touch path).</summary>
     private async Task ShowFilterAxisMenuAsync()
     {
-        var choice = await PadMenu.ShowAsync(_host, "Filters",
-            "Categories, power, and themes combine with the type gems and generation chips.",
-            new PadOption($"Category: {_category}", IconPath: "type", Detail: "Legendary, starter, fossil, baby and other groups."),
-            new PadOption($"Power: {_power}", IconPath: "battle", Detail: "Base stat total or battle style, such as fast."),
-            new PadOption($"Theme: {_theme}", IconPath: "filter", Detail: "Fun groups like dragons, birds or dinosaurs."),
-            new PadOption("Clear all filters", IconPath: "clear", Detail: "Also clears the type and generation picks."));
+        var choice = await PadMenu.ShowAsync(_host, "Filtros",
+            "Categorias, poder e temas se combinam com os tipos e as gerações escolhidas.",
+            new PadOption($"Categoria: {_category}", IconPath: "type", Detail: "Lendários, iniciais, fósseis, bebês e outros grupos."),
+            new PadOption($"Poder: {_power}", IconPath: "battle", Detail: "Total de atributos base ou estilo de batalha, como rápido."),
+            new PadOption($"Tema: {_theme}", IconPath: "filter", Detail: "Grupos divertidos, como dragões, aves ou dinossauros."),
+            new PadOption("Limpar todos os filtros", IconPath: "clear", Detail: "Também limpa os tipos e gerações escolhidos."));
         switch (choice)
         {
-            case "Clear all filters": ClearFilters(); return;
-            case { } picked when picked.StartsWith("Category", StringComparison.Ordinal): await ShowCategoryMenuAsync(); return;
-            case { } picked when picked.StartsWith("Power", StringComparison.Ordinal): await ShowPowerMenuAsync(); return;
-            case { } picked when picked.StartsWith("Theme", StringComparison.Ordinal): await ShowThemeMenuAsync(); return;
+            case "Limpar todos os filtros": ClearFilters(); return;
+            case { } picked when picked.StartsWith("Categoria", StringComparison.Ordinal): await ShowCategoryMenuAsync(); return;
+            case { } picked when picked.StartsWith("Poder", StringComparison.Ordinal): await ShowPowerMenuAsync(); return;
+            case { } picked when picked.StartsWith("Tema", StringComparison.Ordinal): await ShowThemeMenuAsync(); return;
         }
     }
 
     private async Task ShowCategoryMenuAsync()
     {
-        var choice = await PadMenu.ShowAsync(_host, "Category",
-            "Rarity and special families. Combines with types, generation, power, and theme.",
-            "Any", "Legendary", "Mythical", "Ultra Beast", "Paradox", "Pseudo-Legendary",
-            "Starter", "Fossil", "Baby", "Regional Form", "Mega-capable",
-            "Gigantamax-capable", "Has Alternate Forms");
+        var choice = await PadMenu.ShowAsync(_host, "Categoria",
+            "Raridade e famílias especiais. Combina com tipos, geração, poder e tema.",
+            "Qualquer", "Lendário", "Mítico", "Ultra Beast", "Paradoxo", "Pseudo-Legendary",
+            "Inicial", "Fóssil", "Bebê", "Forma regional", "Mega-capable",
+            "Gigantamax-capable", "Tem formas alternativas");
         if (choice is null) return;
         _category = choice;
         RefreshCapsules();
@@ -605,9 +605,9 @@ public sealed class PokedexPicker : IPadHandler
 
     private async Task ShowPowerMenuAsync()
     {
-        var choice = await PadMenu.ShowAsync(_host, "Power", null,
-            "Any", "400+ BST", "500+ BST", "600+ BST", "Physical Attacker",
-            "Special Attacker", "Fast", "Sturdy");
+        var choice = await PadMenu.ShowAsync(_host, "Poder", null,
+            "Qualquer", "400+ BST", "500+ BST", "600+ BST", "Atacante físico",
+            "Atacante especial", "Rápido", "Resistente");
         if (choice is null) return;
         _power = choice;
         RefreshCapsules();
@@ -616,8 +616,8 @@ public sealed class PokedexPicker : IPadHandler
 
     private async Task ShowThemeMenuAsync()
     {
-        var choice = await PadMenu.ShowAsync(_host, "Theme", "The fun filters. Subjective by design.",
-            "Any", "Dragons", "Aquatic", "Felines", "Canines", "Birds", "Dinosaurs");
+        var choice = await PadMenu.ShowAsync(_host, "Tema", "Os filtros divertidos. Subjetivos de propósito.",
+            "Qualquer", "Dragões", "Aquáticos", "Felinos", "Caninos", "Aves", "Dinossauros");
         if (choice is null) return;
         _theme = choice;
         RefreshCapsules();

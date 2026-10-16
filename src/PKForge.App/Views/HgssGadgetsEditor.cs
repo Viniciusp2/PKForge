@@ -12,25 +12,25 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class HgssGadgetsEditor
 {
-    private const string AllApricorns = "Fill every Apricorn (99)";
-    private const string NoApricorns = "Empty the Apricorn Box";
+    private const string AllApricorns = "Encher todos os Apricorns (99)";
+    private const string NoApricorns = "Esvaziar a Apricorn Box";
 
-    private const string Steps = "Set steps…";
-    private const string Watts = "Set watts…";
-    private const string UnlockAll = "Unlock every course";
+    private const string Steps = "Definir passos…";
+    private const string Watts = "Definir watts…";
+    private const string UnlockAll = "Desbloquear todos os percursos";
 
     public static async Task ShowApricornsAsync(Grid host, ISaveEngineSession session, BoxBrowserViewModel viewModel)
     {
         while (true)
         {
             var apricorns = ApricornService.GetApricorns(session);
-            var detail = "Give Apricorns to Kurt in Azalea Town and he makes one Poké Ball from each, ready the next day.";
+            var detail = "Dê Apricorns ao Kurt em Azalea Town e ele faz uma Poké Ball de cada um, pronta no dia seguinte.";
             if (await WorldEventsMenu.BlockedAsync(host, "Apricorn Box",
                     detail + Environment.NewLine + string.Join(Environment.NewLine, apricorns.Select(a => $"{a.Name}: {a.Count}")),
                     SaveAction.EditInventory))
                 return;
 
-            var options = apricorns.Select(a => new PadOption($"{a.Name} × {a.Count}", IconPath: "ball", Detail: $"Makes a {a.BallMade}"))
+            var options = apricorns.Select(a => new PadOption($"{a.Name} × {a.Count}", IconPath: "ball", Detail: $"Faz uma {a.BallMade}"))
                 .Append(new PadOption(AllApricorns, IconPath: "fill", Accent: UiTokens.Green))
                 .Append(new PadOption(NoApricorns, IconPath: "clear"))
                 .ToArray();
@@ -38,9 +38,9 @@ public static class HgssGadgetsEditor
             if (choice is null) return;
             bool ok;
             if (choice == AllApricorns)
-                ok = await WorldEventsMenu.WriteAsync(viewModel, s => { ApricornService.SetAll(s, ApricornService.MaxCount); return "Every Apricorn set to 99."; }, SaveAction.EditInventory);
+                ok = await WorldEventsMenu.WriteAsync(viewModel, s => { ApricornService.SetAll(s, ApricornService.MaxCount); return "Todos os Apricorns em 99."; }, SaveAction.EditInventory);
             else if (choice == NoApricorns)
-                ok = await WorldEventsMenu.WriteAsync(viewModel, s => { ApricornService.SetAll(s, 0); return "Apricorn Box emptied."; }, SaveAction.EditInventory);
+                ok = await WorldEventsMenu.WriteAsync(viewModel, s => { ApricornService.SetAll(s, 0); return "Apricorn Box esvaziada."; }, SaveAction.EditInventory);
             else
             {
                 var index = Array.FindIndex(options, o => o.Label == choice);
@@ -61,16 +61,16 @@ public static class HgssGadgetsEditor
         {
             var state = PokewalkerService.GetState(session);
             var unlocked = state.Courses.Count(c => c.Unlocked);
-            var detail = $"Steps {state.Steps:N0} · Watts {state.Watts:N0} · {unlocked}/{state.Courses.Count} courses unlocked" +
-                Environment.NewLine + "Pick a course to see what it gives.";
+            var detail = $"Passos {state.Steps:N0} · Watts {state.Watts:N0} · {unlocked}/{state.Courses.Count} percursos desbloqueados" +
+                Environment.NewLine + "Escolha um percurso para ver o que ele dá.";
             var blocked = PKForge.App.Services.HardcoreMode.Blocks(SaveAction.EditWorld, out _);
 
             var options = new List<PadOption>();
             if (!blocked)
             {
-                options.Add(new PadOption(Steps, IconPath: "records", Detail: "The total steps the Pokéwalker has counted."));
-                options.Add(new PadOption(Watts, IconPath: "stats", Detail: "The watts stored on the Pokéwalker."));
-                options.Add(new PadOption(UnlockAll, IconPath: "all", Accent: UiTokens.Green, Detail: "Opens every course your game's language has."));
+                options.Add(new PadOption(Steps, IconPath: "records", Detail: "O total de passos que o Pokéwalker contou."));
+                options.Add(new PadOption(Watts, IconPath: "stats", Detail: "Os watts guardados no Pokéwalker."));
+                options.Add(new PadOption(UnlockAll, IconPath: "all", Accent: UiTokens.Green, Detail: "Abre todos os percursos que o idioma do seu jogo tem."));
             }
             options.AddRange(state.Courses.Select(c => new PadOption(CourseLabel(c),
                 Accent: c.Unlocked ? UiTokens.Green : null, IconPath: c.Unlocked ? "check" : "padlock",
@@ -87,20 +87,20 @@ public static class HgssGadgetsEditor
                 case Watts:
                 {
                     var isSteps = choice == Steps;
-                    var value = await StatsPopup.ShowSingleAsync(host, isSteps ? "Steps" : "Watts",
+                    var value = await StatsPopup.ShowSingleAsync(host, isSteps ? "Passos" : "Watts",
                         (int)Math.Min(isSteps ? state.Steps : state.Watts, PokewalkerService.MaxCounter), (int)PokewalkerService.MaxCounter,
                         $"0 - {PokewalkerService.MaxCounter:N0}");
                     if (value is not { } v) continue;
                     ok = await WorldEventsMenu.WriteAsync(viewModel, s =>
                     {
                         var after = PokewalkerService.SetCounters(s, isSteps ? (uint)v : state.Steps, isSteps ? state.Watts : (uint)v);
-                        return $"Pokéwalker: {after.Steps:N0} steps, {after.Watts:N0} watts.";
+                        return $"Pokéwalker: {after.Steps:N0} passos, {after.Watts:N0} watts.";
                     });
                     break;
                 }
                 case UnlockAll:
                     ok = await WorldEventsMenu.WriteAsync(viewModel, s =>
-                        $"{PokewalkerService.UnlockAll(s).Courses.Count(c => c.Unlocked)} courses unlocked (every course your game's language has).");
+                        $"{PokewalkerService.UnlockAll(s).Courses.Count(c => c.Unlocked)} percursos desbloqueados (todos os que o idioma do seu jogo tem).");
                     break;
                 default:
                 {
@@ -117,16 +117,16 @@ public static class HgssGadgetsEditor
     private static async Task<bool> ShowCourseAsync(Grid host, BoxBrowserViewModel viewModel, PokewalkerCourse course, bool blocked)
     {
         var detail = (course.IsSpecial
-                ? "Special course: it was handed out by events, not unlocked by earning watts."
-                : "Unlocked on the Pokéwalker by earning watts.") + Environment.NewLine +
-            "Pokémon you can catch here:" + Environment.NewLine + string.Join(Environment.NewLine, course.Encounters) +
-            (course.AvailableForLanguage ? "" : Environment.NewLine + "Your game's language never received this course.");
+                ? "Percurso especial: foi distribuído em eventos, não desbloqueado ganhando watts."
+                : "Desbloqueado no Pokéwalker ganhando watts.") + Environment.NewLine +
+            "Pokémon que você pode capturar aqui:" + Environment.NewLine + string.Join(Environment.NewLine, course.Encounters) +
+            (course.AvailableForLanguage ? "" : Environment.NewLine + "O idioma do seu jogo nunca recebeu este percurso.");
         if (blocked || (!course.AvailableForLanguage && !course.Unlocked))
         {
             await EditorMenu.ShowAsync(host, course.Name, detail, "OK");
             return true;
         }
-        var toggle = course.Unlocked ? "Lock this course" : "Unlock this course";
+        var toggle = course.Unlocked ? "Bloquear este percurso" : "Desbloquear este percurso";
         var choice = await EditorMenu.ShowAsync(host, course.Name, detail,
             new PadOption(toggle, IconPath: course.Unlocked ? "padlock" : "check", Accent: course.Unlocked ? null : UiTokens.Green));
         if (choice != toggle) return true;

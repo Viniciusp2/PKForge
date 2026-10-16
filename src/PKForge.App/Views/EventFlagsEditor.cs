@@ -44,7 +44,7 @@ public sealed class EventFlagsEditor : IPadHandler
     {
         if (EventFlagService.UnsupportedReason(session) is { } reason)
         {
-            await EditorMenu.ShowAsync(host, "Event flags", reason, "OK");
+            await EditorMenu.ShowAsync(host, "Flags de evento", reason, "OK");
             return;
         }
         var catalog = await Task.Run(() => EventFlagService.Load(session));
@@ -62,8 +62,8 @@ public sealed class EventFlagsEditor : IPadHandler
 
         _flagsTab = Chip($"Flags · {catalog.Flags.Count}", () => SetKind(EventEntryKind.Flag));
         _workTab = Chip($"Work · {catalog.Work.Count}", () => SetKind(EventEntryKind.Work));
-        _unlabeledChip = Chip("Y Unlabeled", ToggleUnlabeled);
-        _changedChip = Chip("X Changed", ToggleChanged);
+        _unlabeledChip = Chip("Y Sem rótulo", ToggleUnlabeled);
+        _changedChip = Chip("X Alterados", ToggleChanged);
         var tabs = new FlexLayout
         {
             Wrap = Microsoft.Maui.Layouts.FlexWrap.Wrap,
@@ -97,7 +97,7 @@ public sealed class EventFlagsEditor : IPadHandler
         tabs.Children.Add(pager);
 
         var search = Kit.TextField();
-        search.Placeholder = "Search label or number…";
+        search.Placeholder = "Buscar rótulo ou número…";
         search.TextChanged += (_, args) =>
         {
             _query = args.NewTextValue ?? "";
@@ -113,7 +113,7 @@ public sealed class EventFlagsEditor : IPadHandler
         // highlighted row toggles it too.
         _empty = new Label
         {
-            Text = "Nothing here. Try Y to show unlabeled entries, or another section.",
+            Text = "Nada aqui. Tente Y para mostrar as entradas sem rótulo, ou outra seção.",
             TextColor = UiTokens.InkSoft, FontSize = UiTokens.TextSmall, IsVisible = false,
             HorizontalTextAlignment = TextAlignment.Center, VerticalOptions = LayoutOptions.Center,
         };
@@ -123,8 +123,8 @@ public sealed class EventFlagsEditor : IPadHandler
             TextColor = UiTokens.InkSoft, FontSize = UiTokens.TextSmall, MaxLines = 2,
             LineBreakMode = LineBreakMode.TailTruncation, HorizontalTextAlignment = TextAlignment.Center,
         };
-        var hints = Kit.WindowHints(("A", "Change", () => { if (Current is { } row) _ = ActivateAsync(row); }),
-            ("L", "R  Section", () => Page(1)), ("B", "Close", Close));
+        var hints = Kit.WindowHints(("A", "Alterar", () => { if (Current is { } row) _ = ActivateAsync(row); }),
+            ("L", "R  Seção", () => Page(1)), ("B", "Fechar", Close));
 
         var body = new Grid { Children = { _list, _empty } };
         var content = new Grid
@@ -132,7 +132,7 @@ public sealed class EventFlagsEditor : IPadHandler
             RowSpacing = 8,
             VerticalOptions = LayoutOptions.Fill,
             RowDefinitions = [new(GridLength.Auto), new(GridLength.Auto), new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto), new(GridLength.Auto)],
-            Children = { Kit.HeaderBar($"Event flags · {catalog.Game}"), tabs, search, body, _footer, hints },
+            Children = { Kit.HeaderBar($"Flags de evento · {catalog.Game}"), tabs, search, body, _footer, hints },
         };
         for (var row = 1; row < content.Children.Count; row++)
             Grid.SetRow((View)content.Children[row], row);
@@ -177,7 +177,7 @@ public sealed class EventFlagsEditor : IPadHandler
         Kit.SetTab(_workTab, _kind == EventEntryKind.Work);
         Kit.SetTab(_unlabeledChip, _showUnlabeled);
         Kit.SetTab(_changedChip, _changedOnly);
-        _section.Text = Kit.Tidy(category is null ? $"All sections ({_categories.Count})" : $"{category} · {_category}/{_categories.Count}");
+        _section.Text = Kit.Tidy(category is null ? $"Todas as seções ({_categories.Count})" : $"{category} · {_category}/{_categories.Count}");
         UpdateFooter();
         Highlight();
     }
@@ -186,8 +186,8 @@ public sealed class EventFlagsEditor : IPadHandler
     {
         var total = Source.Count();
         var changed = Source.Count(e => _rows[(e.Kind, e.Bank, e.Index)].Entry.Changed);
-        var mode = HardcoreMode.Guard.Allows(SaveAction.EditWorld) ? "" : " · Hardcore: view only";
-        _footer.Text = $"{_visible.Count} shown of {total} · {changed} changed since open{mode}\nLabels: {_catalog.LabelSource}";
+        var mode = HardcoreMode.Guard.Allows(SaveAction.EditWorld) ? "" : " · Hardcore: só visualização";
+        _footer.Text = $"{_visible.Count} mostrados de {total} · {changed} alterados desde a abertura{mode}\nRótulos: {_catalog.LabelSource}";
     }
 
     private void SetKind(EventEntryKind kind)
@@ -235,7 +235,7 @@ public sealed class EventFlagsEditor : IPadHandler
         {
             if (HardcoreMode.Blocks(SaveAction.EditWorld, out var blocked))
             {
-                await EditorMenu.ShowAsync(_host, "Hardcore mode", $"{blocked}\nFlags stay viewable.", "OK");
+                await EditorMenu.ShowAsync(_host, "Modo Hardcore", $"{blocked}\nAs flags continuam visíveis.", "OK");
                 return;
             }
             var entry = row.Entry;
@@ -254,9 +254,9 @@ public sealed class EventFlagsEditor : IPadHandler
     private async Task ToggleFlagAsync(EventRow row, EventEntry entry)
     {
         var next = !entry.IsOn;
-        var confirmed = await PadMenu.ConfirmAsync(_host, next ? "Set flag?" : "Clear flag?",
-            $"{entry.DisplayName}\n#{entry.Id} · {entry.Category} · {OnOff(entry.IsOn)} → {OnOff(next)}\n{Warning(entry)}A restore point is created first.",
-            next ? "Set ON" : "Set OFF");
+        var confirmed = await PadMenu.ConfirmAsync(_host, next ? "Ligar a flag?" : "Desligar a flag?",
+            $"{entry.DisplayName}\n#{entry.Id} · {entry.Category} · {OnOff(entry.IsOn)} → {OnOff(next)}\n{Warning(entry)}Um ponto de restauração é criado antes.",
+            next ? "LIGAR" : "DESLIGAR");
         if (!confirmed) return;
         var (bank, index) = (entry.Bank, entry.Index);
         if (await Write(s => EventFlagService.SetFlag(s, bank, index, next)))
@@ -265,7 +265,7 @@ public sealed class EventFlagsEditor : IPadHandler
 
     private async Task EditWorkAsync(EventRow row, EventEntry entry)
     {
-        const string Custom = "Enter a number…";
+        const string Custom = "Digitar um número…";
         var presets = entry.Presets.Where(p => p.Value >= entry.Min && p.Value <= entry.Max).ToList();
         long value;
         if (presets.Count != 0)
@@ -274,7 +274,7 @@ public sealed class EventFlagsEditor : IPadHandler
                     Accent: p.Value == entry.Value ? UiTokens.Green : null))
                 .Append(new PadOption(Custom)).ToArray();
             var choice = await PadMenu.ShowAsync(_host, entry.DisplayName,
-                $"#{entry.Id} · now {entry.Value}{(entry.ValueName is { } n ? $" ({n})" : "")}", options);
+                $"#{entry.Id} · agora {entry.Value}{(entry.ValueName is { } n ? $" ({n})" : "")}", options);
             if (choice is null) return;
             if (choice != Custom)
             {
@@ -284,12 +284,12 @@ public sealed class EventFlagsEditor : IPadHandler
             }
         }
         var text = await TextPopup.ShowLineAsync(_host, entry.DisplayName,
-            $"Work #{entry.Id}: {entry.Min} to {entry.Max}", entry.Value.ToString(CultureInfo.InvariantCulture));
+            $"Work #{entry.Id}: {entry.Min} a {entry.Max}", entry.Value.ToString(CultureInfo.InvariantCulture));
         if (string.IsNullOrWhiteSpace(text)) return;
         if (!long.TryParse(text.Trim(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value)
             || value < entry.Min || value > entry.Max)
         {
-            await EditorMenu.ShowAsync(_host, "Out of range", $"Work #{entry.Id} holds a whole number from {entry.Min} to {entry.Max}.", "OK");
+            await EditorMenu.ShowAsync(_host, "Fora do intervalo", $"O Work #{entry.Id} guarda um número inteiro de {entry.Min} a {entry.Max}.", "OK");
             return;
         }
         await ConfirmWorkAsync(row, entry, value);
@@ -298,8 +298,8 @@ public sealed class EventFlagsEditor : IPadHandler
     private async Task ConfirmWorkAsync(EventRow row, EventEntry entry, long value)
     {
         if (value == entry.Value) return;
-        var confirmed = await PadMenu.ConfirmAsync(_host, "Change work?",
-            $"{entry.DisplayName}\n#{entry.Id} · {entry.Value} → {value}\n{Warning(entry)}A restore point is created first.", "Write");
+        var confirmed = await PadMenu.ConfirmAsync(_host, "Alterar o work?",
+            $"{entry.DisplayName}\n#{entry.Id} · {entry.Value} → {value}\n{Warning(entry)}Um ponto de restauração é criado antes.", "Gravar");
         if (!confirmed) return;
         var index = entry.Index;
         if (await Write(s => EventFlagService.SetWork(s, index, value)))
@@ -318,10 +318,10 @@ public sealed class EventFlagsEditor : IPadHandler
     }
 
     private static string Warning(EventEntry entry) => entry.Risky
-        ? "⚠ Story-critical (PKHeX tags this story progress/system). Changing it can soft-lock the game.\n"
-        : entry.Labeled ? "" : "Unlabeled: PKHeX does not know what this does.\n";
+        ? "⚠ Crítico para a história (o PKHeX marca isto como progresso da história/sistema). Mudar pode travar o jogo.\n"
+        : entry.Labeled ? "" : "Sem rótulo: o PKHeX não sabe o que isto faz.\n";
 
-    private static string OnOff(bool on) => on ? "ON" : "OFF";
+    private static string OnOff(bool on) => on ? "LIGADO" : "DESLIGADO";
 
     private static readonly Dictionary<bool, byte[]> CheckboxPng = [];
 
@@ -432,7 +432,7 @@ public sealed class EventFlagsEditor : IPadHandler
             {
                 check.IsVisible = true;
                 check.Source = CheckboxSource(e.IsOn);
-                valueText.Text = e.IsOn ? "On" : "Off";
+                valueText.Text = e.IsOn ? "Ligado" : "Desligado";
                 valueText.TextColor = e.IsOn ? UiTokens.TextTone(UiTokens.Green) : UiTokens.InkSoft;
             }
             else

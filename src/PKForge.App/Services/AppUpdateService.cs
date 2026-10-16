@@ -30,7 +30,7 @@ public sealed class AppUpdateService
     public async Task<AppUpdateCheck> CheckAsync(CancellationToken cancellationToken = default)
     {
         if (AppInfo.Current.PackageName?.EndsWith(".debug", StringComparison.OrdinalIgnoreCase) == true)
-            return new AppUpdateCheck(false, null, "Diagnostics builds are updated manually.");
+            return new AppUpdateCheck(false, null, "As versões de diagnóstico são atualizadas manualmente.");
 
         using var checkTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         checkTimeout.CancelAfter(TimeSpan.FromSeconds(15));
@@ -67,8 +67,8 @@ public sealed class AppUpdateService
             AppUpdateRules.IsNewerVersion(AppInfo.Current.VersionString, update.Version),
             update,
             AppUpdateRules.IsNewerVersion(AppInfo.Current.VersionString, update.Version)
-                ? $"Version {update.Version} is available."
-                : $"PKForge {AppInfo.Current.VersionString} is up to date.");
+                ? $"A versão {update.Version} está disponível."
+                : $"O PKForge {AppInfo.Current.VersionString} está atualizado.");
     }
 
     public bool ShouldPromptAutomatically(AvailableAppUpdate update) =>
@@ -246,8 +246,8 @@ public sealed class UpdateInstallReceiver : Android.Content.BroadcastReceiver
             return;
         }
         Android.Util.Log.Info("PKForgeUpdate", status == (int)Android.Content.PM.PackageInstallStatus.Success
-            ? "Update install confirmed."
-            : $"Update install status {status}: {message}");
+            ? "Instalação da atualização confirmada."
+            : $"Status da instalação da atualização {status}: {message}");
         if (status == (int)Android.Content.PM.PackageInstallStatus.Success) return;
 
         var apk = intent?.GetStringExtra(ExtraApkPath);
@@ -269,7 +269,7 @@ public sealed class UpdateInstallReceiver : Android.Content.BroadcastReceiver
             {
                 message = error.Message;
             }
-            Failed?.Invoke(message ?? $"Android stopped the installation (status {status}).");
+            Failed?.Invoke(message ?? $"O Android interrompeu a instalação (status {status}).");
         });
     }
 }

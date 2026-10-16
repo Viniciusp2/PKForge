@@ -41,7 +41,7 @@ public sealed class PadMenu : IPadHandler
     /// <summary>Two-option confirm box; true when the user picks <paramref name="confirmLabel"/>.</summary>
     public static async Task<bool> ConfirmAsync(Grid host, string title, string message, string confirmLabel = "OK")
     {
-        var choice = await ShowAsync(host, title, message, confirmLabel, "Cancel");
+        var choice = await ShowAsync(host, title, message, confirmLabel, "Cancelar");
         return choice == confirmLabel;
     }
 
@@ -92,7 +92,7 @@ public sealed class PadMenu : IPadHandler
             });
         }
         content.Children.Add(grid);
-        content.Children.Add(Kit.WindowHints(("A", "Choose", () => OnPadButton(PadButton.A)), ("B", "Cancel", () => Close(null))));
+        content.Children.Add(Kit.WindowHints(("A", "Escolher", () => OnPadButton(PadButton.A)), ("B", "Cancelar", () => Close(null))));
 
         // PadMenu owns the ScrollView (same structure as OverlayWindow's default) so
         // Highlight can scroll the cursor into view; the window caps to the host.

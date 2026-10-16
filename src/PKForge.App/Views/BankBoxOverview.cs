@@ -285,47 +285,47 @@ public sealed class BankBoxOverview : IPadPagingHandler
         var count = Occupied(box);
         var options = new List<PadOption>
         {
-            new("Open this box", IconPath: "box"),
-            new("Pick it up to move it", IconPath: "move"),
-            new("Rename…", IconPath: "rename"),
-            new("Wallpaper…", IconPath: "fashion"),
-            new("Insert a new box before it", IconPath: "create"),
-            new("Insert a new box after it", IconPath: "create"),
+            new("Abrir esta box", IconPath: "box"),
+            new("Pegar para mover", IconPath: "move"),
+            new("Renomear…", IconPath: "rename"),
+            new("Papel de parede…", IconPath: "fashion"),
+            new("Inserir uma box nova antes dela", IconPath: "create"),
+            new("Inserir uma box nova depois dela", IconPath: "create"),
         };
-        if (_boxes.Length > 1) options.Add(new PadOption("Delete this box…", IconPath: "delete"));
+        if (_boxes.Length > 1) options.Add(new PadOption("Apagar esta box…", IconPath: "delete"));
 
         _busy = true;
         string? choice;
         try
         {
             choice = await PadMenu.ShowAsync(_host, BankBoxDecor.Label(box),
-                count == 0 ? "Empty box." : $"{count} / {Slots} Pokémon.", [.. options]);
+                count == 0 ? "Box vazia." : $"{count} / {Slots} Pokémon.", [.. options]);
         }
         finally { _busy = false; }
 
         switch (choice)
         {
-            case "Open this box":
+            case "Abrir esta box":
                 Close(box);
                 return;
-            case "Pick it up to move it":
+            case "Pegar para mover":
                 PickUp(box);
                 return;
-            case "Rename…":
+            case "Renomear…":
                 await RunAsync(() => _page.RenameBoxAsync(box));
                 return;
-            case "Wallpaper…":
+            case "Papel de parede…":
                 await RunAsync(() => _page.PickWallpaperAsync(box));
                 return;
-            case "Insert a new box before it":
+            case "Inserir uma box nova antes dela":
                 await AddBoxAsync(box);
                 return;
-            case "Insert a new box after it":
+            case "Inserir uma box nova depois dela":
                 await AddBoxAsync(box + 1);
                 _cursor = box + 1;
                 Retarget();
                 return;
-            case "Delete this box…":
+            case "Apagar esta box…":
                 // One reload, mapped from the layout before the delete, so the rest close ranks.
                 await RunAsync(() => _page.DeleteBoxAsync(box), BankBoxRemap.Remove(_boxes.Length, box));
                 Retarget();
@@ -501,7 +501,7 @@ public sealed class BankBoxOverview : IPadPagingHandler
         var total = _boxes.Sum(b => b.Count(e => e is not null));
         var heading = _held is { } h
             ? $"{(_carry == Carry.Swap ? "Swapping" : "Moving")} {BankBoxDecor.Label(h)}"
-            : $"All boxes · {_boxes.Length} boxes · {total} Pokémon";
+            : $"Todas as boxes · {_boxes.Length} boxes · {total} Pokémon";
         PksmPaint.CenterText(canvas, heading, 16 * _density, 24 * _density, title, ColorTheme.Current.Bright, Pksm.LogoVoid);
 
         canvas.Save();
@@ -551,9 +551,9 @@ public sealed class BankBoxOverview : IPadPagingHandler
 
         var hintBar = new SKRect(0, info.Height - HintHeight * _density, info.Width, info.Height);
         (string Key, string Label, PadButton Button)[] hints = _held is null
-            ? [("A", "Open", PadButton.A), ("Y", "Pick up", PadButton.Y), ("X", "Box menu", PadButton.X),
-               ("+", "New box", PadButton.Start), ("R", "Page", PadButton.R), ("B", "Close", PadButton.B)]
-            : [("A", "Drop here", PadButton.A), ("X", _carry == Carry.Swap ? "Move instead" : "Swap instead", PadButton.X), ("B", "Cancel", PadButton.B)];
+            ? [("A", "Abrir", PadButton.A), ("Y", "Pegar", PadButton.Y), ("X", "Menu da box", PadButton.X),
+               ("+", "Nova box", PadButton.Start), ("R", "Página", PadButton.R), ("B", "Fechar", PadButton.B)]
+            : [("A", "Soltar aqui", PadButton.A), ("X", _carry == Carry.Swap ? "Mover em vez disso" : "Trocar em vez disso", PadButton.X), ("B", "Cancelar", PadButton.B)];
         var prompts = hints.Select(h => (h.Key, h.Label)).ToArray();
         PksmPaint.HintBar(canvas, hintBar, prompts, small);
         // Every prompt is a button for touch: the same action as its pad key.
@@ -620,7 +620,7 @@ public sealed class BankBoxOverview : IPadPagingHandler
         var name = BankBoxDecor.Label(box);
         PksmPaint.CenterText(canvas, Fit(name, font, rect.Width - 58 * _density), rect.Left + 8 * _density, band.MidY, font, SKColors.White, SKColors.Black);
         var count = Occupied(box);
-        PksmPaint.CenterText(canvas, count == Slots ? "FULL" : $"{count}/{Slots}", rect.Right - 8 * _density, band.MidY, font,
+        PksmPaint.CenterText(canvas, count == Slots ? "CHEIA" : $"{count}/{Slots}", rect.Right - 8 * _density, band.MidY, font,
             count == Slots ? Pksm.ShinyGold : SKColors.White, SKColors.Black, SKTextAlign.Right);
 
         // The 30 slots, every Pokémon drawn small: the box reads like the real one.
@@ -665,7 +665,7 @@ public sealed class BankBoxOverview : IPadPagingHandler
             canvas.DrawRoundRect(clip, border);
         }
         if (LivingDexAutopilot.BankStartBox == box)
-            PksmPaint.CenterText(canvas, "Living dex ▸", rect.Left + 8 * _density, rect.Bottom - 10 * _density, font, Pksm.ShinyGold, SKColors.Black);
+            PksmPaint.CenterText(canvas, "Living Dex ▸", rect.Left + 8 * _density, rect.Bottom - 10 * _density, font, Pksm.ShinyGold, SKColors.Black);
 
         return complete && BankBoxArt.IsReady(box);
     }
@@ -674,7 +674,7 @@ public sealed class BankBoxOverview : IPadPagingHandler
     {
         using var veil = new SKPaint { Color = SKColors.Black.WithAlpha(0x55), IsAntialias = true };
         canvas.DrawRoundRect(rect, 9 * _density, 9 * _density, veil);
-        PksmPaint.CenterText(canvas, "⇄ swap", rect.MidX, rect.MidY, font, SKColors.White, SKColors.Black, SKTextAlign.Center);
+        PksmPaint.CenterText(canvas, "⇄ trocar", rect.MidX, rect.MidY, font, SKColors.White, SKColors.Black, SKTextAlign.Center);
     }
 
     private static string Fit(string text, SKFont font, float width)

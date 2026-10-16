@@ -37,7 +37,7 @@ public static class QrEntityService
     {
         var pick = await FilePicker.Default.PickAsync(new PickOptions
         {
-            PickerTitle = "Pick a screenshot or photo of the QR code",
+            PickerTitle = "Escolha uma captura de tela ou foto do QR code",
             FileTypes = FilePickerFileType.Images,
         });
         if (pick is null) return null;
@@ -49,39 +49,39 @@ public static class QrEntityService
         }
         catch (Exception)
         {
-            await PadMenu.ShowAsync(host, "QR", "That image could not be read.", "OK");
+            await PadMenu.ShowAsync(host, "QR", "Não foi possível ler essa imagem.", "OK");
             return null;
         }
 
         var payload = await Task.Run(() => TryDecodeQr(image));
         if (payload is null)
         {
-            await PadMenu.ShowAsync(host, "QR", "No QR code found in that image.", "OK");
+            await PadMenu.ShowAsync(host, "QR", "Nenhum QR code encontrado nessa imagem.", "OK");
             return null;
         }
 
         var parsed = QrEntityCodec.TryParse(payload);
         if (parsed is null)
         {
-            await PadMenu.ShowAsync(host, "QR", "That QR code is not a PKForge .pk transfer.", "OK");
+            await PadMenu.ShowAsync(host, "QR", "Esse QR code não é uma transferência .pk do PKForge.", "OK");
             return null;
         }
 
         // The PKF1 envelope carries the generation, not the format: it settles PK6 vs PK7
         // (same size), while Gen 8/9 siblings still fall back to PKHeX's heuristics.
         var format = parsed.Generation == 6 ? "PK6" : null;
-        var info = engine.TryDescribeEntity(parsed.EntityBytes, "QR transfer", format);
+        var info = engine.TryDescribeEntity(parsed.EntityBytes, "Transferência por QR", format);
         if (info is null)
         {
-            await PadMenu.ShowAsync(host, "QR", "The QR code's Pokémon data could not be read.", "OK");
+            await PadMenu.ShowAsync(host, "QR", "Não foi possível ler os dados do Pokémon do QR code.", "OK");
             return null;
         }
 
         var name = info.Nickname.Length > 0 ? info.Nickname : parsed.SpeciesName;
         var message =
-            $"{name} · {parsed.SpeciesName}\nLv. {info.Level} · OT {OriginalTrainerOf(engine, parsed.EntityBytes, info.Format)} · Gen {parsed.Generation}";
+            $"{name} · {parsed.SpeciesName}\nLv. {info.Level} · TO {OriginalTrainerOf(engine, parsed.EntityBytes, info.Format)} · Gen {parsed.Generation}";
         if (contextNote is not null) message += $"\n\n{contextNote}";
-        var confirmed = await PadMenu.ConfirmAsync(host, "POKéMON FOUND", message, "Receive");
+        var confirmed = await PadMenu.ConfirmAsync(host, "POKéMON ENCONTRADO", message, "Receber");
         return confirmed ? new QrReceivedEntity(parsed.EntityBytes, info) : null;
     }
 

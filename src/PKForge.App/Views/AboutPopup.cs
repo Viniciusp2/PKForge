@@ -49,7 +49,7 @@ public static class AboutPopup
             result.TrySetResult();
         }
 
-        var close = Kit.Capsule("Close", UiTokens.Ink1);
+        var close = Kit.Capsule("Fechar", UiTokens.Ink1);
         close.Clicked += (_, _) => Close();
 
         Label Small(string text, Color? color = null) => new()
@@ -66,13 +66,13 @@ public static class AboutPopup
             Spacing = 10,
             Children =
             {
-                Kit.HeaderBar("About PKForge"),
+                Kit.HeaderBar("Sobre o PKForge"),
                 new Label { Text = "PKForge", FontSize = 20, FontAttributes = FontAttributes.Bold, FontFamily = DsChrome.PixelFont, TextColor = UiTokens.Ink0, HorizontalTextAlignment = TextAlignment.Center },
-                Small("Pokémon save manager and bank"),
-                Row("Version", diagnostic ? $"v{version} · diagnostic" : $"v{version}"),
-                Row("Developed by", "@22sh"),
-                Row("Design by", "@spritedmistery"),
-                Small("Engine PKHeX · chrome PKSM (GPL-3)"),
+                Small("Gerenciador de saves e banco de Pokémon"),
+                Row("Versão", diagnostic ? $"v{version} · diagnóstico" : $"v{version}"),
+                Row("Desenvolvido por", "@22sh"),
+                Row("Design por", "@spritedmistery"),
+                Small("Motor PKHeX · visual PKSM (GPL-3)"),
                 Small("Sprites © Nintendo · Creatures · Game Freak"),
                 Small("github.com/sofianeelhor/pkforge", UiTokens.MenuBlue),
                 new HorizontalStackLayout { Spacing = 8, HorizontalOptions = LayoutOptions.End, Children = { close } },

@@ -85,7 +85,7 @@ public sealed class MonSummaryView : ContentView
     public event Action<SummaryPage>? PageChanged;
 
     /// <summary>How to repair a Pokémon that is not legal, in the host's own controls.</summary>
-    public string FixHint { get; set; } = "Legalize finds the closest legal version. Its PID, nature or IVs may change.";
+    public string FixHint { get; set; } = "Legalizar encontra a versão legal mais próxima. O PID, a natureza ou os IVs podem mudar.";
 
     public MonSummaryView(ISpriteService sprites)
     {
@@ -133,7 +133,7 @@ public sealed class MonSummaryView : ContentView
         var has = summary is not null;
         if (_left.IsVisible != has) _left.IsVisible = _right.IsVisible = has;
         if (_empty.IsVisible == has) _empty.IsVisible = !has;
-        if (!has) _empty.Text = emptyText ?? "Empty slot";
+        if (!has) _empty.Text = emptyText ?? "Slot vazio";
         _left.InvalidateSurface();
         // The same mon with its verdict arriving keeps its scroll: only the verdict page repaints.
         if (!sameMon || _pageKind == SummaryPage.Legality) RefreshPage(resetScroll: !sameMon);
@@ -393,7 +393,7 @@ public sealed class MonSummaryView : ContentView
             Outline(c, banner, Pksm.Ink, 4);
         }
         // The ball it was caught in sits at the start of the banner, as in the games.
-        var name = s.IsEgg ? "Egg" : s.DisplayName;
+        var name = s.IsEgg ? "Ovo" : s.DisplayName;
         var hasBall = !s.IsEgg && DrawBall(c, s.Ball, new SKRect(28, 46, 88, 106));
         var nameLeft = hasBall ? 100f : 0f;
         SummaryInk.Draw(c, SummaryInk.Fit(name, 44, 540 - nameLeft - 20), (nameLeft + 540) / 2, SummaryInk.Center(77, 44), 44, Pksm.Ink, align: SKTextAlign.Center);
@@ -529,8 +529,8 @@ public sealed class MonSummaryView : ContentView
 
         // Ability and item rows first, so the card's rim and the tab draw over their ends.
         var ability = s.IsEgg ? "—" : s.AbilityName ?? "—";
-        var item = s.IsEgg ? "—" : s.HeldItemName ?? "None";
-        (string Label, string Value)[] rows = [("Ability", ability), ("Item", item)];
+        var item = s.IsEgg ? "—" : s.HeldItemName ?? "Nenhum";
+        (string Label, string Value)[] rows = [("Habilidade", ability), ("Item", item)];
         for (var i = 0; i < rows.Length; i++)
         {
             var y = top + 194 + i * 96;
@@ -566,12 +566,12 @@ public sealed class MonSummaryView : ContentView
 
     private (string Text, SKColor Color) Status(MonSummary s)
     {
-        if (_legalityPending) return ("Checking…", ValueInk);
+        if (_legalityPending) return ("Verificando…", ValueInk);
         return s.Legal switch
         {
             true => ("Legal", Pksm.Legal),
-            false => ("Illegal", Pksm.Illegal),
-            _ => ("Not checked", ValueInk),
+            false => ("Ilegal", Pksm.Illegal),
+            _ => ("Não verificado", ValueInk),
         };
     }
 
@@ -725,64 +725,64 @@ public sealed class MonSummaryView : ContentView
         if (s.IsEgg)
         {
             blocks.Add(Divider("Egg"));
-            blocks.Add(Text("This Pokémon is still an egg: its stats and moves appear once it hatches."));
+            blocks.Add(Text("Este Pokémon ainda é um ovo: os atributos e golpes aparecem quando ele chocar."));
         }
 
         var f = s.Fields;
-        blocks.Add(Divider("Trainer"));
+        blocks.Add(Divider("Treinador"));
         blocks.Add(Row("OT", s.OriginalTrainer.Length > 0 ? s.OriginalTrainer : "—", f?.OtGender is { } otGender ? GenderWord(otGender) : null));
         if (s.TrainerId is { } tid)
-            blocks.Add(Row("ID No.", $"{tid:00000}", s.SecretId is { } sid ? $"SID {sid:00000}" : null));
+            blocks.Add(Row("Nº de ID", $"{tid:00000}", s.SecretId is { } sid ? $"SID {sid:00000}" : null));
         if (f?.HandlerName is { } handler)
         {
             var about = new[] { f.HandlerGender is { } hg ? GenderWord(hg) : null, f.HandlerLanguage, f.HandlerFriendship is { } hf ? $"friendship {hf}" : null };
-            blocks.Add(Row("Handler", handler, string.Join(" · ", about.Where(x => x is not null))));
-            blocks.Add(Row("Now with", f.WithHandler == true ? handler : "Its original trainer",
-                f.WithHandler == true && f.OtFriendship is { } otf ? $"OT friendship {otf}" : null));
+            blocks.Add(Row("Treinador atual", handler, string.Join(" · ", about.Where(x => x is not null))));
+            blocks.Add(Row("Agora com", f.WithHandler == true ? handler : "O treinador original",
+                f.WithHandler == true && f.OtFriendship is { } otf ? $"Amizade com o TO {otf}" : null));
         }
 
-        blocks.Add(Divider("Character"));
+        blocks.Add(Divider("Personalidade"));
         var character = blocks.Count;
         if (s.NatureName is not null && s.Nature is { } nature)
-            blocks.Add(Row("Nature", s.NatureName, NatureFacts.IsNeutral(nature) ? "Neutral: no stat is raised or lowered." : NatureFacts.EffectLabel(nature)));
+            blocks.Add(Row("Natureza", s.NatureName, NatureFacts.IsNeutral(nature) ? "Neutra: nenhum atributo sobe ou desce." : NatureFacts.EffectLabel(nature)));
         if (f?.StatNature is { } mint)
-            blocks.Add(Row("Mint", f.StatNatureName ?? $"#{mint}", $"Stats follow it: {(NatureFacts.IsNeutral(mint) ? "neutral" : NatureFacts.EffectLabel(mint))}"));
-        if (f?.FormArgument is { } formArgument) blocks.Add(Row("Form", s.FormName.Length > 0 ? s.FormName : s.SpeciesName, formArgument));
+            blocks.Add(Row("Mint", f.StatNatureName ?? $"#{mint}", $"Os atributos seguem ela: {(NatureFacts.IsNeutral(mint) ? "neutra" : NatureFacts.EffectLabel(mint))}"));
+        if (f?.FormArgument is { } formArgument) blocks.Add(Row("Forma", s.FormName.Length > 0 ? s.FormName : s.SpeciesName, formArgument));
         if (s.IsShiny && f?.Shiny is ShinyKind.Square or ShinyKind.Star)
-            blocks.Add(Row("Shiny", f.Shiny == ShinyKind.Square ? "Square sparkles" : "Star sparkles"));
-        if (s.Characteristic is not null) blocks.Add(Row("Trait", s.Characteristic));
-        if (s.AbilityName is not null) blocks.Add(Row("Ability", s.AbilityName, s.AbilityEffect));
-        if (blocks.Count == character) blocks.Add(Text("Gen 1 and 2 Pokémon have no nature or ability."));
+            blocks.Add(Row("Shiny", f.Shiny == ShinyKind.Square ? "Brilho quadrado" : "Brilho de estrela"));
+        if (s.Characteristic is not null) blocks.Add(Row("Característica", s.Characteristic));
+        if (s.AbilityName is not null) blocks.Add(Row("Habilidade", s.AbilityName, s.AbilityEffect));
+        if (blocks.Count == character) blocks.Add(Text("Pokémon da Gen 1 e 2 não têm natureza nem habilidade."));
 
-        blocks.Add(Divider("Items & care"));
-        blocks.Add(Row("Held item", s.HeldItemName ?? "None", s.HeldItemEffect));
-        blocks.Add(Row("Ball", s.BallName, art: (canvas, x, cy) =>
+        blocks.Add(Divider("Itens e cuidados"));
+        blocks.Add(Row("Item segurado", s.HeldItemName ?? "Nenhum", s.HeldItemEffect));
+        blocks.Add(Row("Bola", s.BallName, art: (canvas, x, cy) =>
         {
             var drawn = DrawBall(canvas, s.Ball, new SKRect(x, cy - 20, x + 40, cy + 20));
             var textX = drawn ? x + 54 : x;
             SummaryInk.Draw(canvas, s.BallName, textX, SummaryInk.Center(cy, 38), 38, ValueInk);
         }));
-        if (!s.IsEgg) blocks.Add(Row("Friendship", $"{s.Friendship} / 255", FriendshipLine(s.Friendship)));
+        if (!s.IsEgg) blocks.Add(Row("Amizade", $"{s.Friendship} / 255", FriendshipLine(s.Friendship)));
         if (s.Pokerus is { } rus)
             blocks.Add(rus.Status switch
             {
-                PokerusStatus.Infectious => Row("Pokérus", "Infected", $"Strain {rus.Strain}, {rus.Days} day(s) left"),
-                PokerusStatus.Cured => Row("Pokérus", "Cured", "EV gains stay doubled"),
-                _ => Row("Pokérus", "Never infected"),
+                PokerusStatus.Infectious => Row("Pokérus", "Infectado", $"Cepa {rus.Strain}, falta(m) {rus.Days} dia(s)"),
+                PokerusStatus.Cured => Row("Pokérus", "Curado", "O ganho de EVs continua dobrado"),
+                _ => Row("Pokérus", "Nunca infectado"),
             });
-        if (s.Markings.Count > 0) blocks.Add(Row("Markings", "", art: (canvas, x, cy) => Markings(canvas, x, cy, s.Markings)));
+        if (s.Markings.Count > 0) blocks.Add(Row("Marcações", "", art: (canvas, x, cy) => Markings(canvas, x, cy, s.Markings)));
         return blocks;
     }
 
-    private static string GenderWord(int gender) => gender == 1 ? "Female" : "Male";
+    private static string GenderWord(int gender) => gender == 1 ? "Fêmea" : "Macho";
 
     private static string FriendshipLine(int friendship) => friendship switch
     {
-        >= 255 => "It loves you deeply.",
-        >= 220 => "It is very friendly toward you.",
-        >= 150 => "It is quite friendly.",
-        >= 70 => "It is warming up to you.",
-        _ => "It is still getting used to you.",
+        >= 255 => "Ele te ama profundamente.",
+        >= 220 => "Ele é muito amigável com você.",
+        >= 150 => "Ele é bem amigável.",
+        >= 70 => "Ele está se acostumando com você.",
+        _ => "Ele ainda está se habituando a você.",
     };
 
     private static void Markings(SKCanvas c, float x, float cy, IReadOnlyList<CosmeticMarking> markings)
@@ -808,7 +808,7 @@ public sealed class MonSummaryView : ContentView
             blocks.Add((c, y, _) =>
             {
                 if (c is null) return 60;
-                (float X, string Text)[] heads = [(StatColumn, "Stat"), (BaseColumn, "Base"), (IvColumn, s.ClassicTraining ? "DV" : "IV"), (EvColumn, s.ClassicTraining ? "Exp" : "EV")];
+                (float X, string Text)[] heads = [(StatColumn, "Atributo"), (BaseColumn, "Base"), (IvColumn, s.ClassicTraining ? "DV" : "IV"), (EvColumn, s.ClassicTraining ? "Exp" : "EV")];
                 foreach (var (x, text) in heads) SummaryInk.Draw(c, text, x, SummaryInk.Center(y + 30, 30), 30, LabelInk, align: SKTextAlign.Center);
                 return 60;
             });
@@ -837,7 +837,7 @@ public sealed class MonSummaryView : ContentView
                 });
             }
         }
-        else blocks.Add(Text("No stats recorded."));
+        else blocks.Add(Text("Nenhum atributo registrado."));
 
         var potential = new List<Block>();
         if (s.HiddenPowerType is { } hp)
@@ -845,10 +845,10 @@ public sealed class MonSummaryView : ContentView
         if (s.TeraType is { } tera && TypeFacts.IsValid(tera))
             potential.Add(Row("Tera Type", "", art: (canvas, x, cy) => TypePlates.Paint(canvas, new SKRect(x, cy - 24, x + 150, cy + 24), tera)));
         else if (s.TeraTypeName is not null) potential.Add(Row("Tera Type", s.TeraTypeName));
-        if (s.Characteristic is not null) potential.Add(Row("Trait", s.Characteristic));
+        if (s.Characteristic is not null) potential.Add(Row("Característica", s.Characteristic));
         if (potential.Count > 0)
         {
-            blocks.Add(Divider("Potential"));
+            blocks.Add(Divider("Potencial"));
             blocks.AddRange(potential);
         }
         return blocks;
@@ -858,15 +858,15 @@ public sealed class MonSummaryView : ContentView
 
     private static List<Block> MovesPage(MonSummary s)
     {
-        var blocks = new List<Block> { Divider("Moves") };
-        if (s.Moves.Count == 0) blocks.Add(Text("No moves recorded."));
+        var blocks = new List<Block> { Divider("Golpes") };
+        if (s.Moves.Count == 0) blocks.Add(Text("Nenhum golpe registrado."));
         // Verdicts cover the four slots; the page lists only the filled ones, in slot order.
         var verdicts = s.MoveVerdicts?.Moves.Where(v => v.Move > 0).ToList() ?? [];
         for (var i = 0; i < s.Moves.Count; i++)
             blocks.Add(MoveBlock(s.Moves[i], i < verdicts.Count && verdicts[i].Move == s.Moves[i].Id ? verdicts[i] : null));
         if (s.RelearnMoves.Count > 0)
         {
-            blocks.Add(Divider("Relearnable"));
+            blocks.Add(Divider("Reaprendíveis"));
             blocks.Add(Text(string.Join("\u00A0· ", s.RelearnMoves)));
             foreach (var bad in s.MoveVerdicts?.Relearn.Where(v => !v.Valid) ?? [])
                 blocks.Add(Text($"Illegal · {bad.Reason}", Pksm.Illegal));
@@ -874,7 +874,7 @@ public sealed class MonSummaryView : ContentView
         if (s.Fields?.TechRecordCount is { } records)
         {
             blocks.Add(Divider("Technical Records"));
-            blocks.Add(records > 0 ? Text(string.Join("\u00A0· ", s.Fields.TechRecordNames)) : Text("No records learned.", SubInk));
+            blocks.Add(records > 0 ? Text(string.Join("\u00A0· ", s.Fields.TechRecordNames)) : Text("Nenhum record aprendido.", SubInk));
         }
         return blocks;
     }
@@ -893,7 +893,7 @@ public sealed class MonSummaryView : ContentView
         var low = move.MaxPP > 0 && move.PP * 4 <= move.MaxPP;
         var pp = move.PPUps > 0 ? $"PP {move.PP}/{move.MaxPP} +{move.PPUps}" : $"PP {move.PP}/{move.MaxPP}";
         var ppWidth = SummaryInk.Draw(c, pp, right - 12, SummaryInk.Center(y + 100, 32), 32, low ? Orange : ValueInk, align: SKTextAlign.Right);
-        var numbers = $"Power {InfoKit.Power(move.Power)} · Accuracy {InfoKit.Accuracy(move.Accuracy)}";
+        var numbers = $"Poder {InfoKit.Power(move.Power)} · Precisão {InfoKit.Accuracy(move.Accuracy)}";
         SummaryInk.Draw(c, SummaryInk.Fit(numbers, 28, right - 12 - ppWidth - 24 - LabelX), LabelX, SummaryInk.Center(y + 100, 28), 28, SubInk);
         var ly = y + 136;
         foreach (var line in verdictLines)
@@ -914,32 +914,32 @@ public sealed class MonSummaryView : ContentView
 
     private static List<Block> OriginPage(MonSummary s)
     {
-        var blocks = new List<Block> { Divider("Origin") };
+        var blocks = new List<Block> { Divider("Origem") };
         if (s.Met is { } met)
         {
-            blocks.Add(Row("Game", met.VersionName.Length > 0 ? met.VersionName : "Unknown"));
+            blocks.Add(Row("Jogo", met.VersionName.Length > 0 ? met.VersionName : "Desconhecido"));
             if (met.WasEgg && met.EggLocationName.Length > 0)
-                blocks.Add(Row("Egg", met.EggLocationName, met.EggDate.Length > 0 ? $"Received {met.EggDate}" : null));
-            blocks.Add(Row(met.WasEgg ? "Hatched" : "Met", met.MetLocationName.Length > 0 ? met.MetLocationName : "—",
+                blocks.Add(Row("Egg", met.EggLocationName, met.EggDate.Length > 0 ? $"Recebido em {met.EggDate}" : null));
+            blocks.Add(Row(met.WasEgg ? "Chocado" : "Encontro", met.MetLocationName.Length > 0 ? met.MetLocationName : "—",
                 string.Join("  ·  ", new[]
                 {
-                    met.WasEgg ? null : met.MetLevel > 0 ? $"At Lv. {met.MetLevel}" : null,
+                    met.WasEgg ? null : met.MetLevel > 0 ? $"No Lv. {met.MetLevel}" : null,
                     met.MetDate.Length > 0 ? met.MetDate : null,
                 }.Where(x => x is not null))));
             if (met.LanguageName.Length > 0) blocks.Add(Row("Language", met.LanguageName));
         }
-        else blocks.Add(Text("This game's met data isn't readable yet."));
-        blocks.Add(Row("Format", $"{s.Format.ToUpperInvariant()}  ·  Gen {s.Generation}"));
+        else blocks.Add(Text("Os dados de encontro deste jogo ainda não podem ser lidos."));
+        blocks.Add(Row("Formato", $"{s.Format.ToUpperInvariant()}  ·  Gen {s.Generation}"));
         if (s.Fields?.Pid is { } pid)
-            blocks.Add(Row("PID", pid.ToString("X8"), s.Fields.EncryptionConstant is { } ec ? $"Encryption constant {ec:X8}" : null));
-        if (s.Met is { Fateful: true }) blocks.Add(Text("Fateful encounter: an event or gift Pokémon.", Pksm.Legal));
+            blocks.Add(Row("PID", pid.ToString("X8"), s.Fields.EncryptionConstant is { } ec ? $"Constante de criptografia {ec:X8}" : null));
+        if (s.Met is { Fateful: true }) blocks.Add(Text("Fateful encounter: um Pokémon de evento ou presente.", Pksm.Legal));
 
         var memories = new List<string>();
         if (s.Fields?.OtMemory is { } otMemory) memories.Add(otMemory);
         if (s.Fields?.HandlerMemory is { } htMemory) memories.Add(htMemory);
         if (memories.Count > 0)
         {
-            blocks.Add(Divider("Memories"));
+            blocks.Add(Divider("Memórias"));
             blocks.AddRange(memories.Select(m => Text(m)));
         }
 
@@ -950,7 +950,7 @@ public sealed class MonSummaryView : ContentView
             blocks.Add(Text(string.Join("\u00A0· ", s.RibbonNames), Gold));
             blocks.Add(Text($"{s.RibbonCount} ribbon(s)  ·  {s.MarkCount} mark(s)", SubInk));
         }
-        else blocks.Add(Text("No ribbons or marks yet.", SubInk));
+        else blocks.Add(Text("Nenhum ribbon ou mark ainda.", SubInk));
         return blocks;
     }
 
@@ -958,13 +958,13 @@ public sealed class MonSummaryView : ContentView
 
     private List<Block> LegalityPage(MonSummary s)
     {
-        if (_legalityPending) return [Hero("Checking…", ValueInk, "The legality analysis is running.")];
+        if (_legalityPending) return [Hero("Verificando…", ValueInk, "A análise de legalidade está em andamento.")];
         if (s.Legal is null)
             return
             [
-                Hero("Not checked", ValueInk, "No legality data for this game."),
-                Divider("Why"),
-                Text("Legality data only exists for the official games, so ROM hack Pokémon are neither legal nor illegal."),
+                Hero("Não verificado", ValueInk, "Sem dados de legalidade para este jogo."),
+                Divider("Por quê"),
+                Text("Os dados de legalidade só existem para os jogos oficiais, então Pokémon de ROM hack não são nem legais nem ilegais."),
             ];
 
         var checks = s.LegalityChecks;
@@ -973,15 +973,15 @@ public sealed class MonSummaryView : ContentView
         var blocks = new List<Block>
         {
             s.Legal == true
-                ? Hero("Legal", Pksm.Legal, "Every check passed.")
-                : Hero("Illegal", Pksm.Illegal, problems == 1 ? "1 problem found." : $"{problems} problems found."),
-            Divider("Checks"),
+                ? Hero("Legal", Pksm.Legal, "Passou em todas as verificações.")
+                : Hero("Ilegal", Pksm.Illegal, problems == 1 ? "1 problema encontrado." : $"{problems} problemas encontrados."),
+            Divider("Verificações"),
         };
         if (checks is not null) blocks.AddRange(checks.Select(Check));
         else blocks.AddRange(s.LegalityLines.Where(l => !string.IsNullOrWhiteSpace(l)).Select(l => Text(l)));
         if (s.Legal == false)
         {
-            blocks.Add(Divider("Fix it"));
+            blocks.Add(Divider("Corrigir"));
             blocks.Add(Text(FixHint));
         }
         return blocks;
@@ -995,9 +995,9 @@ public sealed class MonSummaryView : ContentView
         if (c is null) return height;
         var (word, tone) = check.Judgement switch
         {
-            LegalityJudgement.Invalid => ("Invalid", Pksm.Illegal),
-            LegalityJudgement.Fishy => ("Fishy", Orange),
-            _ => ("Valid", Pksm.Legal),
+            LegalityJudgement.Invalid => ("Inválido", Pksm.Illegal),
+            LegalityJudgement.Fishy => ("Suspeito", Orange),
+            _ => ("Válido", Pksm.Legal),
         };
         using (var dot = new SKPaint { Color = tone, IsAntialias = true }) c.DrawCircle(53, y + 39, 11, dot);
         SummaryInk.Draw(c, check.Name, 82, SummaryInk.Center(y + 38, 36), 36, check.Judgement == LegalityJudgement.Valid ? ValueInk : Pksm.Ink);

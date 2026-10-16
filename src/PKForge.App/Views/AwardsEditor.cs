@@ -21,19 +21,19 @@ public static class AwardsEditor
             var options = new List<PadOption>();
             if (pokerus.Supported || pokerus.Status != PokerusStatus.Susceptible)
                 options.Add(new PadOption($"Pokérus · {PokerusLabel(pokerus)}", IconPath: PokerusIcon(pokerus.Status),
-                    Detail: "A rare virus that doubles the effort values it earns in battle."));
+                    Detail: "Um vírus raro que dobra os EVs que ele ganha em batalha."));
             if (ribbons.Count != 0)
-                options.Add(new PadOption($"Ribbons · {selected}/{ribbons.Count}", IconPath: "ribbons", Detail: "The ribbons and marks it has earned."));
+                options.Add(new PadOption($"Ribbons · {selected}/{ribbons.Count}", IconPath: "ribbons", Detail: "Os ribbons e marks que ele conquistou."));
             if (affixed.Supported)
-                options.Add(new PadOption($"Title · {affixed.SelectedName}", IconPath: "ribbons", Detail: "The ribbon or mark shown as a title with its name."));
+                options.Add(new PadOption($"Título · {affixed.SelectedName}", IconPath: "ribbons", Detail: "O ribbon ou mark mostrado como título junto com o nome dele."));
 
             if (options.Count == 0)
             {
-                await EditorMenu.ShowAsync(host, "Awards", "This Pokémon format has no Pokérus or ribbon data.", "OK");
+                await EditorMenu.ShowAsync(host, "Prêmios", "Este formato de Pokémon não tem dados de Pokérus nem de ribbons.", "OK");
                 return dirty;
             }
 
-            var choice = await EditorMenu.ShowAsync(host, "Awards", null, options.ToArray());
+            var choice = await EditorMenu.ShowAsync(host, "Prêmios", null, options.ToArray());
             if (choice is null) return dirty;
             if (choice.StartsWith("Pokérus", StringComparison.Ordinal))
             {
@@ -43,7 +43,7 @@ public static class AwardsEditor
             {
                 if (await EditRibbonsAsync(host, session, box, slot)) dirty = true;
             }
-            else if (choice.StartsWith("Title", StringComparison.Ordinal))
+            else if (choice.StartsWith("Título", StringComparison.Ordinal))
             {
                 if (await EditAffixedRibbonAsync(host, session, box, slot)) dirty = true;
             }
@@ -54,16 +54,16 @@ public static class AwardsEditor
     {
         var current = session.GetPokerus(box, slot);
         var choice = await EditorMenu.ShowAsync(host, "POKéRUS",
-            "Infectious spreads Pokérus. Cured keeps the immunity marker but no longer spreads it.",
-            new PadOption("Infect", IconPath: "pokerus-infected", Accent: UiTokens.GiftRed, Detail: "It carries Pokérus and can spread it."),
-            new PadOption("Cure", IconPath: "pokerus-cured", Accent: UiTokens.Green, Detail: "It stops spreading Pokérus and can't catch it again."),
-            new PadOption("Clear / susceptible", Glyph: "○", Accent: UiTokens.Ink1, Detail: "No Pokérus at all; it can catch it again."));
+            "Infectado espalha o Pokérus. Curado mantém a marca de imunidade, mas não espalha mais.",
+            new PadOption("Infectar", IconPath: "pokerus-infected", Accent: UiTokens.GiftRed, Detail: "Ele carrega o Pokérus e pode espalhá-lo."),
+            new PadOption("Curar", IconPath: "pokerus-cured", Accent: UiTokens.Green, Detail: "Ele para de espalhar o Pokérus e não pode pegá-lo de novo."),
+            new PadOption("Limpo / suscetível", Glyph: "○", Accent: UiTokens.Ink1, Detail: "Sem Pokérus nenhum; pode pegá-lo de novo."));
         if (choice is null) return false;
 
         var status = choice switch
         {
-            "Infect" => PokerusStatus.Infectious,
-            "Cure" => PokerusStatus.Cured,
+            "Infectar" => PokerusStatus.Infectious,
+            "Curar" => PokerusStatus.Cured,
             _ => PokerusStatus.Susceptible,
         };
         if (status == current.Status) return false;
@@ -104,9 +104,9 @@ public static class AwardsEditor
     private static async Task<bool> EditAffixedRibbonAsync(Grid host, ISaveEngineSession session, int box, int slot)
     {
         var info = session.GetAffixedRibbon(box, slot);
-        var items = new List<PickItem> { new(-1, "□ No title", "ribbons/none.png") };
+        var items = new List<PickItem> { new(-1, "□ Sem título", "ribbons/none.png") };
         items.AddRange(info.Choices.Select(r => new PickItem(r.Id, $"{(r.Id == info.SelectedIndex ? "✓" : "□")} {r.Name}", "ribbons/ribbon.png")));
-        var picked = await PickerMenu.ShowAsync(host, "Select title", items);
+        var picked = await PickerMenu.ShowAsync(host, "Escolher título", items);
         if (picked is null || picked.Id == info.SelectedIndex) return false;
 
         session.SetAffixedRibbon(box, slot, picked.Id);
@@ -115,7 +115,7 @@ public static class AwardsEditor
 
     private static string PokerusLabel(PokerusInfo info) => info.Status switch
     {
-        PokerusStatus.Infectious => $"infectious · {info.Days} day{(info.Days == 1 ? "" : "s")}",
+        PokerusStatus.Infectious => $"infectado · {info.Days} dia{(info.Days == 1 ? "" : "s")}",
         PokerusStatus.Cured => "cured",
         _ => "susceptible",
     };

@@ -53,12 +53,12 @@ public static class TrainerCardPopup
         }
 
         var buttons = new HorizontalStackLayout { Spacing = 8, HorizontalOptions = LayoutOptions.End };
-        var cancel = Kit.Capsule(readOnly ? "Close" : "Cancel", UiTokens.Ink1);
+        var cancel = Kit.Capsule(readOnly ? "Fechar" : "Cancelar", UiTokens.Ink1);
         cancel.Clicked += (_, _) => Close(null);
         buttons.Children.Add(cancel);
         if (!readOnly)
         {
-            var save = Kit.Capsule("Save", UiTokens.Green);
+            var save = Kit.Capsule("Salvar", UiTokens.Green);
             save.Clicked += (_, _) => Save();
             buttons.Children.Add(save);
         }
@@ -68,12 +68,12 @@ public static class TrainerCardPopup
             Spacing = 8,
             Children =
             {
-                Kit.HeaderBar(readOnly ? $"Trainer card · {HardcoreMode.Marker}" : "Trainer card"),
-                Row("Name", name),
+                Kit.HeaderBar(readOnly ? $"Cartão de treinador · {HardcoreMode.Marker}" : "Cartão de treinador"),
+                Row("Nome", name),
                 Row("TID", tid),
                 Row("SID", sid),
-                Row("Money", money),
-                Row("Female", genderIsFemale),
+                Row("Dinheiro", money),
+                Row("Fêmea", genderIsFemale),
             },
         };
         if (readOnly)

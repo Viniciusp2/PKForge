@@ -44,7 +44,7 @@ public sealed class EvolutionCard : IPadHandler
         var plan = await Task.Run(() => service.Plan(session, box, slot, hax));
         if (plan.Options.Count == 0)
         {
-            await PadMenu.ShowAsync(host, "Evolution", plan.Unavailable ?? "It can't evolve.", "OK");
+            await PadMenu.ShowAsync(host, "Evolução", plan.Unavailable ?? "Ele não pode evoluir.", "OK");
             return null;
         }
         var card = new EvolutionCard(host, plan);
@@ -63,27 +63,27 @@ public sealed class EvolutionCard : IPadHandler
         var choices = new List<EvolutionMoveChoice>();
         foreach (var offer in option.Moves)
         {
-            var why = offer.EvolutionMove ? "an evolution move" : $"learned at Lv.{plan.Level}";
+            var why = offer.EvolutionMove ? "um golpe de evolução" : $"aprendido no Lv.{plan.Level}";
             if (known.Count < 4)
             {
-                var pick = await PadMenu.ShowAsync(host, $"Learn {offer.Name}?",
-                    $"{option.SpeciesName} can learn {offer.Name} ({why}).",
-                    new PadOption($"Learn {offer.Name}", IconPath: "moves"), new PadOption("Don't learn", IconPath: "close"));
+                var pick = await PadMenu.ShowAsync(host, $"Aprender {offer.Name}?",
+                    $"{option.SpeciesName} pode aprender {offer.Name} ({why}).",
+                    new PadOption($"Aprender {offer.Name}", IconPath: "moves"), new PadOption("Não aprender", IconPath: "close"));
                 if (pick is null) return null;
-                if (pick != "Don't learn")
+                if (pick != "Não aprender")
                 {
                     choices.Add(new EvolutionMoveChoice(offer.Move, known.Count));
                     known.Add(offer.Name);
                 }
                 continue;
             }
-            var options = known.Select(m => new PadOption($"Forget {m}", IconPath: "delete")).ToList();
-            options.Add(new PadOption($"Don't learn {offer.Name}", IconPath: "close"));
-            var forget = await PadMenu.ShowAsync(host, $"Learn {offer.Name}?",
-                $"{option.SpeciesName} wants to learn {offer.Name} ({why}), but already knows four moves. Forget one?",
+            var options = known.Select(m => new PadOption($"Esquecer {m}", IconPath: "delete")).ToList();
+            options.Add(new PadOption($"Não aprender {offer.Name}", IconPath: "close"));
+            var forget = await PadMenu.ShowAsync(host, $"Aprender {offer.Name}?",
+                $"{option.SpeciesName} quer aprender {offer.Name} ({why}), mas já sabe quatro golpes. Esquecer um?",
                 options.ToArray());
             if (forget is null) return null;
-            var slot = known.FindIndex(m => forget == $"Forget {m}");
+            var slot = known.FindIndex(m => forget == $"Esquecer {m}");
             if (slot < 0) continue;
             choices.Add(new EvolutionMoveChoice(offer.Move, slot));
             known[slot] = offer.Name;
@@ -149,14 +149,14 @@ public sealed class EvolutionCard : IPadHandler
         _status = new Label { FontSize = UiTokens.TextSmall, HorizontalTextAlignment = TextAlignment.Center, LineBreakMode = LineBreakMode.WordWrap };
         _changes = new VerticalStackLayout { Spacing = 6 };
 
-        var cancel = Kit.Capsule("Cancel", UiTokens.Ink1);
+        var cancel = Kit.Capsule("Cancelar", UiTokens.Ink1);
         cancel.Clicked += (_, _) => Close(null);
-        _evolve = Kit.Capsule("Evolve", UiTokens.Green, primary: true);
+        _evolve = Kit.Capsule("Evoluir", UiTokens.Green, primary: true);
         _evolve.Clicked += (_, _) => Confirm();
         var buttons = new HorizontalStackLayout { Spacing = 8, HorizontalOptions = LayoutOptions.End, Children = { cancel, _evolve } };
 
         var content = new VerticalStackLayout { Spacing = 8 };
-        content.Children.Add(Kit.HeaderBar(HaXMode.IsOn ? "Evolution · hax" : "Evolution"));
+        content.Children.Add(Kit.HeaderBar(HaXMode.IsOn ? "Evolução · hax" : "Evolução"));
         if (plan.Options.Count > 1) content.Children.Add(new ScrollView { Orientation = ScrollOrientation.Horizontal, Content = chipRow });
         content.Children.Add(_stage);
         content.Children.Add(names);
@@ -165,9 +165,9 @@ public sealed class EvolutionCard : IPadHandler
         content.Children.Add(_changes);
         content.Children.Add(buttons);
         content.Children.Add(Kit.WindowHints(
-            ("◀▶", "Branch", () => OnPadButton(PadButton.Right)),
-            ("A", "Evolve", Confirm),
-            ("B", "Cancel", () => Close(null))));
+            ("◀▶", "Ramo", () => OnPadButton(PadButton.Right)),
+            ("A", "Evoluir", Confirm),
+            ("B", "Cancelar", () => Close(null))));
 
         var window = Kit.OverlayWindow(host, content, preferredMaxWidth: 560);
         _overlay = Kit.AttachOverlay(host, window, () => Close(null));
@@ -195,28 +195,28 @@ public sealed class EvolutionCard : IPadHandler
             : UiTokens.Ink1);
         (_status.Text, _status.TextColor) = option switch
         {
-            _ when CanMeet(option) => ($"Not met yet: {option.BlockedReason} Meet & evolve takes care of it.", UiTokens.RedOrange),
-            { Available: false } => (option.BlockedReason ?? "Not possible right now.", UiTokens.GiftRed),
-            { IsTrade: true } => ("No second console needed: PKForge performs the link trade for you.", UiTokens.Ink1),
-            { ConditionMet: false } => ("HaX: the game's requirement is not met; evolving anyway.", UiTokens.RedOrange),
-            _ => ("The requirement is met.", UiTokens.Green),
+            _ when CanMeet(option) => ($"Ainda não cumprido: {option.BlockedReason} Cumprir e evoluir resolve isso.", UiTokens.RedOrange),
+            { Available: false } => (option.BlockedReason ?? "Não é possível agora.", UiTokens.GiftRed),
+            { IsTrade: true } => ("Não precisa de um segundo console: o PKForge faz a troca por você.", UiTokens.Ink1),
+            { ConditionMet: false } => ("HaX: o requisito do jogo não foi cumprido; evoluindo mesmo assim.", UiTokens.RedOrange),
+            _ => ("O requisito foi cumprido.", UiTokens.Green),
         };
         var canGo = option.Available || CanMeet(option);
-        _evolve.Text = CanMeet(option) ? "Meet & evolve" : "Evolve";
+        _evolve.Text = CanMeet(option) ? "Cumprir e evoluir" : "Evoluir";
         _evolve.IsEnabled = canGo;
         _evolve.Opacity = canGo ? 1 : 0.45;
 
         _changes.Children.Clear();
         _changes.Children.Add(StatGrid(option));
         var lines = new List<(string Caption, string Text, Color Tone)>();
-        if (CanMeet(option)) lines.Add(("FIRST", option.MeetCondition!, UiTokens.RedOrange));
+        if (CanMeet(option)) lines.Add(("ANTES", option.MeetCondition!, UiTokens.RedOrange));
         if (option.AbilityBefore != "—")
-            lines.Add(("ABILITY", option.AbilityBefore == option.AbilityAfter ? option.AbilityAfter : $"{option.AbilityBefore} → {option.AbilityAfter}", UiTokens.Ink0));
-        lines.Add(("NAME", option.NewNickname is { } nick ? $"Becomes {nick}" : $"Keeps the nickname {_plan.Nickname}", UiTokens.Ink0));
-        if (option.ConsumedItem is { } item) lines.Add(("ITEM", $"{item} is used up", UiTokens.RedOrange));
-        if (option.HandlerNote is { } handler) lines.Add(("Trade", handler, UiTokens.Ink1));
-        if (option.Moves.Count > 0) lines.Add(("Moves", $"Can learn {string.Join(", ", option.Moves.Select(m => m.Name))} (you choose next)", UiTokens.IndigoInk));
-        lines.Add(("DEX", $"{option.SpeciesName} is registered as caught", UiTokens.Ink1));
+            lines.Add(("HABILIDADE", option.AbilityBefore == option.AbilityAfter ? option.AbilityAfter : $"{option.AbilityBefore} → {option.AbilityAfter}", UiTokens.Ink0));
+        lines.Add(("NOME", option.NewNickname is { } nick ? $"Vira {nick}" : $"Mantém o apelido {_plan.Nickname}", UiTokens.Ink0));
+        if (option.ConsumedItem is { } item) lines.Add(("ITEM", $"{item} é consumido", UiTokens.RedOrange));
+        if (option.HandlerNote is { } handler) lines.Add(("Troca", handler, UiTokens.Ink1));
+        if (option.Moves.Count > 0) lines.Add(("Golpes", $"Pode aprender {string.Join(", ", option.Moves.Select(m => m.Name))} (você escolhe em seguida)", UiTokens.IndigoInk));
+        lines.Add(("DEX", $"{option.SpeciesName} fica registrado como capturado", UiTokens.Ink1));
         foreach (var (caption, text, tone) in lines) _changes.Children.Add(Line(caption, text, tone));
 
         _stage.InvalidateSurface();

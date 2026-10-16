@@ -74,7 +74,7 @@ public sealed class BankSearchPage : IPadPagingHandler
         _router = IPlatformApplication.Current?.Services.GetService<GamepadRouter>();
         _all = [.. bank.GetAll()]; // the vault is an in-memory index; the snapshot is the scan
 
-        var title = new Label { Text = "Bank search", TextColor = UiTokens.Ink0, FontFamily = DsChrome.PixelFont, FontSize = 15 };
+        var title = new Label { Text = "Busca no banco", TextColor = UiTokens.Ink0, FontFamily = DsChrome.PixelFont, FontSize = 15 };
         _count = new Label
         {
             TextColor = UiTokens.Ink1,
@@ -87,7 +87,7 @@ public sealed class BankSearchPage : IPadPagingHandler
 
         _text = new Entry
         {
-            Placeholder = "Name or nickname…",
+            Placeholder = "Nome ou apelido…",
             PlaceholderColor = UiTokens.Ink1,
             TextColor = UiTokens.Ink0,
             BackgroundColor = UiTokens.ShellPress,
@@ -111,12 +111,12 @@ public sealed class BankSearchPage : IPadPagingHandler
         _canvas.Touch += Touch;
 
         View hints = Kit.WindowHints(
-            ("A", "Jump", () => OnPadButton(PadButton.A)),
-            ("B", "Done", () => Close()),
-            ("LR", "Page", () => OnPadButton(PadButton.R)),
-            ("X", "Filter", () => _ = ShowFilterMenuAsync()),
+            ("A", "Ir", () => OnPadButton(PadButton.A)),
+            ("B", "Pronto", () => Close()),
+            ("LR", "Página", () => OnPadButton(PadButton.R)),
+            ("X", "Filtro", () => _ = ShowFilterMenuAsync()),
             ("Y", "Shiny", ToggleShinyOnly),
-            ("+", "Mark all", MarkAllResults));
+            ("+", "Marcar todos", MarkAllResults));
 
         var content = new Grid
         {
@@ -202,20 +202,20 @@ public sealed class BankSearchPage : IPadPagingHandler
 
     private void RefreshChrome()
     {
-        _count.Text = $"{Count} of {_all.Count}";
+        _count.Text = $"{Count} de {_all.Count}";
         _chips.Children.Clear();
         AddChip("Shiny", active: _filter.ShinyOnly, ToggleShinyOnly);
-        AddChip($"Filters · {_filter.ActiveCount}", active: _filter.ActiveCount > 0, () => _ = ShowFilterMenuAsync());
-        AddChip($"Gen: {(_filter.Generation is { } gen ? Roman(gen) : "All")}", active: _filter.Generation is not null,
+        AddChip($"Filtros · {_filter.ActiveCount}", active: _filter.ActiveCount > 0, () => _ = ShowFilterMenuAsync());
+        AddChip($"Gen: {(_filter.Generation is { } gen ? Roman(gen) : "Todas")}", active: _filter.Generation is not null,
             () => _ = PickGenerationAsync());
-        AddChip($"Source: {_filter.SourceName ?? "All"}", active: _filter.SourceName is not null, () => _ = PickSourceAsync());
+        AddChip($"Origem: {_filter.SourceName ?? "Todas"}", active: _filter.SourceName is not null, () => _ = PickSourceAsync());
         AddChip($"Item: {HeldItemLabel()}", active: _filter.HoldsItemOnly || _filter.HeldItemId is not null,
             () => _ = PickHeldItemAsync());
-        AddChip($"Sort: {SortLabel(_sort)}{(_reverse ? " ↓" : "")}", active: IsSorted, () => _ = ShowSortMenuAsync());
+        AddChip($"Ordem: {SortLabel(_sort)}{(_reverse ? " ↓" : "")}", active: IsSorted, () => _ = ShowSortMenuAsync());
         if (_markAll is not null && Count > 0)
-            AddChip($"Mark {Count}", active: false, MarkAllResults);
+            AddChip($"Marcar {Count}", active: false, MarkAllResults);
         if (_filter.IsActive || IsSorted)
-            AddChip("Reset", active: true, ResetFilters);
+            AddChip("Limpar", active: true, ResetFilters);
     }
 
     private bool IsSorted => _sort != BankSortOrder.DexNumber || _reverse;
@@ -261,72 +261,72 @@ public sealed class BankSearchPage : IPadPagingHandler
     {
         while (true)
         {
-            var choice = await PadMenu.ShowAsync(_host, $"Bank filters · {Count} match",
-                "Pick a filter, set it, and this menu comes back. RESET clears everything.",
-                new PadOption($"Shiny only: {OnOff(_filter.ShinyOnly)}", IconPath: "shiny"),
-                new PadOption($"Generation: {(_filter.Generation is { } gen ? Roman(gen) : "All")}", IconPath: "generation",
-                    Detail: "The generation of its data, not the game it was caught in."),
-                new PadOption($"Source game: {_filter.SourceName ?? "ALL"}", IconPath: "game",
-                    Detail: "The game it was deposited from."),
-                new PadOption($"Type: {(_filter.TypeId is { } type ? TypeNames[type] : "All")}", IconPath: "type",
-                    Detail: "Matches either of its types."),
-                new PadOption($"Rarity: {_filter.Rarity switch
+            var choice = await PadMenu.ShowAsync(_host, $"Filtros do banco · {Count} resultado(s)",
+                "Escolha um filtro, ajuste-o e este menu volta. LIMPAR TUDO apaga todos os filtros.",
+                new PadOption($"Só shiny: {OnOff(_filter.ShinyOnly)}", IconPath: "shiny"),
+                new PadOption($"Geração: {(_filter.Generation is { } gen ? Roman(gen) : "Todas")}", IconPath: "generation",
+                    Detail: "A geração dos dados dele, não o jogo em que foi capturado."),
+                new PadOption($"Jogo de origem: {_filter.SourceName ?? "TODOS"}", IconPath: "game",
+                    Detail: "O jogo de onde foi depositado."),
+                new PadOption($"Tipo: {(_filter.TypeId is { } type ? TypeNames[type] : "Todos")}", IconPath: "type",
+                    Detail: "Corresponde a qualquer um dos tipos dele."),
+                new PadOption($"Raridade: {_filter.Rarity switch
                 {
-                    BankRarity.Legendary => "Legendary",
-                    BankRarity.Mythical => "Mythical",
-                    BankRarity.LegendaryOrMythical => "Legendary or mythical",
-                    _ => "ALL",
-                }}", IconPath: "rarity", Detail: "Legendary, mythical, or both."),
-                new PadOption($"Eggs: {OnOff(_filter.EggOnly)}", IconPath: "egg"),
-                new PadOption($"Gender: {GenderName(_filter.Gender)}", IconPath: "gender"),
-                new PadOption($"Held item: {HeldItemLabel()}", IconPath: "item", Detail: "Anything holding an item, or one item in particular."),
-                new PadOption($"Default names only: {OnOff(_filter.DefaultNamedOnly)}", IconPath: "rename",
-                    Detail: "Hides nicknamed Pokémon."),
-                new PadOption($"Lowest level: {_filter.LevelMin?.ToString() ?? "ANY"}", IconPath: "level", Detail: "Hides anything below this level."),
-                new PadOption($"Highest level: {_filter.LevelMax?.ToString() ?? "ANY"}", IconPath: "level", Detail: "Hides anything above this level."),
-                new PadOption("Reset all filters", IconPath: "restore", Detail: "Also clears the search text."),
-                new PadOption("Done", IconPath: "confirm"));
+                    BankRarity.Legendary => "Lendário",
+                    BankRarity.Mythical => "Mítico",
+                    BankRarity.LegendaryOrMythical => "Lendário ou mítico",
+                    _ => "TODOS",
+                }}", IconPath: "rarity", Detail: "Lendário, mítico ou os dois."),
+                new PadOption($"Ovos: {OnOff(_filter.EggOnly)}", IconPath: "egg"),
+                new PadOption($"Gênero: {GenderName(_filter.Gender)}", IconPath: "gender"),
+                new PadOption($"Item segurado: {HeldItemLabel()}", IconPath: "item", Detail: "Qualquer um segurando um item, ou um item específico."),
+                new PadOption($"Só nomes padrão: {OnOff(_filter.DefaultNamedOnly)}", IconPath: "rename",
+                    Detail: "Esconde Pokémon com apelido."),
+                new PadOption($"Nível mínimo: {_filter.LevelMin?.ToString() ?? "QUALQUER"}", IconPath: "level", Detail: "Esconde tudo abaixo deste nível."),
+                new PadOption($"Nível máximo: {_filter.LevelMax?.ToString() ?? "QUALQUER"}", IconPath: "level", Detail: "Esconde tudo acima deste nível."),
+                new PadOption("Limpar todos os filtros", IconPath: "restore", Detail: "Também apaga o texto da busca."),
+                new PadOption("Pronto", IconPath: "confirm"));
 
             switch (choice)
             {
-                case null or "Done":
+                case null or "Pronto":
                     RefreshView();
                     return;
-                case "Reset all filters":
+                case "Limpar todos os filtros":
                     _text.Text = "";
                     _filter = BankFilter.None;
                     break;
-                case var _ when choice.StartsWith("Shiny only:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Só shiny:", StringComparison.Ordinal):
                     _filter = _filter with { ShinyOnly = !_filter.ShinyOnly };
                     break;
-                case var _ when choice.StartsWith("Eggs:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Ovos:", StringComparison.Ordinal):
                     _filter = _filter with { EggOnly = !_filter.EggOnly };
                     break;
-                case var _ when choice.StartsWith("Default names only:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Só nomes padrão:", StringComparison.Ordinal):
                     _filter = _filter with { DefaultNamedOnly = !_filter.DefaultNamedOnly };
                     break;
-                case var _ when choice.StartsWith("Generation:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Geração:", StringComparison.Ordinal):
                     if (!await PickGenerationAsync()) continue;
                     break;
-                case var _ when choice.StartsWith("Source game:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Jogo de origem:", StringComparison.Ordinal):
                     if (!await PickSourceAsync()) continue;
                     break;
-                case var _ when choice.StartsWith("Type:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Tipo:", StringComparison.Ordinal):
                     if (!await PickTypeAsync()) continue;
                     break;
-                case var _ when choice.StartsWith("Held item:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Item segurado:", StringComparison.Ordinal):
                     if (!await PickHeldItemAsync(reopen: false)) continue;
                     break;
-                case var _ when choice.StartsWith("Gender:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Gênero:", StringComparison.Ordinal):
                     if (!await PickGenderAsync()) continue;
                     break;
-                case var _ when choice.StartsWith("Rarity:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Raridade:", StringComparison.Ordinal):
                     if (!await PickRarityAsync()) continue;
                     break;
-                case var _ when choice.StartsWith("Lowest level:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Nível mínimo:", StringComparison.Ordinal):
                     if (!await PickLevelAsync(lowest: true)) continue;
                     break;
-                case var _ when choice.StartsWith("Highest level:", StringComparison.Ordinal):
+                case var _ when choice.StartsWith("Nível máximo:", StringComparison.Ordinal):
                     if (!await PickLevelAsync(lowest: false)) continue;
                     break;
             }
@@ -336,17 +336,17 @@ public sealed class BankSearchPage : IPadPagingHandler
         }
     }
 
-    private static string OnOff(bool value) => value ? "ON" : "OFF";
+    private static string OnOff(bool value) => value ? "LIGADO" : "DESLIGADO";
 
     /// <summary>Returns false when the picker was dismissed (leave the filter alone).</summary>
     private async Task<bool> PickGenerationAsync()
     {
         var generations = _all.Select(e => e.Info.Generation).Distinct().Order().ToList();
-        var options = new List<PadOption> { new("All generations") };
+        var options = new List<PadOption> { new("Todas as gerações") };
         options.AddRange(generations.Select(gen => new PadOption($"GEN {Roman(gen)}")));
-        var choice = await PadMenu.ShowAsync(_host, "Generation", "Which era's storage format?", options.ToArray());
+        var choice = await PadMenu.ShowAsync(_host, "Geração", "Qual formato de armazenamento de geração?", options.ToArray());
         if (choice is null) return false;
-        _filter = _filter with { Generation = choice == "All generations" ? null : RomanToNumber(choice) };
+        _filter = _filter with { Generation = choice == "Todas as gerações" ? null : RomanToNumber(choice) };
         return true;
     }
 
@@ -363,44 +363,44 @@ public sealed class BankSearchPage : IPadPagingHandler
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Order(StringComparer.OrdinalIgnoreCase)
             .ToList();
-        var options = new List<PadOption> { new("All sources") };
+        var options = new List<PadOption> { new("Todas as origens") };
         options.AddRange(sources.Select(source => new PadOption(source)));
-        var choice = await PadMenu.ShowAsync(_host, "Source game", "Which game did they come from?", options.ToArray());
+        var choice = await PadMenu.ShowAsync(_host, "Jogo de origem", "De qual jogo eles vieram?", options.ToArray());
         if (choice is null) return false;
         _filter = _filter with
         {
-            SourceName = choice == "All sources" ? null : sources.First(s => s == choice),
+            SourceName = choice == "Todas as origens" ? null : sources.First(s => s == choice),
         };
         return true;
     }
 
     private async Task<bool> PickTypeAsync()
     {
-        var options = new List<PadOption> { new("All types") };
+        var options = new List<PadOption> { new("Todos os tipos") };
         for (var type = ParkType.Normal; type <= ParkType.Max; type++)
             options.Add(new PadOption(TypeNames[type]));
-        var choice = await PadMenu.ShowAsync(_host, "Type", "Either of a mon's types may match.", options.ToArray());
+        var choice = await PadMenu.ShowAsync(_host, "Tipo", "Qualquer um dos tipos do Pokémon pode corresponder.", options.ToArray());
         if (choice is null) return false;
         _filter = _filter with
         {
-            TypeId = choice == "All types" ? null : Array.IndexOf(TypeNames, choice),
+            TypeId = choice == "Todos os tipos" ? null : Array.IndexOf(TypeNames, choice),
         };
         return true;
     }
 
     private async Task<bool> PickRarityAsync()
     {
-        var choice = await PadMenu.ShowAsync(_host, "Rarity", null,
-            new PadOption("All rarities"), new PadOption("Legendary"), new PadOption("Mythical"),
-            new PadOption("Legendary or mythical"));
+        var choice = await PadMenu.ShowAsync(_host, "Raridade", null,
+            new PadOption("Todas as raridades"), new PadOption("Lendário"), new PadOption("Mítico"),
+            new PadOption("Lendário ou mítico"));
         if (choice is null) return false;
         _filter = _filter with
         {
             Rarity = choice switch
             {
-                "Legendary" => BankRarity.Legendary,
-                "Mythical" => BankRarity.Mythical,
-                "Legendary or mythical" => BankRarity.LegendaryOrMythical,
+                "Lendário" => BankRarity.Legendary,
+                "Mítico" => BankRarity.Mythical,
+                "Lendário ou mítico" => BankRarity.LegendaryOrMythical,
                 _ => BankRarity.Any,
             },
         };
@@ -409,8 +409,8 @@ public sealed class BankSearchPage : IPadPagingHandler
 
     private string HeldItemLabel() =>
         _filter.HeldItemId is { } id ? HeldItemSearch.NameOf(_data.ItemNames, id)
-        : _filter.HoldsItemOnly ? "Any item"
-        : "All";
+        : _filter.HoldsItemOnly ? "Qualquer item"
+        : "Todos";
 
     /// <summary>
     /// The held-item finder: "Any item" (everything holding something) or one exact item,
@@ -424,8 +424,8 @@ public sealed class BankSearchPage : IPadPagingHandler
         var directory = Path.Combine(FileSystem.AppDataDirectory, "items");
         var items = new List<PickItem>
         {
-            new(0, "All (no item filter)"),
-            new(-1, "Any held item", IconPath: null, Detail: $"{holders} Pokémon"),
+            new(0, "Todos (sem filtro de item)"),
+            new(-1, "Qualquer item segurado", IconPath: null, Detail: $"{holders} Pokémon"),
         };
         foreach (var (id, count) in tally)
         {
@@ -434,7 +434,7 @@ public sealed class BankSearchPage : IPadPagingHandler
             items.Add(new PickItem(id, name, File.Exists(cached) ? cached : null, $"{count} Pokémon"));
         }
         var current = _filter.HeldItemId ?? (_filter.HoldsItemOnly ? -1 : 0);
-        var pick = await PickerMenu.ShowAsync(_host, "Held item", items, current);
+        var pick = await PickerMenu.ShowAsync(_host, "Item segurado", items, current);
         if (pick is null) return false;
         _filter = pick.Id switch
         {
@@ -453,30 +453,30 @@ public sealed class BankSearchPage : IPadPagingHandler
 
     private static string GenderName(int? gender) => gender switch
     {
-        0 => "MALE",
-        1 => "Female",
-        2 => "Genderless",
-        _ => "ANY",
+        0 => "MACHO",
+        1 => "Fêmea",
+        2 => "Sem gênero",
+        _ => "QUALQUER",
     };
 
     private async Task<bool> PickGenderAsync()
     {
-        var choice = await PadMenu.ShowAsync(_host, "Gender", "Read from each stored Pokémon.",
-            new PadOption("Any gender"), new PadOption("Male"), new PadOption("Female"), new PadOption("Genderless"));
+        var choice = await PadMenu.ShowAsync(_host, "Gênero", "Lido de cada Pokémon guardado.",
+            new PadOption("Qualquer gênero"), new PadOption("Macho"), new PadOption("Fêmea"), new PadOption("Sem gênero"));
         if (choice is null) return false;
         _filter = _filter with
         {
-            Gender = choice switch { "Male" => 0, "Female" => 1, "Genderless" => 2, _ => null },
+            Gender = choice switch { "Macho" => 0, "Fêmea" => 1, "Sem gênero" => 2, _ => null },
         };
         return true;
     }
 
     private async Task<bool> PickLevelAsync(bool lowest)
     {
-        var options = new List<PadOption> { new(lowest ? "Any lowest level" : "Any highest level") };
+        var options = new List<PadOption> { new(lowest ? "Qualquer nível mínimo" : "Qualquer nível máximo") };
         options.AddRange(Enumerable.Range(1, MaxLevel).Select(level => new PadOption($"Lv.{level}")));
-        var choice = await PadMenu.ShowAsync(_host, lowest ? "Lowest level" : "Highest level",
-            lowest ? "Hide anything below this level." : "Hide anything above this level.", options.ToArray());
+        var choice = await PadMenu.ShowAsync(_host, lowest ? "Nível mínimo" : "Nível máximo",
+            lowest ? "Esconder tudo abaixo deste nível." : "Esconder tudo acima deste nível.", options.ToArray());
         if (choice is null) return false;
         var level = choice.StartsWith("Lv.", StringComparison.Ordinal) ? int.Parse(choice[3..]) : (int?)null;
         if (lowest) _filter = _filter with { LevelMin = level };
@@ -486,7 +486,7 @@ public sealed class BankSearchPage : IPadPagingHandler
 
     private async Task ShowSortMenuAsync()
     {
-        var picked = await PickSortAsync(_host, "Sort the results", null);
+        var picked = await PickSortAsync(_host, "Ordenar os resultados", null);
         if (picked is null) return;
         (_sort, _reverse, _) = picked.Value;
         _page = 0;
@@ -498,18 +498,18 @@ public sealed class BankSearchPage : IPadPagingHandler
     /// for its natural direction and for the reversed one.</summary>
     private static readonly (BankSortOrder Order, string Label, string Forward, string Reversed, string Icon)[] SortKeys =
     [
-        (BankSortOrder.DexNumber, "Dex number", "lowest first", "highest first", "pokedex"),
-        (BankSortOrder.SpeciesName, "Species name", "A-Z", "Z-A", "alpha"),
-        (BankSortOrder.Nickname, "Nickname", "A-Z", "Z-A", "rename"),
-        (BankSortOrder.LevelDesc, "Level", "strongest first", "weakest first", "level"),
-        (BankSortOrder.ShinyFirst, "Shiny", "shinies first", "shinies last", "shiny"),
-        (BankSortOrder.Type, "Type", "Normal → Fairy", "Fairy → Normal", "type"),
-        (BankSortOrder.Rarity, "Legendary / mythical", "rare first", "rare last", "rarity"),
-        (BankSortOrder.Generation, "Generation", "oldest era first", "newest era first", "generation"),
-        (BankSortOrder.SourceGame, "Origin game", "A-Z", "Z-A", "game"),
-        (BankSortOrder.NewestAdded, "Date deposited", "newest first", "oldest first", "calendar"),
-        (BankSortOrder.Gender, "Gender", "♂ ♀ genderless", "genderless ♀ ♂", "gender"),
-        (BankSortOrder.Ball, "Poké Ball", "by ball number", "reversed", "bank"),
+        (BankSortOrder.DexNumber, "Número da dex", "menor primeiro", "maior primeiro", "pokedex"),
+        (BankSortOrder.SpeciesName, "Nome da espécie", "A-Z", "Z-A", "alpha"),
+        (BankSortOrder.Nickname, "Apelido", "A-Z", "Z-A", "rename"),
+        (BankSortOrder.LevelDesc, "Nível", "mais fortes primeiro", "mais fracos primeiro", "level"),
+        (BankSortOrder.ShinyFirst, "Shiny", "shinies primeiro", "shinies por último", "shiny"),
+        (BankSortOrder.Type, "Tipo", "Normal → Fairy", "Fairy → Normal", "type"),
+        (BankSortOrder.Rarity, "Lendário / mítico", "raros primeiro", "raros por último", "rarity"),
+        (BankSortOrder.Generation, "Geração", "geração mais antiga primeiro", "geração mais nova primeiro", "generation"),
+        (BankSortOrder.SourceGame, "Jogo de origem", "A-Z", "Z-A", "game"),
+        (BankSortOrder.NewestAdded, "Data do depósito", "mais recentes primeiro", "mais antigos primeiro", "calendar"),
+        (BankSortOrder.Gender, "Gênero", "♂ ♀ sem gênero", "sem gênero ♀ ♂", "gender"),
+        (BankSortOrder.Ball, "Poké Ball", "pelo número da bola", "invertido", "bank"),
     ];
 
     /// <summary>
@@ -524,7 +524,7 @@ public sealed class BankSearchPage : IPadPagingHandler
             SortKeys.Select(k => new PadOption(k.Label, IconPath: k.Icon)).ToArray());
         if (key is null) return null;
         var picked = SortKeys.First(k => k.Label == key);
-        var direction = await PadMenu.ShowAsync(host, picked.Label, "Which way round?",
+        var direction = await PadMenu.ShowAsync(host, picked.Label, "Em qual sentido?",
             new PadOption(picked.Forward, IconPath: "sort"), new PadOption(picked.Reversed, IconPath: "reverse"));
         if (direction is null) return null;
         var reverse = direction == picked.Reversed;
@@ -534,18 +534,18 @@ public sealed class BankSearchPage : IPadPagingHandler
     private static string SortLabel(BankSortOrder sort) => sort switch
     {
         BankSortOrder.SpeciesName => "A-Z",
-        BankSortOrder.LevelDesc => "Level",
+        BankSortOrder.LevelDesc => "Nível",
         BankSortOrder.ShinyFirst => "Shiny",
-        BankSortOrder.NewestAdded => "Date",
-        BankSortOrder.OldestAdded => "Oldest",
+        BankSortOrder.NewestAdded => "Data",
+        BankSortOrder.OldestAdded => "Mais antigos",
         BankSortOrder.Generation => "Gen",
-        BankSortOrder.Nickname => "Nickname",
-        BankSortOrder.Type => "Type",
-        BankSortOrder.SourceGame => "Game",
-        BankSortOrder.Rarity => "Rarity",
-        BankSortOrder.Gender => "Gender",
-        BankSortOrder.Ball => "Ball",
-        _ => "Dex #",
+        BankSortOrder.Nickname => "Apelido",
+        BankSortOrder.Type => "Tipo",
+        BankSortOrder.SourceGame => "Jogo",
+        BankSortOrder.Rarity => "Raridade",
+        BankSortOrder.Gender => "Gênero",
+        BankSortOrder.Ball => "Bola",
+        _ => "Nº da Dex",
     };
 
     // ── The result grid: the bank's own slot language ─────────────────────────
@@ -554,7 +554,7 @@ public sealed class BankSearchPage : IPadPagingHandler
     {
         if (Count == 0)
         {
-            _cursorInfo.Text = _all.Count == 0 ? "THE BANK IS EMPTY" : "NO POKéMON MATCH";
+            _cursorInfo.Text = _all.Count == 0 ? "O BANCO ESTÁ VAZIO" : "NENHUM POKéMON CORRESPONDE";
             return;
         }
         var entry = EntryAt(_page * PageSize + _cursor);
@@ -564,7 +564,7 @@ public sealed class BankSearchPage : IPadPagingHandler
             : $" “{entry.Info.Nickname}”";
         _cursorInfo.Text =
             $"#{entry.Info.Species:000} {name}{nickname} · Box {entry.Box + 1:00} slot {entry.Slot + 1:00} · Gen {entry.Info.Generation} · {entry.Info.SourceName}"
-            + (_facts.HeldItem(entry) is not 0 and var item ? $" · holds {HeldItemSearch.NameOf(_data.ItemNames, item)}" : "");
+            + (_facts.HeldItem(entry) is not 0 and var item ? $" · segura {HeldItemSearch.NameOf(_data.ItemNames, item)}" : "");
     }
 
     /// <summary>Loads the whole visible page at once so cells fill in one pass.</summary>

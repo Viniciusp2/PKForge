@@ -18,27 +18,27 @@ public static class CosmeticsEditor
         {
             var c = session.GetCosmetics(box, slot);
             var options = new List<PadOption>();
-            if (c.Markings.Count != 0) options.Add(new PadOption($"Box markings · {c.Markings.Count(m => m.Value != 0)}/{c.Markings.Count}",
-                Detail: "The circle, heart and other symbols shown in the box."));
-            if (c.ContestStats.Count != 0) options.Add(new PadOption($"Contest stats · {c.ContestStats.Sum()}/1530",
-                Detail: "Cool, Beauty, Cute, Smart, Tough and Sheen, used in contests."));
-            if (c.SupportsSize || c.SupportsScale) options.Add(new PadOption("Size", Detail: "The hidden values behind its height, weight or size."));
-            if (c.SupportsAffection || c.SupportsFullnessEnjoyment) options.Add(new PadOption("Care", Detail: "Affection, fullness and enjoyment."));
-            if (HasSpecial(c)) options.Add(new PadOption("Special", Detail: "Favorite, Dynamax, Alpha and sociability, where the game has them."));
+            if (c.Markings.Count != 0) options.Add(new PadOption($"Marcações da box · {c.Markings.Count(m => m.Value != 0)}/{c.Markings.Count}",
+                Detail: "O círculo, o coração e outros símbolos mostrados na box."));
+            if (c.ContestStats.Count != 0) options.Add(new PadOption($"Atributos de concurso · {c.ContestStats.Sum()}/1530",
+                Detail: "Cool, Beauty, Cute, Smart, Tough e Sheen, usados nos concursos."));
+            if (c.SupportsSize || c.SupportsScale) options.Add(new PadOption("Tamanho", Detail: "Os valores ocultos por trás da altura, do peso ou do tamanho dele."));
+            if (c.SupportsAffection || c.SupportsFullnessEnjoyment) options.Add(new PadOption("Cuidados", Detail: "Afeição, saciedade e diversão."));
+            if (HasSpecial(c)) options.Add(new PadOption("Especial", Detail: "Favorito, Dynamax, Alpha e sociabilidade, nos jogos que têm."));
 
             if (options.Count == 0)
             {
-                await EditorMenu.ShowAsync(host, "Cosmetics", "This Pokémon format has no cosmetic data.", "OK");
+                await EditorMenu.ShowAsync(host, "Visual", "Este formato de Pokémon não tem dados de visual.", "OK");
                 return dirty;
             }
 
-            var choice = await EditorMenu.ShowAsync(host, "Cosmetics", null, options.ToArray());
+            var choice = await EditorMenu.ShowAsync(host, "Visual", null, options.ToArray());
             if (choice is null) return dirty;
-            if (choice.StartsWith("Box markings", StringComparison.Ordinal)) dirty |= await EditMarkingsAsync(host, session, box, slot);
-            else if (choice.StartsWith("Contest stats", StringComparison.Ordinal)) dirty |= await EditContestAsync(host, session, box, slot);
-            else if (choice == "Size") dirty |= await EditSizeAsync(host, session, box, slot);
-            else if (choice == "Care") dirty |= await EditCareAsync(host, session, box, slot);
-            else if (choice == "Special") dirty |= await EditSpecialAsync(host, session, box, slot);
+            if (choice.StartsWith("Marcações da box", StringComparison.Ordinal)) dirty |= await EditMarkingsAsync(host, session, box, slot);
+            else if (choice.StartsWith("Atributos de concurso", StringComparison.Ordinal)) dirty |= await EditContestAsync(host, session, box, slot);
+            else if (choice == "Tamanho") dirty |= await EditSizeAsync(host, session, box, slot);
+            else if (choice == "Cuidados") dirty |= await EditCareAsync(host, session, box, slot);
+            else if (choice == "Especial") dirty |= await EditSpecialAsync(host, session, box, slot);
         }
     }
 
@@ -69,12 +69,12 @@ public static class CosmeticsEditor
         if (marking.MaxValue == 1)
         {
             var choice = await EditorMenu.ShowAsync(host, marking.Name, null,
-                new PadOption("Off"), new PadOption("On"));
-            return choice switch { "Off" => 0, "On" => 1, _ => null };
+                new PadOption("Desligado"), new PadOption("Ligado"));
+            return choice switch { "Desligado" => 0, "Ligado" => 1, _ => null };
         }
         var color = await EditorMenu.ShowAsync(host, marking.Name, null,
-            new PadOption("Off"), new PadOption("Blue"), new PadOption("Pink"));
-        return color switch { "Off" => 0, "Blue" => 1, "Pink" => 2, _ => null };
+            new PadOption("Desligado"), new PadOption("Azul"), new PadOption("Rosa"));
+        return color switch { "Desligado" => 0, "Azul" => 1, "Rosa" => 2, _ => null };
     }
 
     private static async Task<bool> EditContestAsync(Grid host, ISaveEngineSession session, int box, int slot)
@@ -84,14 +84,14 @@ public static class CosmeticsEditor
         {
             var c = session.GetCosmetics(box, slot);
             var options = ContestNames.Select((name, i) => new PadOption($"{name} · {c.ContestStats[i]}/255")).ToList();
-            options.Add(new PadOption("Max all", IconPath: "fill"));
-            options.Add(new PadOption("Clear all", IconPath: "clear"));
+            options.Add(new PadOption("Maximizar tudo", IconPath: "fill"));
+            options.Add(new PadOption("Limpar tudo", IconPath: "clear"));
             var choice = await EditorMenu.ShowAsync(host, "Contest stats", null, options.ToArray());
             if (choice is null) return dirty;
 
             var values = c.ContestStats.ToArray();
-            if (choice == "Max all") values = [255, 255, 255, 255, 255, 255];
-            else if (choice == "Clear all") values = [0, 0, 0, 0, 0, 0];
+            if (choice == "Maximizar tudo") values = [255, 255, 255, 255, 255, 255];
+            else if (choice == "Limpar tudo") values = [0, 0, 0, 0, 0, 0];
             else
             {
                 var index = Array.FindIndex(ContestNames, name => choice.StartsWith(name, StringComparison.Ordinal));
@@ -112,19 +112,19 @@ public static class CosmeticsEditor
         var options = new List<PadOption>();
         if (c.SupportsSize)
         {
-            options.Add(new PadOption($"Height scalar · {c.HeightScalar}/255", Detail: "0 is the shortest, 255 the tallest."));
-            options.Add(new PadOption($"Weight scalar · {c.WeightScalar}/255", Detail: "0 is the lightest, 255 the heaviest."));
+            options.Add(new PadOption($"Escala de altura · {c.HeightScalar}/255", Detail: "0 é o mais baixo, 255 o mais alto."));
+            options.Add(new PadOption($"Escala de peso · {c.WeightScalar}/255", Detail: "0 é o mais leve, 255 o mais pesado."));
         }
-        if (c.SupportsScale) options.Add(new PadOption($"Scale · {c.Scale}/255", Detail: "0 is the smallest, 255 the largest."));
-        var choice = await EditorMenu.ShowAsync(host, "Size", null, options.ToArray());
+        if (c.SupportsScale) options.Add(new PadOption($"Escala · {c.Scale}/255", Detail: "0 é o menor, 255 o maior."));
+        var choice = await EditorMenu.ShowAsync(host, "Tamanho", null, options.ToArray());
         if (choice is null) return false;
 
-        var current = choice.StartsWith("Height", StringComparison.Ordinal) ? c.HeightScalar
-            : choice.StartsWith("Weight", StringComparison.Ordinal) ? c.WeightScalar : c.Scale;
+        var current = choice.StartsWith("Escala de altura", StringComparison.Ordinal) ? c.HeightScalar
+            : choice.StartsWith("Escala de peso", StringComparison.Ordinal) ? c.WeightScalar : c.Scale;
         var value = await StatsPopup.ShowSingleAsync(host, choice.Split('·')[0].Trim(), current, 255);
         if (value is not { } next || next == current) return false;
-        var edit = choice.StartsWith("Height", StringComparison.Ordinal) ? new CosmeticEdit(HeightScalar: next)
-            : choice.StartsWith("Weight", StringComparison.Ordinal) ? new CosmeticEdit(WeightScalar: next)
+        var edit = choice.StartsWith("Escala de altura", StringComparison.Ordinal) ? new CosmeticEdit(HeightScalar: next)
+            : choice.StartsWith("Escala de peso", StringComparison.Ordinal) ? new CosmeticEdit(WeightScalar: next)
             : new CosmeticEdit(Scale: next);
         session.ApplyCosmeticEdit(box, slot, edit);
         return true;
@@ -136,24 +136,24 @@ public static class CosmeticsEditor
         var options = new List<PadOption>();
         if (c.SupportsAffection)
         {
-            options.Add(new PadOption($"OT affection · {c.OriginalTrainerAffection}/255", Detail: "Affection toward its original trainer."));
-            options.Add(new PadOption($"Handler affection · {c.HandlingTrainerAffection}/255", Detail: "Affection toward the trainer it was traded to."));
+            options.Add(new PadOption($"Afeição do TO · {c.OriginalTrainerAffection}/255", Detail: "Afeição pelo treinador original."));
+            options.Add(new PadOption($"Afeição do treinador atual · {c.HandlingTrainerAffection}/255", Detail: "Afeição pelo treinador para quem ele foi trocado."));
         }
         if (c.SupportsFullnessEnjoyment)
         {
-            options.Add(new PadOption($"Fullness · {c.Fullness}/255"));
-            options.Add(new PadOption($"Enjoyment · {c.Enjoyment}/255"));
+            options.Add(new PadOption($"Saciedade · {c.Fullness}/255"));
+            options.Add(new PadOption($"Diversão · {c.Enjoyment}/255"));
         }
-        var choice = await EditorMenu.ShowAsync(host, "Care", null, options.ToArray());
+        var choice = await EditorMenu.ShowAsync(host, "Cuidados", null, options.ToArray());
         if (choice is null) return false;
-        var current = choice.StartsWith("OT", StringComparison.Ordinal) ? c.OriginalTrainerAffection
-            : choice.StartsWith("Handler", StringComparison.Ordinal) ? c.HandlingTrainerAffection
-            : choice.StartsWith("Fullness", StringComparison.Ordinal) ? c.Fullness : c.Enjoyment;
+        var current = choice.StartsWith("Afeição do TO", StringComparison.Ordinal) ? c.OriginalTrainerAffection
+            : choice.StartsWith("Afeição do treinador atual", StringComparison.Ordinal) ? c.HandlingTrainerAffection
+            : choice.StartsWith("Saciedade", StringComparison.Ordinal) ? c.Fullness : c.Enjoyment;
         var value = await StatsPopup.ShowSingleAsync(host, choice.Split('·')[0].Trim(), current, 255);
         if (value is not { } next || next == current) return false;
-        var edit = choice.StartsWith("OT", StringComparison.Ordinal) ? new CosmeticEdit(OriginalTrainerAffection: next)
-            : choice.StartsWith("Handler", StringComparison.Ordinal) ? new CosmeticEdit(HandlingTrainerAffection: next)
-            : choice.StartsWith("Fullness", StringComparison.Ordinal) ? new CosmeticEdit(Fullness: next)
+        var edit = choice.StartsWith("Afeição do TO", StringComparison.Ordinal) ? new CosmeticEdit(OriginalTrainerAffection: next)
+            : choice.StartsWith("Afeição do treinador atual", StringComparison.Ordinal) ? new CosmeticEdit(HandlingTrainerAffection: next)
+            : choice.StartsWith("Saciedade", StringComparison.Ordinal) ? new CosmeticEdit(Fullness: next)
             : new CosmeticEdit(Enjoyment: next);
         session.ApplyCosmeticEdit(box, slot, edit);
         return true;
@@ -163,33 +163,33 @@ public static class CosmeticsEditor
     {
         var c = session.GetCosmetics(box, slot);
         var options = new List<PadOption>();
-        if (c.SupportsFavorite) options.Add(new PadOption($"Favorite · {(c.IsFavorite ? "on" : "off")}"));
+        if (c.SupportsFavorite) options.Add(new PadOption($"Favorito · {(c.IsFavorite ? "ligado" : "desligado")}"));
         if (c.SupportsDynamax)
         {
-            options.Add(new PadOption($"Dynamax level · {c.DynamaxLevel}/10", Detail: "Each level adds HP while it is Dynamaxed."));
-            options.Add(new PadOption($"Gigantamax factor · {(c.CanGigantamax ? "on" : "off")}", Detail: "Lets it Gigantamax if its species has that form."));
+            options.Add(new PadOption($"Nível Dynamax · {c.DynamaxLevel}/10", Detail: "Cada nível soma HP enquanto ele está Dynamax."));
+            options.Add(new PadOption($"Fator Gigantamax · {(c.CanGigantamax ? "ligado" : "desligado")}", Detail: "Permite Gigantamax se a espécie dele tiver essa forma."));
         }
-        if (c.SupportsAlpha) options.Add(new PadOption($"Alpha · {(c.IsAlpha ? "on" : "off")}", Detail: "Marks it as an Alpha, the bigger kind from the Legends games."));
-        if (c.SupportsSociability) options.Add(new PadOption($"Sociability · {c.Sociability}"));
-        var choice = await EditorMenu.ShowAsync(host, "Special", null, options.ToArray());
+        if (c.SupportsAlpha) options.Add(new PadOption($"Alpha · {(c.IsAlpha ? "ligado" : "desligado")}", Detail: "Marca como Alpha, o tipo maior dos jogos Legends."));
+        if (c.SupportsSociability) options.Add(new PadOption($"Sociabilidade · {c.Sociability}"));
+        var choice = await EditorMenu.ShowAsync(host, "Especial", null, options.ToArray());
         if (choice is null) return false;
 
-        if (choice.StartsWith("Dynamax level", StringComparison.Ordinal))
+        if (choice.StartsWith("Nível Dynamax", StringComparison.Ordinal))
         {
             var value = await StatsPopup.ShowSingleAsync(host, "Dynamax level", c.DynamaxLevel, 10);
             if (value is not { } next || next == c.DynamaxLevel) return false;
             session.ApplyCosmeticEdit(box, slot, new CosmeticEdit(DynamaxLevel: next));
             return true;
         }
-        if (choice.StartsWith("Sociability", StringComparison.Ordinal))
+        if (choice.StartsWith("Sociabilidade", StringComparison.Ordinal))
         {
             var value = await StatsPopup.ShowSingleAsync(host, "Sociability", (int)Math.Min(c.Sociability, int.MaxValue), int.MaxValue);
             if (value is not { } next || (uint)next == c.Sociability) return false;
             session.ApplyCosmeticEdit(box, slot, new CosmeticEdit(Sociability: (uint)next));
             return true;
         }
-        if (choice.StartsWith("Favorite", StringComparison.Ordinal)) session.ApplyCosmeticEdit(box, slot, new CosmeticEdit(IsFavorite: !c.IsFavorite));
-        else if (choice.StartsWith("Gigantamax", StringComparison.Ordinal)) session.ApplyCosmeticEdit(box, slot, new CosmeticEdit(CanGigantamax: !c.CanGigantamax));
+        if (choice.StartsWith("Favorito", StringComparison.Ordinal)) session.ApplyCosmeticEdit(box, slot, new CosmeticEdit(IsFavorite: !c.IsFavorite));
+        else if (choice.StartsWith("Fator Gigantamax", StringComparison.Ordinal)) session.ApplyCosmeticEdit(box, slot, new CosmeticEdit(CanGigantamax: !c.CanGigantamax));
         else if (choice.StartsWith("Alpha", StringComparison.Ordinal)) session.ApplyCosmeticEdit(box, slot, new CosmeticEdit(IsAlpha: !c.IsAlpha));
         else return false;
         return true;

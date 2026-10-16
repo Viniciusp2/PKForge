@@ -71,16 +71,16 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         };
         var hints = new List<(string Button, string Label, Action? OnTap)>
         {
-            ("B", "Back", () => _ = Navigation.PopAsync()),
-            ("A", "Meet Pokémon", () => _ = DetailsAsync()),
+            ("B", "Voltar", () => _ = Navigation.PopAsync()),
+            ("A", "Conhecer Pokémon", () => _ = DetailsAsync()),
             // L and R fly the camera from one place of the park to the next.
-            ("LR", "Places", () => FlyToPlace(1)),
+            ("LR", "Lugares", () => FlyToPlace(1)),
             // Up and Down zoom, for players without a touch screen.
             ("↑↓", "Zoom", () => _scene.Viewport.Zoom(1)),
-            ("X", "Photo", () => _ = TakePhotoAsync()),
-            ("+", "Options", () => _ = OptionsAsync()),
+            ("X", "Foto", () => _ = TakePhotoAsync()),
+            ("+", "Opções", () => _ = OptionsAsync()),
             // − lets the camera follow whatever is happening in the park.
-            ("−", "Spectate", ToggleSpectate)
+            ("−", "Assistir", ToggleSpectate)
         };
         var footer = DsChrome.Footer([.. hints]);
         footer.VerticalOptions = LayoutOptions.End;
@@ -166,7 +166,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             }
             else if (highlight.Priority >= 2)
             {
-                _scene.Notify($"{(highlight.Priority >= 3 ? "★ " : "")}{highlight.Text}   X: go see");
+                _scene.Notify($"{(highlight.Priority >= 3 ? "★ " : "")}{highlight.Text}   X: ir ver");
                 _offered = highlight; _offeredAt = now;
             }
         }
@@ -235,9 +235,9 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             ? happening.Split("!")[0].TrimEnd('.', ' ') + (happening.Contains('!') ? "!" : "")
             : _selected >= 0 && _selected < _scene.Residents.Count && _scene.Life[_scene.Residents[_selected].Id] is { } actor
                 ? $"{actor.Resident.Name}: {actor.Activity}"
-                : "The Poképark";
+                : "O Poképark";
         await Task.Run(() => PokeparkAlbum.Save(jpeg, caption, DateTime.Now));
-        _scene.Notify("Snap! Photo saved to the album (Options)");
+        _scene.Notify("Clique! Foto salva no álbum (Opções)");
     }
 
     private bool Offering => _offered is not null && _clock.ElapsedMilliseconds - _offeredAt < OfferFor;
@@ -246,14 +246,14 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
     {
         _spectating = !_spectating;
         _watching = null; _watchingSince = 0;
-        _scene.Notify(_spectating ? "Spectating: the camera follows what happens in the park" : "Spectating off");
+        _scene.Notify(_spectating ? "Assistindo: a câmera acompanha o que acontece no parque" : "Modo assistir desligado");
     }
 
     private void StopSpectating()
     {
         if (!_spectating) return;
         _spectating = false; _watching = null;
-        _scene.Notify("Spectating off");
+        _scene.Notify("Modo assistir desligado");
     }
 
     private int _frame;
@@ -279,9 +279,9 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         if (_menuOpen) return; _menuOpen = true;
         try
         {
-            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Snowman", Random.Shared.Next(10) == 0
-                ? "You lock eyes with the snowman. It looks at you with a sense of pride and fulfillment. You feel that, just for now, things will be okay."
-                : "Just a snowman. Not much to see here.");
+            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Boneco de neve", Random.Shared.Next(10) == 0
+                ? "Você troca olhares com o boneco de neve. Ele te olha com um ar de orgulho e realização. Você sente que, pelo menos agora, as coisas vão ficar bem."
+                : "Só um boneco de neve. Nada demais para ver aqui.");
         }
         finally { _menuOpen = false; }
     }
@@ -299,10 +299,10 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         _nowPill.IsVisible = true;
         var mon = _scene.Residents[_selected];
         var actor = _scene.Life[mon.Id];
-        var now = actor is null ? "" : $"RIGHT NOW  ·  {mon.Name}: {actor.Activity}";
+        var now = actor is null ? "" : $"AGORA  ·  {mon.Name}: {actor.Activity}";
         if (_now.Text != now) _now.Text = now;
         var elsewhere = _scene.Life.Highlights.FirstOrDefault(h => h.ActorId != mon.Id) is { } highlight
-            ? $"ELSEWHERE  ·  {highlight.Text.Split("! ")[0].TrimEnd('!')}{(highlight.Text.Contains('!') ? "!" : "")}"
+            ? $"EM OUTRO LUGAR  ·  {highlight.Text.Split("! ")[0].TrimEnd('!')}{(highlight.Text.Contains('!') ? "!" : "")}"
             : "";
         if (_elsewhere.Text != elsewhere) { _elsewhere.Text = elsewhere; _elsewhere.IsVisible = elsewhere.Length > 0; }
     }
@@ -398,7 +398,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             try
             {
                 foreach (var story in stories)
-                    await PokeparkCardOverlay.ShowDialogueAsync(_host, "While you were away", story.Text);
+                    await PokeparkCardOverlay.ShowDialogueAsync(_host, "Enquanto você estava fora", story.Text);
                 foreach (var (mon, line) in parties)
                     await PokeparkCardOverlay.ShowDialogueAsync(_host, mon.Name, line, () => _walking.GetPortrait(mon.Species, mon.Form, mon.Shiny, "Joyous"));
             }
@@ -575,46 +575,46 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         {
             var current = _park.Settings.Source switch
             {
-                PokeparkSource.Save => "Save only",
-                PokeparkSource.Bank => "Bank only",
-                PokeparkSource.Disabled => "Disabled",
-                _ => "Save + Bank"
+                PokeparkSource.Save => "Só o save",
+                PokeparkSource.Bank => "Só o Banco",
+                PokeparkSource.Disabled => "Desativado",
+                _ => "Save + Banco"
             };
-            var options = new List<string> { "Today's goals", "Photo album", "Daycare", "How to play", "Park journal", "Time and weather", "Music", "Treasures",
-                "Auto-fill mode", "Invite Pokémon", "Empty park", "Widget help", "Credits", _scene.ShowCaptions ? "Captions: On" : "Captions: Off",
-                ParkCanvas.UsesGpu ? "Drawing: GPU" : "Drawing: CPU" };
+            var options = new List<string> { "Metas de hoje", "Álbum de fotos", "Creche", "Como jogar", "Diário do parque", "Hora e clima", "Música", "Tesouros",
+                "Modo de preenchimento automático", "Convidar Pokémon", "Esvaziar parque", "Ajuda do widget", "Créditos", _scene.ShowCaptions ? "Legendas: Ligadas" : "Legendas: Desligadas",
+                ParkCanvas.UsesGpu ? "Desenho: GPU" : "Desenho: CPU" };
 #if DIAGNOSTIC
             // Frame times over the park, for measuring on a device.
-            options.Add(_scene.ShowPerformance ? "Hide performance" : "Show performance");
+            options.Add(_scene.ShowPerformance ? "Esconder desempenho" : "Mostrar desempenho");
 #endif
-            var choice = await PadMenu.ShowAsync(_host, "Poképark options", $"Auto-fill: {current}. Existing residents are never moved or replaced.", [.. options]);
-            if (choice is "Drawing: GPU" or "Drawing: CPU")
+            var choice = await PadMenu.ShowAsync(_host, "Opções do Poképark", $"Preenchimento automático: {current}. Os moradores atuais nunca são movidos nem substituídos.", [.. options]);
+            if (choice is "Desenho: GPU" or "Desenho: CPU")
             {
-                var gpu = choice == "Drawing: CPU";
+                var gpu = choice == "Desenho: CPU";
                 Preferences.Default.Set(ParkCanvas.RendererKey, gpu ? "gpu" : "cpu");
-                await PokeparkCardOverlay.ShowDialogueAsync(_host, "Drawing", gpu
-                    ? "The park will be drawn by the GPU next time you open it: lighter and smoother."
-                    : "The park will be drawn by the CPU next time you open it, in case the GPU drawing shows a problem on this device.");
+                await PokeparkCardOverlay.ShowDialogueAsync(_host, "Desenho", gpu
+                    ? "O parque vai ser desenhado pela GPU na próxima vez que você abrir: mais leve e mais fluido."
+                    : "O parque vai ser desenhado pela CPU na próxima vez que você abrir, caso o desenho pela GPU dê problema neste aparelho.");
             }
-            if (choice is "Captions: On" or "Captions: Off")
+            if (choice is "Legendas: Ligadas" or "Legendas: Desligadas")
             {
-                _scene.ShowCaptions = choice == "Captions: Off";
+                _scene.ShowCaptions = choice == "Legendas: Desligadas";
                 Preferences.Default.Set(CaptionsKey, _scene.ShowCaptions);
             }
-            if (choice is "Show performance" or "Hide performance") _scene.ShowPerformance = choice == "Show performance";
-            if (choice == "Park journal")
+            if (choice is "Mostrar desempenho" or "Esconder desempenho") _scene.ShowPerformance = choice == "Mostrar desempenho";
+            if (choice == "Diário do parque")
                 await ShowJournalAsync();
-            if (choice == "Photo album")
+            if (choice == "Álbum de fotos")
                 await PokeparkAlbumOverlay.ShowAsync(_host);
-            if (choice == "Auto-fill mode")
+            if (choice == "Modo de preenchimento automático")
             {
-                var mode = await PadMenu.ShowAsync(_host, "Auto-fill park", "Choose where automatic residents may come from. Manual invites remain available in every mode.",
-                    "Save + Bank", "Save only", "Bank only", "Disabled");
+                var mode = await PadMenu.ShowAsync(_host, "Preencher o parque automaticamente", "Escolha de onde os moradores automáticos podem vir. Os convites manuais continuam disponíveis em todos os modos.",
+                    "Save + Banco", "Só o save", "Só o Banco", "Desativado");
                 var source = mode switch
                 {
-                    "Save only" => PokeparkSource.Save,
-                    "Bank only" => PokeparkSource.Bank,
-                    "Disabled" => PokeparkSource.Disabled,
+                    "Só o save" => PokeparkSource.Save,
+                    "Só o Banco" => PokeparkSource.Bank,
+                    "Desativado" => PokeparkSource.Disabled,
                     _ => PokeparkSource.Both
                 };
                 _park.SaveSettings(_park.Settings with { Source = source });
@@ -625,27 +625,27 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
                 });
                 Reload();
             }
-            if (choice == "Invite Pokémon") await PokeparkCardOverlay.ShowDialogueAsync(_host, "Park guide", "Open a Pokémon’s action menu in your save boxes or Bank, then choose Send to Poképark. Its original stays right where it is.");
-            else if (choice == "Empty park" && _scene.Residents.Count > 0 &&
-                     await PadMenu.ConfirmAsync(_host, "Empty the park?", $"Remove all {_scene.Residents.Count} residents from Poképark? Their original Pokémon stay in their save or Bank.", "Empty park"))
+            if (choice == "Convidar Pokémon") await PokeparkCardOverlay.ShowDialogueAsync(_host, "Guia do parque", "Abra o menu de ações de um Pokémon nas boxes do seu save ou no Banco e escolha Enviar para o Poképark. O original fica exatamente onde está.");
+            else if (choice == "Esvaziar parque" && _scene.Residents.Count > 0 &&
+                     await PadMenu.ConfirmAsync(_host, "Esvaziar o parque?", $"Remover todos os {_scene.Residents.Count} moradores do Poképark? Os Pokémon originais continuam no save ou no Banco.", "Esvaziar parque"))
             {
                 _park.RemoveAllVisitors();
                 Reload();
             }
-            else if (choice == "Widget help")
-                await PadMenu.ShowAsync(_host, "A meadow on your home screen", "Add PKForge Poképark in Cocoon's widget picker. Resize it to give your Pokémon more room. The full meadow shows a quiet, living moment; tap it to return here. Your residents are saved between visits.", "OK");
-            else if (choice == "Credits") { _menuOpen = false; await CreditsAsync(); }
-            else if (choice == "Time and weather") await SkyAsync();
-            else if (choice == "Music") await MusicMenu.ShowAsync(_host, _scene.Notify);
-            else if (choice == "How to play") await GuideAsync();
-            else if (choice == "Today's goals") await GoalsAsync();
-            else if (choice == "Daycare") { _menuOpen = false; await DaycareAsync(); }
-            else if (choice == "Treasures")
+            else if (choice == "Ajuda do widget")
+                await PadMenu.ShowAsync(_host, "Um prado na sua tela inicial", "Adicione o PKForge Poképark no seletor de widgets do Cocoon. Aumente o tamanho para dar mais espaço aos seus Pokémon. O prado completo mostra um momento tranquilo e vivo; toque nele para voltar aqui. Seus moradores ficam salvos entre as visitas.", "OK");
+            else if (choice == "Créditos") { _menuOpen = false; await CreditsAsync(); }
+            else if (choice == "Hora e clima") await SkyAsync();
+            else if (choice == "Música") await MusicMenu.ShowAsync(_host, _scene.Notify);
+            else if (choice == "Como jogar") await GuideAsync();
+            else if (choice == "Metas de hoje") await GoalsAsync();
+            else if (choice == "Creche") { _menuOpen = false; await DaycareAsync(); }
+            else if (choice == "Tesouros")
             {
                 var found = _treasures.Load().OrderByDescending(t => t.Value).Select(t => $"{t.Key} ×{t.Value}").ToArray();
-                await PokeparkCardOverlay.ShowDialogueAsync(_host, "Treasures", found.Length == 0
-                    ? "Nothing dug up yet. Ask a Pokémon to dig from its card: Play, then Dig. Ground and Rock types have the best noses for it."
-                    : "Dug up so far: " + string.Join(", ", found) + ".");
+                await PokeparkCardOverlay.ShowDialogueAsync(_host, "Tesouros", found.Length == 0
+                    ? "Nada foi desenterrado ainda. Peça para um Pokémon cavar pelo cartão dele: Play e depois Dig. Os tipos Ground e Rock têm o melhor faro para isso."
+                    : "Desenterrado até agora: " + string.Join(", ", found) + ".");
             }
         }
         finally { _menuOpen = false; }
@@ -672,8 +672,8 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
     }
 
     private void UpdateStatus() => _status.Text = _scene.Residents.Count == 0
-        ? "Your meadow is waiting. Select a Pokémon in a box or the Bank, then Send to Poképark."
-        : $"{_scene.Region.Name}  ·  {_scene.Residents.Count}/{PokeparkService.MaximumResidents} residents  ·  Today's goals {Goals().Progress.Where((_, i) => Goals().Done(i)).Count()}/{Goals().Goals.Count}  ·  Tap a Pokémon to meet it, hold to pat it";
+        ? "Seu prado está esperando. Selecione um Pokémon numa box ou no Banco e depois Enviar para o Poképark."
+        : $"{_scene.Region.Name}  ·  {_scene.Residents.Count}/{PokeparkService.MaximumResidents} moradores  ·  Metas de hoje {Goals().Progress.Where((_, i) => Goals().Done(i)).Count()}/{Goals().Goals.Count}  ·  Toque num Pokémon para conhecê-lo, segure para fazer carinho";
 
     // Today's three goals, kept until midnight.
     private const string GoalsKey = "pkforge.pokepark.goals.v1";
@@ -694,14 +694,14 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
     {
         if (_scene.Residents.Count == 0) return;
         var state = ParkGoals.Record(Goals(), deed, id, out var done);
-        foreach (var goal in done) _scene.Notify($"Goal done: {goal.Text}");
+        foreach (var goal in done) _scene.Notify($"Meta concluída: {goal.Text}");
         if (state.AllDone && !state.Rewarded)
         {
             var reward = ParkGoals.RewardFor(state.Day);
             state = state with { Rewarded = true };
             _treasures.Add(reward);
             _scene.Life.Rejoice();
-            _scene.Notify($"All of today's goals done! The park celebrates, and you find {reward.Name}.");
+            _scene.Notify($"Todas as metas de hoje concluídas! O parque comemora, e você encontra {reward.Name}.");
         }
         _goals = state;
         Preferences.Default.Set(GoalsKey, ParkGoals.Save(state));
@@ -722,40 +722,40 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
                 var egg = _daycare.Egg is { } e && roster.TryGetValue(e.First, out var first) && roster.TryGetValue(e.Second, out var second) ? (first, second) : ((ParkPokemon, ParkPokemon)?)null;
                 var writes = _park.Settings.DaycareWritesBack;
                 var options = new List<PadOption>();
-                if (egg is { } waiting) options.Add(new PadOption("Take the egg", IconPath: "park", Detail: $"From {waiting.Item1.Name} and {waiting.Item2.Name}. {(writes ? "It goes to your Bank." : "Writing back is off: it becomes a keepsake.")}"));
+                if (egg is { } waiting) options.Add(new PadOption("Pegar o ovo", IconPath: "park", Detail: $"De {waiting.Item1.Name} e {waiting.Item2.Name}. {(writes ? "Ele vai para o seu Banco." : "Gravar de volta está desligado: ele vira uma lembrança.")}"));
                 foreach (var guest in guests)
                 {
                     var (time, growth) = _daycare.Progress(guest);
                     var detail = growth is { ExpGained: > 0 } g
-                        ? $"Here {Stayed(time)}. Level {g.LevelBefore}, would be {g.LevelAfter} on pick-up."
-                        : $"Here {Stayed(time)}.";
-                    options.Add(new PadOption($"Pick up {Named(guest)}", IconPath: "move", Detail: detail));
+                        ? $"Aqui há {Stayed(time)}. Nível {g.LevelBefore}, ficaria {g.LevelAfter} ao buscar."
+                        : $"Aqui há {Stayed(time)}.";
+                    options.Add(new PadOption($"Buscar {Named(guest)}", IconPath: "move", Detail: detail));
                 }
                 if (guests.Length < PokeparkDaycareService.Capacity && _scene.Residents.Count > guests.Length)
-                    options.Add(new PadOption("Leave a Pokémon here", IconPath: "park", Detail: $"{guests.Length} of {PokeparkDaycareService.Capacity} places taken."));
-                options.Add(new PadOption($"Write back to saves: {(writes ? "On" : "Off")}", IconPath: "settings",
-                    Detail: writes ? "EXP and eggs go back to your saves and Bank, where the game allows it. A restore point comes first." : "Everything that happens here stays in the park."));
-                options.Add(new PadOption("How the daycare works", IconPath: "info"));
-                var note = guests.Length == 0 ? "Blissey keeps the daycare by the cabin, and Audino helps." : $"Looking after {string.Join(", ", guests.Select(g => g.Name))}.";
-                var choice = await PadMenu.ShowAsync(_host, "Blissey's daycare", note, options.ToArray());
+                    options.Add(new PadOption("Deixar um Pokémon aqui", IconPath: "park", Detail: $"{guests.Length} de {PokeparkDaycareService.Capacity} vagas ocupadas."));
+                options.Add(new PadOption($"Gravar de volta nos saves: {(writes ? "Ligado" : "Desligado")}", IconPath: "settings",
+                    Detail: writes ? "EXP e ovos voltam para os seus saves e Banco, onde o jogo permitir. Um ponto de restauração é criado antes." : "Tudo o que acontece aqui fica no parque."));
+                options.Add(new PadOption("Como a creche funciona", IconPath: "info"));
+                var note = guests.Length == 0 ? "Blissey cuida da creche perto da cabana, e Audino ajuda." : $"Cuidando de {string.Join(", ", guests.Select(g => g.Name))}.";
+                var choice = await PadMenu.ShowAsync(_host, "Creche da Blissey", note, options.ToArray());
                 if (choice is null) return;
-                if (choice == "Take the egg" && egg is { } taken)
+                if (choice == "Pegar o ovo" && egg is { } taken)
                 {
                     _scene.Life.TakeEgg();
                     var line = _daycare.TakeEgg(taken.Item1, taken.Item2, _treasures.Add);
                     await PokeparkCardOverlay.ShowDialogueAsync(_host, "Blissey", line, () => _walking.GetPortrait(242, 0, false, "Joyous"));
                 }
-                else if (choice.StartsWith("Pick up ", StringComparison.Ordinal) && guests.FirstOrDefault(g => choice == $"Pick up {Named(g)}") is { } leaving)
+                else if (choice.StartsWith("Buscar ", StringComparison.Ordinal) && guests.FirstOrDefault(g => choice == $"Buscar {Named(g)}") is { } leaving)
                 {
                     var line = await _daycare.PickUpAsync(leaving);
                     SetGuests();
                     if (_daycare.Egg is null && _scene.Life.Egg is not null) _scene.Life.TakeEgg();
                     await PokeparkCardOverlay.ShowDialogueAsync(_host, "Blissey", line, () => _walking.GetPortrait(242, 0, false, "Happy"));
                 }
-                else if (choice == "Leave a Pokémon here")
+                else if (choice == "Deixar um Pokémon aqui")
                 {
                     var free = _scene.Residents.Where(r => !_daycare.IsGuest(r.Id)).ToArray();
-                    var pick = await PadMenu.ShowAsync(_host, "Who stays with Blissey?", null,
+                    var pick = await PadMenu.ShowAsync(_host, "Quem fica com a Blissey?", null,
                         free.Select(r => new PadOption(Named(r), Detail: string.IsNullOrEmpty(r.Origin) ? r.Source : $"{r.Origin} · {r.TrainerName}")).ToArray());
                     if (free.FirstOrDefault(r => Named(r) == pick) is { } staying)
                     {
@@ -764,11 +764,11 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
                         await PokeparkCardOverlay.ShowDialogueAsync(_host, "Blissey", line, () => _walking.GetPortrait(242, 0, false, "Happy"));
                     }
                 }
-                else if (choice.StartsWith("Write back to saves", StringComparison.Ordinal))
+                else if (choice.StartsWith("Gravar de volta nos saves", StringComparison.Ordinal))
                     _park.SaveSettings(_park.Settings with { DaycareWritesBack = !writes });
-                else if (choice == "How the daycare works")
-                    await PokeparkCardOverlay.ShowDialogueAsync(_host, "Blissey's daycare",
-                        "Leave up to four Pokémon with Blissey. Each one follows its own game's daycare: up to Sun and Moon they gain EXP for every hour they stay; the Nurseries of Sword and Shield, Brilliant Diamond and Shining Pearl, and Scarlet and Violet don't train but can give eggs; Let's Go and Legends have no daycare. Two guests who could breed in their game may leave an egg, which Blissey keeps until you come for it. With writing back on, the EXP goes to the real Pokémon on pick-up and the egg goes to your Bank. The save gets a restore point first, and nothing is written if the Pokémon was changed since you left it.",
+                else if (choice == "Como a creche funciona")
+                    await PokeparkCardOverlay.ShowDialogueAsync(_host, "Creche da Blissey",
+                        "Deixe até quatro Pokémon com a Blissey. Cada um segue a creche do próprio jogo: até Sun e Moon, eles ganham EXP a cada hora que ficam; os Berçários de Sword e Shield, Brilliant Diamond e Shining Pearl, e Scarlet e Violet não treinam, mas podem dar ovos; Let's Go e Legends não têm creche. Dois hóspedes que poderiam cruzar no jogo deles podem deixar um ovo, que a Blissey guarda até você vir buscar. Com Gravar de volta ligado, a EXP vai para o Pokémon de verdade quando você busca e o ovo vai para o seu Banco. O save ganha um ponto de restauração antes, e nada é gravado se o Pokémon tiver sido alterado desde que você o deixou.",
                         () => _walking.GetPortrait(242, 0, false, "Normal"));
             }
         }
@@ -781,7 +781,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
 
     private static string Stayed(TimeSpan time) => time.TotalHours switch
     {
-        < 1 => "less than an hour",
+        < 1 => "menos de uma hora",
         < 24 => $"{Math.Max(1, (int)time.TotalHours)} h",
         _ => $"{(int)time.TotalDays} d {time.Hours} h"
     };
@@ -789,9 +789,9 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
     private Task GoalsAsync()
     {
         var goals = Goals();
-        var lines = goals.Goals.Select((goal, i) => goals.Done(i) ? $"{goal.Text}: done!" : goal.Count > 1 ? $"{goal.Text}: {goals.Progress[i]} of {goal.Count}." : $"{goal.Text}.");
-        var end = goals.Rewarded ? " All done for today. New goals tomorrow." : $" Finish all three for a party and a rare find: today it is {ParkGoals.RewardFor(goals.Day).Name}.";
-        return PokeparkCardOverlay.ShowDialogueAsync(_host, "Today's goals", string.Join(" ", lines) + end);
+        var lines = goals.Goals.Select((goal, i) => goals.Done(i) ? $"{goal.Text}: concluída!" : goal.Count > 1 ? $"{goal.Text}: {goals.Progress[i]} de {goal.Count}." : $"{goal.Text}.");
+        var end = goals.Rewarded ? " Tudo pronto por hoje. Novas metas amanhã." : $" Conclua as três para ter uma festa e um achado raro: hoje é {ParkGoals.RewardFor(goals.Day).Name}.";
+        return PokeparkCardOverlay.ShowDialogueAsync(_host, "Metas de hoje", string.Join(" ", lines) + end);
     }
 
     // Who it loves, its best friend and its rival: the species' own feelings plus what happened in the park.
@@ -808,9 +808,9 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             if (far > rivalScore) { rivalScore = far; rival = other.Name; fear = feeling == ParkPairKind.Fears; }
         }
         var parts = new List<string>();
-        if (friend is not null) parts.Add(love ? $"in love with {friend}" : $"best friend {friend}");
-        if (rival is not null && rival != friend) parts.Add(fear ? $"scared of {rival}" : $"rival {rival}");
-        return parts.Count == 0 ? "no close bonds yet" : string.Join(" · ", parts);
+        if (friend is not null) parts.Add(love ? $"apaixonado por {friend}" : $"melhor amigo de {friend}");
+        if (rival is not null && rival != friend) parts.Add(fear ? $"com medo de {rival}" : $"rival de {rival}");
+        return parts.Count == 0 ? "nenhum laço próximo ainda" : string.Join(" · ", parts);
     }
 
     private void SaveCare()
@@ -879,7 +879,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         var actor = _scene.Life[mon.Id];
         var care = actor?.Care ?? new ParkCareState(mon.Id);
         var personality = Personality(mon);
-        var activity = actor is null ? "Exploring another area" : actor.Indoors ? "Sleeping in the cabin" : actor.Activity;
+        var activity = actor is null ? "Explorando outra área" : actor.Indoors ? "Dormindo na cabana" : actor.Activity;
         var types = HabitatCatalog.TypesFor(mon.Species, mon.Form);
         return new ParkCardPaint.Card(mon.Name, mon.Shiny, personality.Trait, actor?.Mood ?? "Content", activity, personality.Likes,
             [care.Hunger, care.Energy, care.Fun, care.Social], care.Hearts(), types.Contains(ParkType.Fighting), BondRows(mon), AboutRows(mon, actor, care));
@@ -899,18 +899,18 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         if (actor is null) return rows;
         var resident = actor.Resident;
         // Who it is and where it really lives.
-        rows.Add(new("Species", _park.SpeciesName(mon.Species) + (mon.Form > 0 ? $" (form {mon.Form})" : "") + (mon.Shiny ? " · shiny" : "")));
+        rows.Add(new("Espécie", _park.SpeciesName(mon.Species) + (mon.Form > 0 ? $" (forma {mon.Form})" : "") + (mon.Shiny ? " · shiny" : "")));
         var game = string.Join(" · ", new[] { mon.Origin, mon.GameName, mon.TrainerName.Length > 0 ? $"trainer {mon.TrainerName}" : "" }.Where(s => s.Length > 0));
-        if (game.Length > 0) rows.Add(new("Comes from", game));
-        rows.Add(new("Lives in", mon.Source));
-        rows.Add(new("Temperament", ParkLore.Explain(resident.Temperament)));
+        if (game.Length > 0) rows.Add(new("Vem de", game));
+        rows.Add(new("Mora em", mon.Source));
+        rows.Add(new("Temperamento", ParkLore.Explain(resident.Temperament)));
         var nature = _park.NatureOf(mon);
         var taste = ParkTaste.Describe(ParkTaste.NatureOrGuess(nature, mon.Id), care.TasteKnown);
-        rows.Add(new("Nature", nature is { } n ? $"{_park.NatureName(n)} · {taste}" : $"unknown until its save is open · {taste}"));
+        rows.Add(new("Natureza", nature is { } n ? $"{_park.NatureName(n)} · {taste}" : $"desconhecida até o save dele ser aberto · {taste}"));
         foreach (var (habit, meaning) in ParkLore.Habits(resident.Species, resident.Types, ParkLife.IsTroll(resident)).Take(2))
             rows.Add(new(habit, meaning));
-        if (ParkLore.TouchWarning(resident.Species, resident.Types, resident.Temperament) is { } touch) rows.Add(new("Touch", touch));
-        if (care.SparCount > 0) rows.Add(new("Training", $"your best: {care.SparBest} of {ParkLife.SparRounds} blocked over {care.SparCount} sessions"));
+        if (ParkLore.TouchWarning(resident.Species, resident.Types, resident.Temperament) is { } touch) rows.Add(new("Toque", touch));
+        if (care.SparCount > 0) rows.Add(new("Treino", $"seu recorde: {care.SparBest} de {ParkLife.SparRounds} bloqueados em {care.SparCount} sessões"));
         return rows;
     }
 
@@ -926,7 +926,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             var bank = services.GetRequiredService<IBankService>();
             if (bank.GetAll().FirstOrDefault(e => e.Id == id) is not { } entry)
             {
-                await PokeparkCardOverlay.ShowDialogueAsync(_host, mon.Name, $"{mon.Name} is no longer in the Bank. Only its copy lives here now.");
+                await PokeparkCardOverlay.ShowDialogueAsync(_host, mon.Name, $"{mon.Name} não está mais no Banco. Agora só a cópia dele mora aqui.");
                 return;
             }
             var page = services.GetRequiredService<BankPage>();
@@ -939,11 +939,11 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             var saves = services.GetRequiredService<ISaveSessionService>();
             var document = saves.Current?.Document;
             var hash = document is null ? "" : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(document.DocumentId)))[..16];
-            var where = box < 0 ? $"party, slot {slot + 1}" : $"box {box + 1}, slot {slot + 1}";
+            var where = box < 0 ? $"equipe, slot {slot + 1}" : $"box {box + 1}, slot {slot + 1}";
             if (hash != parts[1])
             {
                 await PokeparkCardOverlay.ShowDialogueAsync(_host, mon.Name,
-                    $"{mon.Name} came from {(mon.Origin.Length > 0 ? mon.Origin : "another save")}. Open that save to find it: {where}.");
+                    $"{mon.Name} veio de {(mon.Origin.Length > 0 ? mon.Origin : "outro save")}. Abra esse save para encontrá-lo: {where}.");
                 return;
             }
             var boxes = services.GetRequiredService<BoxBrowserPage>();
@@ -951,7 +951,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             services.GetRequiredService<PKForge.App.ViewModels.BoxBrowserViewModel>().JumpTo(box, slot);
             return;
         }
-        await PokeparkCardOverlay.ShowDialogueAsync(_host, mon.Name, $"{mon.Name} lives in {mon.Source}.");
+        await PokeparkCardOverlay.ShowDialogueAsync(_host, mon.Name, $"{mon.Name} mora em {mon.Source}.");
     }
 
     private SKBitmap? PortraitFor(ParkPokemon mon) =>
@@ -965,7 +965,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         {
             if (_scene.Residents.Count == 0)
             {
-                await PokeparkCardOverlay.ShowDialogueAsync(_host, "An empty meadow", "Invite a Pokémon from its save-box or Bank action menu with Send to Poképark. Then tap it here to spend some time together.");
+                await PokeparkCardOverlay.ShowDialogueAsync(_host, "Um prado vazio", "Convide um Pokémon pelo menu de ações da box do save ou do Banco com Enviar para o Poképark. Depois toque nele aqui para passarem um tempo juntos.");
                 return;
             }
             var mon = _scene.Residents[_selected];
@@ -980,7 +980,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             }
             if (action == "leave")
             {
-                if (await PadMenu.ConfirmAsync(_host, "Leave the park?", $"Remove {mon.Name} from this meadow? Its original stays in its box. You can invite it again anytime.", "Leave park"))
+                if (await PadMenu.ConfirmAsync(_host, "Sair do parque?", $"Tirar {mon.Name} deste prado? O original continua na box dele. Você pode convidá-lo de novo quando quiser.", "Sair do parque"))
                 { _park.RemoveVisitor(mon.Id); _care.Remove(mon.Id); _daycare.Forget(mon.Id); Reload(); }
                 return;
             }
@@ -1025,9 +1025,9 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         var taste = NatureFacts.FlavorNames[Math.Clamp(flavor, 0, 4)].ToLowerInvariant();
         var (line, emotion) = reply.Line is { } own ? (own, reply.Emotion) : reply.Taste switch
         {
-            > 0 => ($"{mon.Name} gobbles the {berry} Berry and does a little happy dance. {char.ToUpperInvariant(taste[0])}{taste[1..]} things are its favorite!", "Joyous"),
-            < 0 => ($"{mon.Name} takes one bite of the {berry} Berry and makes a face. It stays polite about it, but {taste} flavors are not for it.", "Sigh"),
-            _ => ($"{mon.Name} munches the {berry} Berry happily, down to the last crumb.", "Happy")
+            > 0 => ($"{mon.Name} devora a {berry} Berry e faz uma dancinha feliz. {char.ToUpperInvariant(taste[0])}{taste[1..]}: é o sabor favorito dele!", "Joyous"),
+            < 0 => ($"{mon.Name} dá uma mordida na {berry} Berry e faz careta. Continua educado, mas sabores {taste} não são para ele.", "Sigh"),
+            _ => ($"{mon.Name} come a {berry} Berry todo feliz, até a última migalha.", "Happy")
         };
         await PokeparkCardOverlay.ShowDialogueAsync(_host, mon.Name, line,
             () => _walking.GetPortrait(mon.Species, mon.Form, mon.Shiny, emotion));
@@ -1037,7 +1037,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
     private void FlyToPlace(int delta)
     {
         var place = _scene.FlyToRegion(delta);
-        _status.Text = $"{place.Name}  ·  L/R to visit the park's places, A to follow a Pokémon again";
+        _status.Text = $"{place.Name}  ·  L/R para visitar os lugares do parque, A para seguir um Pokémon de novo";
         if (_active) _canvas.InvalidateSurface();
     }
 
@@ -1052,12 +1052,12 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         {
             if (_scene.Residents.Count == 0)
             {
-                await PokeparkCardOverlay.ShowDialogueAsync(_host, "Picnic time", "A picnic is better with company! Invite a Pokémon from your boxes or Bank first.");
+                await PokeparkCardOverlay.ShowDialogueAsync(_host, "Hora do piquenique", "Piquenique é melhor com companhia! Convide um Pokémon das suas boxes ou do Banco primeiro.");
                 return;
             }
             for (var i = 0; i < _scene.Residents.Count; i++)
                 _scene.Interact(i, _clock.ElapsedMilliseconds, "snack");
-            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Picnic time!", "You share a basket of berries with everyone. Happy little sounds drift across the meadow. There’s enough for every resident!");
+            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Hora do piquenique!", "Você divide uma cesta de berries com todo mundo. Sonzinhos felizes se espalham pelo prado. Tem o bastante para todos os moradores!");
         }
         finally { _menuOpen = false; }
     }
@@ -1073,32 +1073,32 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         if (hash % 5 == 0)
         {
             if (types.Contains(ParkType.Water))
-                return ("Homesick swimmer", "quiet water and familiar shores", "Misses the place it came from and keeps searching the pond for a familiar ripple.", "looks toward the lake, then gives you a small, uncertain wave.");
+                return ("Nadador com saudade de casa", "água calma e margens conhecidas", "Sente falta do lugar de onde veio e vive procurando no lago uma ondulação conhecida.", "olha para o lago e depois te dá um aceno pequeno e hesitante.");
             if (types.Contains(ParkType.Fire))
-                return ("Short-tempered spark", "warm stones and plenty of personal space", "Has been on edge all day and snaps at every leaf that lands nearby.", "huffs a tiny puff of smoke, then tries very hard to calm down.");
+                return ("Faísca de pavio curto", "pedras quentes e bastante espaço pessoal", "Passou o dia todo irritado e briga com cada folha que cai por perto.", "solta uma baforadinha de fumaça e depois se esforça muito para se acalmar.");
             if (types.Contains(ParkType.Electric))
-                return ("Overloaded thinker", "quiet shade and gentle company", "The meadow feels too loud today, even when everything is perfectly still.", "flinches at a distant rustle and slowly relaxes when you stay nearby.");
+                return ("Pensador sobrecarregado", "sombra tranquila e companhia gentil", "O prado parece barulhento demais hoje, mesmo quando está tudo perfeitamente quieto.", "se assusta com um farfalhar distante e relaxa devagar quando você fica por perto.");
             if (types.Contains(ParkType.Ghost) || types.Contains(ParkType.Dark))
-                return ("Lonely night wanderer", "dim corners and one trusted friend", "Has spent most of the day at the edge of the meadow, hoping someone will notice.", "keeps its distance, but does not leave when you sit beside it.");
+                return ("Andarilho solitário da noite", "cantos escuros e um amigo de confiança", "Passou boa parte do dia na beira do prado, torcendo para alguém notar.", "mantém distância, mas não vai embora quando você senta ao lado.");
             if (types.Contains(ParkType.Grass) || types.Contains(ParkType.Bug))
-                return ("Wilted little heart", "soft rain and untouched grass", "The meadow feels strangely empty today, and even its favorite flowers cannot cheer it up.", "lowers its gaze, then accepts your quiet company.");
-            return ("Uneasy visitor", "calm voices and a little extra patience", "Still has not decided whether this park is somewhere it can truly relax.", "watches you carefully, waiting to see whether you will stay.");
+                return ("Coraçãozinho murcho", "chuva fina e grama intocada", "O prado parece estranhamente vazio hoje, e nem as flores favoritas conseguem animá-lo.", "abaixa o olhar e depois aceita sua companhia silenciosa.");
+            return ("Visitante inquieto", "vozes calmas e um pouco mais de paciência", "Ainda não decidiu se este parque é um lugar onde pode relaxar de verdade.", "te observa com cuidado, esperando para ver se você vai ficar.");
         }
 
         return (hash % 12) switch
         {
-            0 => ("Curious explorer", "new paths and rustling grass", "Keeps checking whether that flower has grown since yesterday.", "tilts its head, curious about your day."),
-            1 => ("Easygoing dreamer", "quiet afternoons and soft grass", "Has found a sunny patch and considers it the best spot in the park.", "gives you a slow, contented nod."),
-            2 => ("Friendly neighbor", "company and little greetings", "Always seems to be nearby when a new resident arrives.", "comes closer to keep you company."),
-            3 => ("Playful wanderer", "stretching its legs and surprises", "Once followed a drifting leaf all the way across the meadow.", "does a cheerful little wiggle."),
-            4 => ("Thoughtful observer", "watching the pond and peaceful corners", "Is convinced the ripples on the pond are trying to say something.", "pauses its daydream to look up at you."),
-            5 => ("Flower enthusiast", "colorful petals and fresh air", "Has a favorite flower, but seems to pick a different one every day.", "looks delighted that you stopped by."),
-            6 => ("Tiny pathfinder", "hidden trails and bent blades of grass", "Found a shortcut through the meadow and now checks whether anyone else has discovered it.", "points proudly toward a nearby path."),
-            7 => ("Rain listener", "fresh puddles and soft drumming", "Remembers the last rainstorm by the little rings it left in the pond.", "leans closer as if waiting for the clouds to speak."),
-            8 => ("Berry guardian", "ripe berries and generous picnics", "Planted a berry seed near the fence and visits it with great responsibility.", "offers you a berry, then keeps one for later."),
-            9 => ("Cloud watcher", "open skies and slow afternoons", "Once spent so long watching clouds that it mistook one for a very sleepy Pokémon.", "looks up, then points at a particularly convincing cloud."),
-            10 => ("Grassland guide", "tall grass and familiar footsteps", "Can recognize every regular resident by the sound of their walk through the meadow.", "greets you with a knowing little nod."),
-            _ => ("Sunset collector", "golden light and quiet goodbyes", "Keeps returning to the same hill to watch the meadow turn amber at day's end.", "settles beside you for one peaceful moment.")
+            0 => ("Explorador curioso", "caminhos novos e grama farfalhando", "Vive conferindo se aquela flor cresceu desde ontem.", "inclina a cabeça, curioso sobre o seu dia."),
+            1 => ("Sonhador tranquilo", "tardes tranquilas e grama macia", "Achou um cantinho ensolarado e acha que é o melhor lugar do parque.", "te dá um aceno lento e satisfeito."),
+            2 => ("Vizinho simpático", "companhia e cumprimentos", "Sempre parece estar por perto quando chega um morador novo.", "chega mais perto para te fazer companhia."),
+            3 => ("Andarilho brincalhão", "esticar as pernas e surpresas", "Uma vez seguiu uma folha ao vento até o outro lado do prado.", "dá uma requebradinha alegre."),
+            4 => ("Observador pensativo", "observar o lago e cantinhos tranquilos", "Está convencido de que as ondulações do lago estão tentando dizer alguma coisa.", "interrompe o devaneio para olhar para você."),
+            5 => ("Apaixonado por flores", "pétalas coloridas e ar fresco", "Tem uma flor favorita, mas parece escolher uma diferente a cada dia.", "parece encantado por você ter passado."),
+            6 => ("Pequeno desbravador", "trilhas escondidas e folhas de grama dobradas", "Achou um atalho pelo prado e agora confere se mais alguém descobriu.", "aponta orgulhoso para um caminho ali perto."),
+            7 => ("Ouvinte da chuva", "poças novas e batuque suave", "Lembra da última chuva pelos anéis que ela deixou no lago.", "se inclina como se esperasse as nuvens falarem."),
+            8 => ("Guardião das berries", "berries maduras e piqueniques fartos", "Plantou uma semente de berry perto da cerca e visita com muita responsabilidade.", "te oferece uma berry e guarda outra para depois."),
+            9 => ("Observador de nuvens", "céu aberto e tardes lentas", "Uma vez ficou tanto tempo olhando as nuvens que confundiu uma com um Pokémon muito sonolento.", "olha para cima e aponta para uma nuvem bem convincente."),
+            10 => ("Guia do campo", "grama alta e passos conhecidos", "Reconhece cada morador pelo som dos passos no prado.", "te cumprimenta com um aceno de quem já sabe."),
+            _ => ("Colecionador de pores do sol", "luz dourada e despedidas tranquilas", "Sempre volta para o mesmo morro para ver o prado ficar cor de âmbar no fim do dia.", "se acomoda ao seu lado por um momento de paz.")
         };
     }
 
@@ -1120,18 +1120,18 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
         var entries = offline.Concat(social).OrderByDescending(e => e.At).Take(12).ToArray();
         if (entries.Length == 0)
         {
-            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Park journal",
-                "The first pages are still blank. Leave your Pokémon to enjoy the park, then check back later.");
+            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Diário do parque",
+                "As primeiras páginas ainda estão em branco. Deixe seus Pokémon aproveitarem o parque e volte depois.");
             return;
         }
         var labels = entries.Select((entry, i) =>
             $"{i + 1}. {entry.At.ToLocalTime():ddd HH:mm} · {Shorten(entry.Text, 46)}").ToArray();
-        var choice = await PadMenu.ShowAsync(_host, "Park journal",
-            "A record of discoveries, friendships, disagreements, and quiet moments while you were away.",
-            labels.Concat(["Close"]).ToArray());
+        var choice = await PadMenu.ShowAsync(_host, "Diário do parque",
+            "Um registro de descobertas, amizades, desentendimentos e momentos tranquilos enquanto você estava fora.",
+            labels.Concat(["Fechar"]).ToArray());
         var index = Array.IndexOf(labels, choice);
         if (index >= 0)
-            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Park journal", entries[index].Text);
+            await PokeparkCardOverlay.ShowDialogueAsync(_host, "Diário do parque", entries[index].Text);
     }
 
     private static string Shorten(string text, int length) =>
@@ -1151,29 +1151,29 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             {
                 var artists = PokeparkSpriteService.Artists(_walking.GetAttribution(mon.Species, mon.Form, mon.Shiny), names);
                 sprites.Add(new(_park.SpeciesName(mon.Species) + (mon.Shiny ? " (shiny)" : ""),
-                    artists.Count > 0 ? string.Join(", ", artists) : "PKHeX's sprite, until its animated sprite loads",
+                    artists.Count > 0 ? string.Join(", ", artists) : "sprite do PKHeX, até o sprite animado carregar",
                     (mon.Species, mon.Form, mon.Shiny)));
             }
-            sprites.Add(new("PMD SpriteCollab", "the community that draws the Mystery Dungeon sprites (CC BY-NC 4.0); the original sprites by CHUNSOFT"));
+            sprites.Add(new("PMD SpriteCollab", "a comunidade que desenha os sprites do Mystery Dungeon (CC BY-NC 4.0); sprites originais da CHUNSOFT"));
             ParkCreditsPaint.Section[] sections =
             [
-                new("Made by", [new("sofianeelhor", "PKForge and the Poképark")]),
-                new("Art", [new("spritedmistery", "the Poképark's map, the PKForge logo and this statue, the app's look, its colors and its buttons"),
-                    new("AlchemyBats", "the tileset the park is built on")]),
-                new("In the park right now", sprites),
-                new("Built on", [
-                    new("PKHeX", "Kaphotics and all its contributors: the engine everything runs on, and its sprites"),
-                    new("PKHeX-Plugins", "santacrab2 and contributors: Auto Legality Mod, the offline legalizer"),
-                    new("PKSM", "FlagBrew: the pixel chrome the app's look builds on"),
-                    new("Pokémon Showdown", "Smogon and the artists of its sprite projects: sprites and box icons"),
-                    new("PokeAPI", "item art and the evolution lines"),
-                    new("SteamGridDB", "its community: the game library's art"),
-                    new("game-icons.net", "Lorc, Delapouite, Guard13007, Carl Olsen and others: symbols"),
-                    new("Bulbagarden Archives", "the Pokérus sprites"),
-                    new("BlupBlurp, Team Lumi", "the Luminescent Platinum data"),
-                    new("G0LD, Ruki Studios", "the GS Chronicles data"),
+                new("Feito por", [new("sofianeelhor", "o PKForge e o Poképark")]),
+                new("Arte", [new("spritedmistery", "o mapa do Poképark, o logo do PKForge e esta estátua, o visual do app, suas cores e seus botões"),
+                    new("AlchemyBats", "o tileset sobre o qual o parque é construído")]),
+                new("No parque agora", sprites),
+                new("Construído com", [
+                    new("PKHeX", "Kaphotics e todos os contribuidores: o motor sobre o qual tudo roda, e os sprites dele"),
+                    new("PKHeX-Plugins", "santacrab2 e contribuidores: Auto Legality Mod, o legalizador offline"),
+                    new("PKSM", "FlagBrew: a estética pixel em que o visual do app se baseia"),
+                    new("Pokémon Showdown", "Smogon e os artistas dos projetos de sprites dele: sprites e ícones de box"),
+                    new("PokeAPI", "a arte dos itens e as linhas evolutivas"),
+                    new("SteamGridDB", "a comunidade dele: a arte da biblioteca de jogos"),
+                    new("game-icons.net", "Lorc, Delapouite, Guard13007, Carl Olsen e outros: símbolos"),
+                    new("Bulbagarden Archives", "os sprites de Pokérus"),
+                    new("BlupBlurp, Team Lumi", "os dados do Luminescent Platinum"),
+                    new("G0LD, Ruki Studios", "os dados do GS Chronicles"),
                 ]),
-                new("Pokémon", [new("Nintendo, Creatures Inc., GAME FREAK inc.", "Pokémon and Pokémon names ©")]),
+                new("Pokémon", [new("Nintendo, Creatures Inc., GAME FREAK inc.", "Pokémon e nomes de Pokémon ©")]),
             ];
             await PokeparkCreditsOverlay.ShowAsync(_host, sections, _walking);
         }
@@ -1300,7 +1300,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
     private void BeginThrow(ParkPokemon mon)
     {
         _throwFor = mon.Id;
-        _status.Text = $"Tap where to throw the ball for {mon.Name}  ·  A throws it ahead  ·  B keeps it";
+        _status.Text = $"Toque onde jogar a bola para {mon.Name}  ·  A joga para a frente  ·  B guarda";
     }
 
     private void Throw(ParkPoint? target)
@@ -1321,23 +1321,23 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
     {
         string[] pages =
         [
-            "Tap a Pokémon to open its card. Hold your finger on it to pat it. Drag or lean the left stick to look around; pinch, press Up and Down or lean the right stick to zoom; L and R fly to another place; double-tap the grass or press Left or Right to follow a Pokémon again.",
-            "When something worth seeing starts somewhere in the park, it shows at the top: press X or tap it to go and see. Press − to spectate: the camera follows what happens by itself, until you take it back.",
-            "Some moments need you. Talk to a Snorlax asleep across the bridge to play the Poké Flute; talk to a Psyduck in trouble in the water to pull it out; a berry means a lot to someone who just found the bush bare.",
-            "Press X to take a photo of the park, captioned with what is happening. Your photos are in Options, Photo album.",
-            "Hold your finger on the grass to call the Pokémon you picked. One that trusts you comes running; an aloof one may pretend it did not hear.",
-            "The card has three pages, Care, Bonds and About: switch with the tabs or L and R. Care shows its needs and what it is doing; Bonds, how it gets on with every other resident; About, its temperament, habits and what touching it may do.",
-            "Talk, Snack and Relax build your bond, five hearts at most, a little each day. Snack lets you pick a berry: its nature decides whether it loves it or pulls a face. Tastes show as ??? until you find them.",
-            "Play opens the games: throw the ball, hide and seek, races, digging for treasure, brushing, and for Fighting types, training. Whether it plays depends on its temperament and on your bond.",
-            "Every resident has needs that fall with time: food, energy, fun and friends. They look after themselves while you are away, but not perfectly. At night they sleep, some in the cabin.",
-            "One left hungry and worn out for too long falls unwell: it drags its feet and sweats, and the healers come to check on it. A berry from your hand puts it back on its feet.",
-            "On dry evenings a Fire type may light a campfire, and the others come to sit round it until it dies down. Rain puts it out.",
-            "Options, Today's goals: three small things to do each day. Do all three and the park throws a party, and you find something rare.",
-            "They have their own lives: friends, lovers, sworn rivals, troublemakers who steal and trip, and someone who stands up to them. The journal tells what happened; the lower screen follows the one you picked.",
-            "Options: Time and weather keeps the real clock and the day's weather, or lets you pick your own. Treasures lists what was dug up. Wild Pokémon wander in now and then: tap one to say hello.",
+            "Toque num Pokémon para abrir o cartão dele. Segure o dedo sobre ele para fazer carinho. Arraste ou incline o analógico esquerdo para olhar em volta; faça pinça, aperte Cima e Baixo ou incline o analógico direito para dar zoom; L e R voam para outro lugar; toque duas vezes na grama ou aperte Esquerda ou Direita para seguir um Pokémon de novo.",
+            "Quando algo interessante começa em algum lugar do parque, aparece no topo: aperte X ou toque para ir ver. Aperte − para assistir: a câmera acompanha o que acontece sozinha, até você retomar o controle.",
+            "Alguns momentos precisam de você. Fale com um Snorlax dormindo atravessado na ponte para tocar a Poké Flute; fale com um Psyduck em apuros na água para puxá-lo para fora; uma berry significa muito para quem acabou de achar o arbusto vazio.",
+            "Aperte X para tirar uma foto do parque, com uma legenda do que está acontecendo. Suas fotos ficam em Opções, Álbum de fotos.",
+            "Segure o dedo na grama para chamar o Pokémon que você escolheu. Um que confia em você vem correndo; um mais distante pode fingir que não ouviu.",
+            "O cartão tem três páginas, Care, Bonds e About: troque pelas abas ou com L e R. Care mostra as necessidades dele e o que está fazendo; Bonds, como ele se dá com cada outro morador; About, o temperamento, os hábitos e o que tocar nele pode causar.",
+            "Talk, Snack e Relax fortalecem o laço de vocês, no máximo cinco corações, um pouco a cada dia. Snack deixa você escolher uma berry: a natureza dele decide se ele adora ou faz careta. Os gostos aparecem como ??? até você descobrir.",
+            "Play abre as brincadeiras: jogar a bola, esconde-esconde, corridas, cavar tesouros, escovar e, para os tipos Fighting, treinar. Se ele brinca ou não depende do temperamento dele e do laço de vocês.",
+            "Cada morador tem necessidades que caem com o tempo: comida, energia, diversão e amigos. Eles se cuidam enquanto você está fora, mas não perfeitamente. À noite eles dormem, alguns na cabana.",
+            "Um que fica com fome e cansado por tempo demais adoece: arrasta os pés e sua, e os curandeiros vêm ver como ele está. Uma berry da sua mão o deixa de pé de novo.",
+            "Nas noites secas, um tipo Fire pode acender uma fogueira, e os outros vêm sentar em volta até ela apagar. A chuva apaga o fogo.",
+            "Opções, Metas de hoje: três coisinhas para fazer a cada dia. Faça as três e o parque dá uma festa, e você encontra algo raro.",
+            "Eles têm vidas próprias: amigos, namorados, rivais jurados, encrenqueiros que roubam e passam rasteira, e alguém que enfrenta eles. O diário conta o que aconteceu; a tela de baixo acompanha o que você escolheu.",
+            "Opções: Hora e clima segue o relógio real e o clima do dia, ou deixa você escolher. Tesouros lista o que foi desenterrado. De vez em quando aparecem Pokémon selvagens: toque num para dar oi.",
         ];
         for (var i = 0; i < pages.Length; i++)
-            await PokeparkCardOverlay.ShowDialogueAsync(_host, $"How to play  {i + 1}/{pages.Length}", pages[i]);
+            await PokeparkCardOverlay.ShowDialogueAsync(_host, $"Como jogar  {i + 1}/{pages.Length}", pages[i]);
     }
 
     // The player picks: the real clock and the day's weather, or a time and a sky of their own.
@@ -1352,13 +1352,13 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
 
     private async Task SkyAsync()
     {
-        var phase = await PadMenu.ShowAsync(_host, "Time of day",
-            "Automatic follows your clock: mornings, evenings and nights come as they do outside. Or pick one and the park stays there.",
-            "Automatic", "Morning", "Day", "Evening", "Night");
+        var phase = await PadMenu.ShowAsync(_host, "Hora do dia",
+            "Automático segue o seu relógio: manhãs, tardes e noites chegam como lá fora. Ou escolha uma e o parque fica nela.",
+            "Automático", "Manhã", "Dia", "Fim de tarde", "Noite");
         if (phase is null) return;
-        var weather = await PadMenu.ShowAsync(_host, "Weather",
-            "Automatic changes the sky a few times a day. Or pick one and it stays until you change it.",
-            "Automatic", "Sunny", "Cloudy", "Rain", "Storm");
+        var weather = await PadMenu.ShowAsync(_host, "Clima",
+            "Automático muda o céu algumas vezes por dia. Ou escolha um e ele fica até você mudar.",
+            "Automático", "Ensolarado", "Nublado", "Chuva", "Tempestade");
         if (weather is null) return;
         Preferences.Default.Set(SkyKey, $"{(phase == "Automatic" ? "auto" : phase)}|{(weather == "Automatic" ? "auto" : weather)}");
         LoadSky();
@@ -1377,7 +1377,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
             case "fetch": BeginThrow(mon); return;
             case "dig":
                 _digFor = mon.Id;
-                _status.Text = $"Tap where {mon.Name} should dig  ·  A digs right here  ·  B changes your mind";
+                _status.Text = $"Toque onde {mon.Name} deve cavar  ·  A cava aqui mesmo  ·  B muda de ideia";
                 return;
         }
         var kind = game switch { "hide" => ParkGameKind.HideAndSeek, "race" => ParkGameKind.Race, "spar" => ParkGameKind.Spar, _ => ParkGameKind.Brush };
@@ -1537,7 +1537,7 @@ public sealed class PokeparkPage : ContentPage, IPadHandler, IPadStickHandler
                 {
                     try
                     {
-                        await PokeparkCardOverlay.ShowDialogueAsync(_host, _scene.Life[wild]?.Resident.Name ?? "A wild Pokémon", line,
+                        await PokeparkCardOverlay.ShowDialogueAsync(_host, _scene.Life[wild]?.Resident.Name ?? "Um Pokémon selvagem", line,
                             friend is null ? null : () => _walking.GetPortrait(friend.Species, friend.Form, friend.Shiny, reply.Emotion));
                     }
                     finally { _menuOpen = false; }

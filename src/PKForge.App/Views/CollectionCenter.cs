@@ -27,8 +27,8 @@ public static class CollectionCenter
         {
             var (path, title) = trail.Peek();
             IReadOnlyList<CommunityNode> nodes;
-            var loading = LoadingOverlay.Show(host, "Collection center",
-                "Fetching the community shelf from RoC's PC. Visited folders are kept offline.");
+            var loading = LoadingOverlay.Show(host, "Central de coleções",
+                "Buscando a estante da comunidade no PC do RoC. As pastas visitadas ficam salvas offline.");
             try
             {
                 nodes = await service.ListAsync(path, loading.Cancellation.Token);
@@ -40,7 +40,7 @@ public static class CollectionCenter
             catch (Exception error)
             {
                 loading.Close();
-                await PadMenu.ShowAsync(host, "Collection center", error.Message, "OK");
+                await PadMenu.ShowAsync(host, "Central de coleções", error.Message, "OK");
                 return;
             }
             finally
@@ -55,13 +55,13 @@ public static class CollectionCenter
             // Community Pokémon arriving in the Bank are fabricated as far as this save's
             // history goes, so Hardcore mode leaves the shelf browsable but offers no deposit.
             if (files.Count > 0 && HardcoreMode.Guard.CanCreateMon)
-                rows.Add(new PickItem(-1, $"Deposit this box in the Bank ({files.Count} Pokémon)"));
+                rows.Add(new PickItem(-1, $"Depositar esta box no Banco ({files.Count} Pokémon)"));
             rows.AddRange(dirs.Select((d, i) => new PickItem(i, d.Name)));
 
             if (rows.Count == 0)
             {
                 await PadMenu.ShowAsync(host, title,
-                    files.Count > 0 ? HardcoreMode.StatusFor(SaveAction.CreateMon) : "This folder holds nothing usable.", "OK");
+                    files.Count > 0 ? HardcoreMode.StatusFor(SaveAction.CreateMon) : "Esta pasta não tem nada utilizável.", "OK");
                 trail.Pop();
                 continue;
             }
@@ -95,17 +95,17 @@ public static class CollectionCenter
     {
         if (HardcoreMode.Blocks(SaveAction.CreateMon, out var hardcoreStatus))
         {
-            await PadMenu.ShowAsync(host, "Hardcore mode", hardcoreStatus, "OK");
+            await PadMenu.ShowAsync(host, "Modo Hardcore", hardcoreStatus, "OK");
             return false;
         }
         var boxes = (files.Count + FileBankService.SlotsPerBox - 1) / FileBankService.SlotsPerBox;
-        var confirmed = await PadMenu.ConfirmAsync(host, "Deposit in the bank",
-            $"\"{boxName}\" holds {files.Count} Pokémon. They will arrive in {(boxes == 1 ? "a fresh Bank box" : $"{boxes} fresh Bank boxes")}.",
-            "Deposit");
+        var confirmed = await PadMenu.ConfirmAsync(host, "Depositar no banco",
+            $"\"{boxName}\" tem {files.Count} Pokémon. Eles vão chegar em {(boxes == 1 ? "uma box nova do Banco" : $"{boxes} boxes novas do Banco")}.",
+            "Depositar");
         if (!confirmed) return false;
 
-        var overlay = LoadingOverlay.Show(host, "Depositing…",
-            $"Downloading {boxName} into your Bank. Cancelling deposits nothing.");
+        var overlay = LoadingOverlay.Show(host, "Depositando…",
+            $"Baixando {boxName} para o seu Banco. Cancelar não deposita nada.");
         var deposits = new List<BankDeposit>(files.Count);
         var deposited = false;
         string summary;
@@ -125,23 +125,23 @@ public static class CollectionCenter
             overlay.Report(files.Count, files.Count);
             bank.AddMany(deposits);
             deposited = true;
-            summary = $"{deposits.Count} Pokémon arrived in the Bank.";
+            summary = $"{deposits.Count} Pokémon chegaram ao Banco.";
         }
         catch (OperationCanceledException)
         {
-            summary = "Cancelled. Nothing was deposited.";
+            summary = "Cancelado. Nada foi depositado.";
         }
         catch (Exception error)
         {
             AppLog.Error("community", $"Deposit of {boxName} failed", error);
-            summary = $"Nothing was deposited: {error.Message}";
+            summary = $"Nada foi depositado: {error.Message}";
         }
         finally
         {
             overlay.Close();
         }
 
-        await PadMenu.ShowAsync(host, "Collection center", summary, "OK");
+        await PadMenu.ShowAsync(host, "Central de coleções", summary, "OK");
         return deposited;
     }
 }

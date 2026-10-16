@@ -13,7 +13,7 @@ public static class TrainerRecordsEditor
         var info = session.GetTrainerRecords();
         if (!info.Supported)
         {
-            await EditorMenu.ShowAsync(host, "Trainer records", "This game does not expose a supported trainer-record table.", "OK");
+            await EditorMenu.ShowAsync(host, "Recordes do treinador", "Este jogo não tem uma tabela de recordes de treinador suportada.", "OK");
             return;
         }
 
@@ -23,17 +23,17 @@ public static class TrainerRecordsEditor
         {
             var entries = info.Records.Skip(page * PageSize).Take(PageSize);
             var options = entries.Select(Format).Select(text => new PadOption(text)).ToList();
-            if (page > 0) options.Add(new PadOption("Previous page", IconPath: "back"));
-            if (page < pageCount - 1) options.Add(new PadOption("Next page", IconPath: "next"));
-            var choice = await EditorMenu.ShowAsync(host, $"Trainer records · {page + 1}/{pageCount}",
-                "Read-only: record meanings and safe limits differ by game.", options.ToArray());
+            if (page > 0) options.Add(new PadOption("Página anterior", IconPath: "back"));
+            if (page < pageCount - 1) options.Add(new PadOption("Próxima página", IconPath: "next"));
+            var choice = await EditorMenu.ShowAsync(host, $"Recordes do treinador · {page + 1}/{pageCount}",
+                "Somente leitura: o significado dos recordes e os limites seguros mudam de jogo para jogo.", options.ToArray());
             if (choice is null) return;
-            if (choice == "Previous page") { page--; continue; }
-            if (choice == "Next page") { page++; continue; }
+            if (choice == "Página anterior") { page--; continue; }
+            if (choice == "Próxima página") { page++; continue; }
         }
     }
 
     private static string Format(TrainerRecordEntry record) => record.Maximum == int.MaxValue
-        ? $"Record {record.Index + 1} · {record.Value:N0}"
-        : $"Record {record.Index + 1} · {record.Value:N0}/{record.Maximum:N0}";
+        ? $"Recorde {record.Index + 1} · {record.Value:N0}"
+        : $"Recorde {record.Index + 1} · {record.Value:N0}/{record.Maximum:N0}";
 }

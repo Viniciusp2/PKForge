@@ -179,7 +179,7 @@ public sealed class LivingDexRouteMap : SKCanvasView
         if (hiddenCount > 0)
         {
             var anchor = Compact ? new SKPoint(destRect.Left - 22 * unit, area.Bottom - 6 * unit) : new SKPoint(area.Right - 4 * unit, area.Top + 4 * unit);
-            PksmPaint.ShadowText(c, $"+{hiddenCount} more", anchor.X, anchor.Y + small.Size, small, Pksm.InkSoft, SKColors.Transparent, SKTextAlign.Right);
+            PksmPaint.ShadowText(c, $"+{hiddenCount}", anchor.X, anchor.Y + small.Size, small, Pksm.InkSoft, SKColors.Transparent, SKTextAlign.Right);
         }
         if (route.Done)
             DrawDone(c, destRect, unit);
@@ -282,7 +282,7 @@ public sealed class LivingDexRouteMap : SKCanvasView
         AutopilotArt.DrawGame(c, art, cart.ArtLabel, cart.Generation, cart.ColorKey, cart.IsBank, InvalidateSurface, alpha);
 
         // The era on the label stripe, like a cartridge sticker.
-        var generation = cart.IsBank ? "BANK" : cart.Generation is >= 1 and <= 9 ? $"GEN {cart.Generation}" : "SAVE";
+        var generation = cart.IsBank ? "BANCO" : cart.Generation is >= 1 and <= 9 ? $"GEN {cart.Generation}" : "SAVE";
         using (var sticker = new SKFont(small.Typeface, Math.Min(small.Size, label.Height * 0.8f)) { Edging = SKFontEdging.Antialias, Embolden = true })
         using (var ink = new SKPaint { Color = SKColors.White.WithAlpha(alpha), IsAntialias = true })
         {

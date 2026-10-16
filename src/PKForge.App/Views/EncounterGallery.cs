@@ -70,12 +70,12 @@ public static class EncounterGallery
             var target = viewModel.VisibleSlots.FirstOrDefault(s => s.Species is null)?.Slot ?? -1;
             if (target < 0)
             {
-                viewModel.Status = "No empty slot in this box for the encounter.";
+                viewModel.Status = "Nenhum slot vazio nesta box para o encontro.";
                 return;
             }
             var card = listing.Cards[pick.Value];
             await viewModel.RunMutationAsync(s => s.PlaceEncounter(species, form, pick.Value, viewModel.BoxIndex, target), target, action: SaveAction.CreateMon);
-            viewModel.Status = $"Caught · {(string.IsNullOrEmpty(card.Location) ? card.Kind : card.Location)}";
+            viewModel.Status = $"Capturado · {(string.IsNullOrEmpty(card.Location) ? card.Kind : card.Location)}";
             repaint();
             return;
         }
@@ -88,7 +88,7 @@ public static class EncounterGallery
         var options = new List<PadOption>();
         for (var index = 0; index < forms.Count; index++)
             options.Add(new PadOption(forms[index]));
-        var picked = await PadMenu.ShowAsync(host, "Form", null, options.ToArray());
+        var picked = await PadMenu.ShowAsync(host, "Forma", null, options.ToArray());
         if (picked is null) return (0, true);
         var form = options.FindIndex(o => o.Label == picked);
         return (form < 0 ? 0 : form, false);
@@ -177,7 +177,7 @@ public static class EncounterGallery
         });
         if (listings.Count == 0)
         {
-            await PadMenu.ShowAsync(host, "How to get", $"{title} is not in the encounter database.", "OK");
+            await PadMenu.ShowAsync(host, "Como obter", $"{title} não está no banco de dados de encontros.", "OK");
             return;
         }
 
@@ -193,19 +193,19 @@ public static class EncounterGallery
 
             if (viewModel is null || session is null || !canCatch)
             {
-                await PadMenu.ShowAsync(host, "Keep browsing",
-                    $"Open {listing.GameName} to catch this one - the database answers for every game, but a Pokémon needs that save open to land in it.", "OK");
+                await PadMenu.ShowAsync(host, "Continuar navegando",
+                    $"Abra {listing.GameName} para capturar este - o banco de dados responde por todos os jogos, mas o Pokémon precisa desse save aberto para entrar nele.", "OK");
                 continue;
             }
             var target = viewModel.VisibleSlots.FirstOrDefault(s => s.Species is null)?.Slot ?? -1;
             if (target < 0)
             {
-                viewModel.Status = "No empty slot in this box for the encounter.";
+                viewModel.Status = "Nenhum slot vazio nesta box para o encontro.";
                 return;
             }
             var card = listing.Cards[pick.Value];
             await viewModel.RunMutationAsync(s => s.PlaceEncounter(species, form, pick.Value, viewModel.BoxIndex, target), target, action: SaveAction.CreateMon);
-            viewModel.Status = $"Caught · {title} · {(string.IsNullOrEmpty(card.Location) ? card.Kind : card.Location)}";
+            viewModel.Status = $"Capturado · {title} · {(string.IsNullOrEmpty(card.Location) ? card.Kind : card.Location)}";
             repaint();
             return;
         }
@@ -282,7 +282,7 @@ public static class EncounterGallery
             };
             var heroRow = new Grid { ColumnSpacing = 10, ColumnDefinitions = [new(new GridLength(64)), new(GridLength.Star)] };
             heroRow.Children.Add(hero);
-            var header = Kit.HeaderBar($"How to get · {listings.Count(l => l.Obtainable)} of {listings.Count} games");
+            var header = Kit.HeaderBar($"Como obter · {listings.Count(l => l.Obtainable)} de {listings.Count} jogos");
             heroRow.Children.Add(header);
             Grid.SetColumn(header, 1);
 
@@ -294,7 +294,7 @@ public static class EncounterGallery
                 {
                     heroRow,
                     _wall,
-                    Kit.WindowHints(("A", "WAYS", () => OnPadButton(PadButton.A)), ("B", "BACK", () => Close(null))),
+                    Kit.WindowHints(("A", "FORMAS", () => OnPadButton(PadButton.A)), ("B", "VOLTAR", () => Close(null))),
                 },
             };
             content.SetRow(_wall, 1);
@@ -339,7 +339,7 @@ public static class EncounterGallery
                 if (listing.Generation != generation)
                 {
                     generation = listing.Generation;
-                    rows.Add((true, $"Generation {Roman(generation)}", -1, generation));
+                    rows.Add((true, $"Geração {Roman(generation)}", -1, generation));
                 }
                 rows.Add((false, listing.GameName, i, generation));
             }
@@ -390,10 +390,10 @@ public static class EncounterGallery
                     PksmPaint.Panel(canvas, rect);
                     using var dim = new SKPaint { Color = Pksm.Ink.WithAlpha(0x60), IsAntialias = true };
                     canvas.DrawText(EventGallery.Fit(nameFont, listing.GameName, rect.Width * 0.5f), rect.Left + 12, rect.MidY + 6, SKTextAlign.Left, nameFont, listing.Obtainable ? ink : dim);
-                    var summary = listing.Obtainable ? Summarize(listing) : "Not obtainable here";
+                    var summary = listing.Obtainable ? Summarize(listing) : "Não dá para obter aqui";
                     canvas.DrawText(EventGallery.Fit(detailFont, summary, rect.Width * 0.48f), rect.Right - 12, rect.MidY + 6, SKTextAlign.Right, detailFont, listing.Obtainable ? inkSoft : dim);
                     if (IsCurrent(row.Display))
-                        canvas.DrawText("This game", rect.Left + 12, rect.Top + 15, SKTextAlign.Left, detailFont, inkSoft);
+                        canvas.DrawText("Este jogo", rect.Left + 12, rect.Top + 15, SKTextAlign.Left, detailFont, inkSoft);
                     if (selected) PksmPaint.Selection(canvas, rect);
                 }
                 y += height + Gap;
@@ -410,12 +410,12 @@ public static class EncounterGallery
 
         private static string KindLabel(string kind) => kind switch
         {
-            "Egg" => "Eggs",
+            "Egg" => "Ovos",
             "Wild" => "Wild",
             "Static" => "Static",
-            "Trade" => "Trades",
-            "Event" => "Events",
-            _ => "Special",
+            "Trade" => "Trocas",
+            "Event" => "Eventos",
+            _ => "Especial",
         };
 
         private void Touch(object? sender, SKTouchEventArgs args)
@@ -530,7 +530,7 @@ public static class EncounterGallery
             };
             var heroRow = new Grid { ColumnSpacing = 10, ColumnDefinitions = [new(new GridLength(64)), new(GridLength.Star)] };
             heroRow.Children.Add(hero);
-            var header = Kit.HeaderBar($"{listing.GameName} · {listing.Cards.Count} ways");
+            var header = Kit.HeaderBar($"{listing.GameName} · {listing.Cards.Count} formas");
             heroRow.Children.Add(header);
             Grid.SetColumn(header, 1);
 
@@ -542,7 +542,7 @@ public static class EncounterGallery
                 {
                     heroRow,
                     _wall,
-                    Kit.WindowHints(("A", canCatch ? "Catch" : "INFO", null), ("B", "Games", () => Close(null))),
+                    Kit.WindowHints(("A", canCatch ? "Capturar" : "INFO", null), ("B", "Jogos", () => Close(null))),
                 },
             };
             content.SetRow(_wall, 1);
@@ -619,12 +619,12 @@ public static class EncounterGallery
 
         private static string KindHeader(string kind) => kind switch
         {
-            "Egg" => "EGGS",
-            "Wild" => "WILD",
+            "Egg" => "OVOS",
+            "Wild" => "SELVAGENS",
             "Static" => "Static",
-            "Trade" => "In-game trades",
-            "Event" => "Events",
-            _ => "Special",
+            "Trade" => "Trocas no jogo",
+            "Event" => "Eventos",
+            _ => "Especial",
         };
 
         private List<LayoutRow> BuildLayout()
@@ -835,12 +835,12 @@ public static class EncounterGallery
                 var where = string.IsNullOrEmpty(card.Location) ? card.Kind.ToLowerInvariant() : card.Location;
                 if (!_canCatch)
                 {
-                    await PadMenu.ShowAsync(_host, "Not your game",
-                        $"This is how {_listing.GameName} gives out this Pokémon. Open that save to catch one into it.", "OK");
+                    await PadMenu.ShowAsync(_host, "Não é o seu jogo",
+                        $"É assim que {_listing.GameName} dá este Pokémon. Abra esse save para capturar um nele.", "OK");
                     return;
                 }
-                var confirmed = await PadMenu.ConfirmAsync(_host, "Catch this encounter?",
-                    $"A legal Pokémon from {_listing.GameName} ({card.Kind.ToLowerInvariant()}, {where}) is placed in this box's first empty slot. One backed-up write.", "Catch");
+                var confirmed = await PadMenu.ConfirmAsync(_host, "Capturar este encontro?",
+                    $"Um Pokémon legal de {_listing.GameName} ({card.Kind.ToLowerInvariant()}, {where}) é colocado no primeiro slot vazio desta box. Uma única gravação, com backup.", "Capturar");
                 if (confirmed) Close(group.Indices[0]);
             }
             finally

@@ -15,8 +15,8 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class BoxLayoutEditor
 {
-    public const string RenameLabel = "Rename box…";
-    public const string WallpaperLabel = "Box wallpaper…";
+    public const string RenameLabel = "Renomear box…";
+    public const string WallpaperLabel = "Papel de parede da box…";
 
     private const SaveAction Action = SaveAction.EditTrainer;
 
@@ -29,10 +29,10 @@ public static class BoxLayoutEditor
         }
         var current = BoxLayoutService.GetBox(session, box);
         var max = BoxLayoutService.GetNameMaxLength(session);
-        var name = await TextPopup.ShowLineAsync(host, $"Rename box {box + 1:00}", $"Up to {max} characters", current.Name);
+        var name = await TextPopup.ShowLineAsync(host, $"Renomear box {box + 1:00}", $"Até {max} caracteres", current.Name);
         if (string.IsNullOrWhiteSpace(name) || name == current.Name) return false;
         return await WorldEventsMenu.WriteAsync(viewModel, s =>
-            $"Box {box + 1:00} is now \"{BoxLayoutService.Rename(s, box, name).Name}\".", Action);
+            $"A box {box + 1:00} agora se chama \"{BoxLayoutService.Rename(s, box, name).Name}\".", Action);
     }
 
     public static async Task<bool> PickWallpaperAsync(Grid host, ISaveEngineSession session, BoxBrowserViewModel viewModel, int box)
@@ -43,10 +43,10 @@ public static class BoxLayoutEditor
             return false;
         }
         var current = BoxLayoutService.GetBox(session, box);
-        var picked = await WallpaperPicker.ShowAsync(host, $"Wallpaper · {current.Name}", BoxLayoutService.GetWallpapers(session), current.Wallpaper ?? 0);
+        var picked = await WallpaperPicker.ShowAsync(host, $"Papel de parede · {current.Name}", BoxLayoutService.GetWallpapers(session), current.Wallpaper ?? 0);
         if (picked is not { } wallpaper || wallpaper == current.Wallpaper) return false;
         return await WorldEventsMenu.WriteAsync(viewModel, s =>
-            $"{current.Name}: wallpaper {BoxLayoutService.SetWallpaper(s, box, wallpaper).WallpaperName}.", Action);
+            $"{current.Name}: papel de parede {BoxLayoutService.SetWallpaper(s, box, wallpaper).WallpaperName}.", Action);
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public static class BoxLayoutEditor
                 {
                     Kit.HeaderBar(title),
                     _scroll,
-                    Kit.WindowHints(("A", "Choose", () => OnPadButton(PadButton.A)), ("B", "Cancel", () => Close(null))),
+                    Kit.WindowHints(("A", "Escolher", () => OnPadButton(PadButton.A)), ("B", "Cancelar", () => Close(null))),
                 },
             };
             var window = Kit.OverlayWindow(host, content, preferredMaxWidth: 560, scroll: false);

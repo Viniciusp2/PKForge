@@ -15,17 +15,17 @@ public static class HardcoreMode
     private const string Key = "hardcore_mode";
 
     /// <summary>The one line every blocked surface shows instead of writing.</summary>
-    public const string StatusLine = "HARDCORE MODE - data editing is off";
+    public const string StatusLine = "MODO HARDCORE - edição de dados desligada";
 
     /// <summary>Short marker for footers and headers while the mode is on.</summary>
     public const string Marker = "HARDCORE";
 
     /// <summary>The settings-screen explanation; the HaX-mode relationship is stated, not implied.</summary>
     public const string SettingExplanation =
-        "For RetroAchievements-style play. Browsing, organising, moving, sending to another game, " +
-        "bank deposit and withdrawal as a MOVE, restore points and exports stay available; " +
-        "anything that edits, generates or duplicates Pokémon data is blocked, and a Pokémon can be moved but never copied. " +
-        "Hardcore wins over HaX mode: while it is on, HaX mode options cannot be written either.";
+        "Para jogar no estilo RetroAchievements. Navegar, organizar, mover, enviar para outro jogo, " +
+        "depositar e retirar do banco como MOVIMENTO, pontos de restauração e exportações continuam disponíveis; " +
+        "tudo o que edita, gera ou duplica dados de Pokémon é bloqueado, e um Pokémon pode ser movido, mas nunca copiado. " +
+        "O Hardcore tem prioridade sobre o modo HaX: enquanto ele está ligado, as opções do modo HaX também não podem ser gravadas.";
 
     public static bool IsOn => Preferences.Default.Get(Key, false);
 
@@ -35,7 +35,7 @@ public static class HardcoreMode
     public static SaveGuard Guard => SaveGuard.For(IsOn);
 
     /// <summary>The status a blocked action shows, e.g. "HARDCORE MODE - data editing is off (duplication blocked)".</summary>
-    public static string StatusFor(SaveAction action) => $"{StatusLine} ({Describe(action)} blocked)";
+    public static string StatusFor(SaveAction action) => $"{StatusLine} ({Describe(action)} bloqueado)";
 
     /// <summary>
     /// True when Hardcore mode forbids <paramref name="action"/>; <paramref name="status"/>
@@ -54,21 +54,21 @@ public static class HardcoreMode
 
     private static string Describe(SaveAction action) => action switch
     {
-        SaveAction.EditMon => "Pokémon edits",
-        SaveAction.CreateMon => "creating Pokémon",
-        SaveAction.BatchEdit => "batch edits",
+        SaveAction.EditMon => "edição de Pokémon",
+        SaveAction.CreateMon => "criação de Pokémon",
+        SaveAction.BatchEdit => "edição em lote",
         SaveAction.Duplicate => "duplication",
-        SaveAction.InjectEvent => "event injection",
-        SaveAction.EditInventory => "inventory edits",
-        SaveAction.EditTrainer => "trainer edits",
-        SaveAction.EditDex => "dex edits",
-        SaveAction.EditWorld => "world edits",
-        SaveAction.WriteRawBytes => "byte writes",
-        SaveAction.RepairRtc => "clock repair",
-        SaveAction.Move => "moving Pokémon",
-        SaveAction.Release => "releasing Pokémon",
+        SaveAction.InjectEvent => "injeção de eventos",
+        SaveAction.EditInventory => "edição de inventário",
+        SaveAction.EditTrainer => "edição do treinador",
+        SaveAction.EditDex => "edição da dex",
+        SaveAction.EditWorld => "edição do mundo",
+        SaveAction.WriteRawBytes => "gravação de bytes",
+        SaveAction.RepairRtc => "conserto do relógio",
+        SaveAction.Move => "mover Pokémon",
+        SaveAction.Release => "soltar Pokémon",
         SaveAction.ExportFile => "exports",
-        SaveAction.Backup => "restore points",
-        _ => "data edits",
+        SaveAction.Backup => "pontos de restauração",
+        _ => "edição de dados",
     };
 }

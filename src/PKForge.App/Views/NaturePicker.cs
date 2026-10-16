@@ -27,7 +27,7 @@ public static class NaturePicker
 
     /// <param name="preview">Stats for every nature; null shows the labels only.</param>
     public static Task<PickItem?> ShowAsync(Grid host, IReadOnlyList<string> names, int? current, NatureStatPreview? preview,
-        string title = "Nature")
+        string title = "Natureza")
     {
         var items = Items(names);
         return PickerMenu.ShowAsync(host, title, items, current, preview is null ? null : BuildPanel(names, preview));

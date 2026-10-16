@@ -76,7 +76,7 @@ public sealed class MonSummaryScreen : IPadPagingHandler
         var next = Kit.MiniCapsule("R ›", UiTokens.Ink0);
         next.Clicked += (_, _) => Step(1);
         // The app's own header strip (Kit.HeaderBar), centred title.
-        var header = (Border)Kit.HeaderBar("Summary");
+        var header = (Border)Kit.HeaderBar("Resumo");
         _title = (Label)header.Content!;
         _title.HorizontalTextAlignment = TextAlignment.Center;
         var top = new Grid
@@ -90,11 +90,11 @@ public sealed class MonSummaryScreen : IPadPagingHandler
 
         var hints = new List<(string, string, Action?)>
         {
-            ("◀▶", "Page", () => _view.TurnPage(1)),
+            ("◀▶", "Página", () => _view.TurnPage(1)),
             ("LR", "Pokémon", () => OnPadButton(PadButton.R)),
         };
-        if (deck.CanEdit) hints.Add(("X", "Edit", () => Close(true)));
-        hints.Add(("B", "Close", () => Close(false)));
+        if (deck.CanEdit) hints.Add(("X", "Editar", () => Close(true)));
+        hints.Add(("B", "Fechar", () => Close(false)));
         var hintBar = Kit.HintBar(hints.ToArray());
 
         var surface = new Grid
@@ -127,7 +127,7 @@ public sealed class MonSummaryScreen : IPadPagingHandler
         var slot = _slot;
         var (position, total) = SummaryNavigation.Position(slot, _deck.Count, _deck.Occupied);
         var context = total > 0 ? $"{_deck.Context} · {position} / {total}" : _deck.Context;
-        _title.Text = $"Summary · {context}";
+        _title.Text = $"Resumo · {context}";
         if (_secondScreen is not null)
             _secondScreen.Overview = new SummaryOverview(_deck.Context, _deck.Count, slot, _icons, position, total);
         bool Wanted() => sequence == _sequence && !_closed;
@@ -135,7 +135,7 @@ public sealed class MonSummaryScreen : IPadPagingHandler
         {
             if (_full.TryGetValue(slot, out var cached))
             {
-                _view.Show(cached, emptyText: "Nothing here");
+                _view.Show(cached, emptyText: "Nada aqui");
             }
             else
             {
@@ -143,7 +143,7 @@ public sealed class MonSummaryScreen : IPadPagingHandler
                 var quick = await GetAsync(slot, false, Wanted);
                 PerfTrace.Log("screen.load.quick", watch);
                 if (!Wanted()) return;
-                _view.Show(quick, legalityPending: quick is not null, emptyText: "Nothing here");
+                _view.Show(quick, legalityPending: quick is not null, emptyText: "Nada aqui");
                 if (quick is null) return;
                 watch.Restart();
                 var full = await GetAsync(slot, true, Wanted);
@@ -162,7 +162,7 @@ public sealed class MonSummaryScreen : IPadPagingHandler
         catch (Exception error)
         {
             if (!Wanted()) return;
-            _view.Show(null, emptyText: $"Can't read this Pokémon\n{error.Message}");
+            _view.Show(null, emptyText: $"Não foi possível ler este Pokémon\n{error.Message}");
         }
     }
 

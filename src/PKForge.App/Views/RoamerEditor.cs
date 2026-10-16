@@ -13,10 +13,10 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class RoamerEditor
 {
-    private const string Reroll = "Reroll PID and IVs";
-    private const string RerollShiny = "Reroll until shiny (legal)";
-    private const string SetState = "Set roam state…";
-    private const string Times = "Times encountered…";
+    private const string Reroll = "Sortear PID e IVs de novo";
+    private const string RerollShiny = "Sortear até sair shiny (legal)";
+    private const string SetState = "Definir estado de errante…";
+    private const string Times = "Vezes encontrado…";
 
     public static async Task ShowAsync(Grid host, ISaveEngineSession session, BoxBrowserViewModel viewModel)
     {
@@ -26,7 +26,7 @@ public static class RoamerEditor
             var options = roamers.Select(r => new PadOption($"{r.Label} · {r.State}",
                 Accent: r.IsShiny ? UiTokens.Gold : null, IconPath: r.IsShiny ? "shiny" : "rarity",
                 Detail: r.Species == 0 ? null : $"{r.SpeciesName} Lv.{r.Level}")).ToArray();
-            var choice = await EditorMenu.ShowAsync(host, "Roaming legendaries", null, options);
+            var choice = await EditorMenu.ShowAsync(host, "Lendários errantes", null, options);
             var index = Array.FindIndex(options, o => o.Label == choice);
             if (index < 0) return;
             if (!await ShowRoamerAsync(host, session, viewModel, roamers[index])) return;
@@ -41,13 +41,13 @@ public static class RoamerEditor
         var actions = new List<PadOption>();
         if (roamer.CanReroll)
         {
-            actions.Add(new PadOption(Reroll, IconPath: "dice", Detail: "New random PID and IVs, made the way the game makes them."));
-            actions.Add(new PadOption(RerollShiny, IconPath: "shiny", Accent: UiTokens.Gold, Detail: "Rerolls until it comes out shiny; it stays legal to catch."));
+            actions.Add(new PadOption(Reroll, IconPath: "dice", Detail: "Novos PID e IVs aleatórios, gerados do jeito que o jogo gera."));
+            actions.Add(new PadOption(RerollShiny, IconPath: "shiny", Accent: UiTokens.Gold, Detail: "Sorteia até sair shiny; continua legal para capturar."));
         }
         if (roamer.Generation == 6)
         {
-            actions.Add(new PadOption(SetState, IconPath: "map", Detail: "Whether the bird is roaming, waiting, defeated or captured."));
-            actions.Add(new PadOption(Times, IconPath: "records", Detail: "How many times you have run into it."));
+            actions.Add(new PadOption(SetState, IconPath: "map", Detail: "Se o pássaro está errante, esperando, derrotado ou capturado."));
+            actions.Add(new PadOption(Times, IconPath: "records", Detail: "Quantas vezes você já cruzou com ele."));
         }
         if (actions.Count == 0)
         {
@@ -64,25 +64,25 @@ public static class RoamerEditor
                 return await WorldEventsMenu.WriteAsync(viewModel, s =>
                 {
                     var after = RoamerService.Reroll(s, roamer.Index, shiny);
-                    return $"{after.SpeciesName}: new PID {after.Pid:X8}{(after.IsShiny ? " (shiny)" : "")}, IVs {string.Join("/", after.CatchIVs)}.";
+                    return $"{after.SpeciesName}: novo PID {after.Pid:X8}{(after.IsShiny ? " (shiny)" : "")}, IVs {string.Join("/", after.CatchIVs)}.";
                 });
             case SetState:
             {
                 var states = RoamerService.Gen6States.ToArray();
-                var picked = await EditorMenu.ShowAsync(host, "Roam state",
-                    "Captured and Defeated end the chase; Roaming puts the bird back on the routes.", states);
+                var picked = await EditorMenu.ShowAsync(host, "Estado de errante",
+                    "Captured e Defeated encerram a perseguição; Roaming coloca o pássaro de volta nas rotas.", states);
                 var state = Array.IndexOf(states, picked);
                 if (state < 0) return true;
                 return await WorldEventsMenu.WriteAsync(viewModel, s =>
-                    $"{RoamerService.SetGen6State(s, state).Label} is now {states[state].ToLowerInvariant()}.");
+                    $"{RoamerService.SetGen6State(s, state).Label} agora está: {states[state].ToLowerInvariant()}.");
             }
             case Times:
             {
-                var times = await StatsPopup.ShowSingleAsync(host, "Times encountered", (int)(roamer.TimesEncountered ?? 0), 9999, "0 - 9999");
+                var times = await StatsPopup.ShowSingleAsync(host, "Vezes encontrado", (int)(roamer.TimesEncountered ?? 0), 9999, "0 - 9999");
                 if (times is not { } value) return true;
                 var current = RoamerService.Gen6States.ToList().IndexOf(roamer.State);
                 return await WorldEventsMenu.WriteAsync(viewModel, s =>
-                    $"{RoamerService.SetGen6State(s, Math.Max(0, current), (uint)value).Label}: met {value} time(s).");
+                    $"{RoamerService.SetGen6State(s, Math.Max(0, current), (uint)value).Label}: encontrado {value} vez(es).");
             }
             default:
                 return true;
@@ -100,10 +100,10 @@ public static class RoamerEditor
         {
             lines.Add($"IVs {string.Join("/", r.IVs)} (HP/Atk/Def/SpA/SpD/Spe)");
             if (!r.CatchIVs.SequenceEqual(r.IVs))
-                lines.Add($"Catch IVs {string.Join("/", r.CatchIVs)}");
+                lines.Add($"IVs de captura {string.Join("/", r.CatchIVs)}");
         }
         if (r.TimesEncountered is { } times)
-            lines.Add($"Met {times} time(s)");
+            lines.Add($"Encontrado {times} vez(es)");
         if (r.Note is not null)
             lines.Add(r.Note);
         return string.Join(Environment.NewLine, lines);

@@ -51,7 +51,7 @@ public sealed class DexEditorPage : IPadPagingHandler
         }
         catch (Exception error)
         {
-            viewModel.Status = $"Dex editor closed: {error.Message}";
+            viewModel.Status = $"O editor da dex fechou: {error.Message}";
         }
     }
 
@@ -82,15 +82,15 @@ public sealed class DexEditorPage : IPadPagingHandler
         };
 
         View hints = Kit.WindowHints(
-            ("A", "Cycle", () => OnPadButton(PadButton.A)),
-            ("B", "Done", () => _ = CloseAsync()),
-            ("LR", "Generation", () => OnPadButton(PadButton.R)),
-            ("Y", "Select all (gaps)", SelectAllGaps),
-            ("X", "Actions", () => _ = ShowActionsAsync()));
+            ("A", "Alternar", () => OnPadButton(PadButton.A)),
+            ("B", "Pronto", () => _ = CloseAsync()),
+            ("LR", "Geração", () => OnPadButton(PadButton.R)),
+            ("Y", "Selecionar todos (faltando)", SelectAllGaps),
+            ("X", "Ações", () => _ = ShowActionsAsync()));
 
         var search = new Entry
         {
-            Placeholder = "Search a Pokémon…",
+            Placeholder = "Buscar um Pokémon…",
             FontSize = 14,
             TextColor = UiTokens.Ink0,
             PlaceholderColor = UiTokens.Ink1,
@@ -144,7 +144,7 @@ public sealed class DexEditorPage : IPadPagingHandler
         Grid.SetColumnSpan(_overlay, Math.Max(1, _host.ColumnDefinitions.Count));
         Kit.AnimateIn(window);
 
-        var loader = LoadingOverlay.Show(_host, "OPENING THE POKéDEX…", "Reading every dex cell and storage slot.");
+        var loader = LoadingOverlay.Show(_host, "ABRINDO A POKéDEX…", "Lendo cada célula da dex e cada slot de armazenamento.");
         _ = Task.Run(async () =>
         {
             try
@@ -177,7 +177,7 @@ public sealed class DexEditorPage : IPadPagingHandler
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     loader.Close();
-                    _viewModel.Status = $"Dex editor failed: {error.Message}";
+                    _viewModel.Status = $"O editor da dex falhou: {error.Message}";
                     TearDown();
                     _result.TrySetResult(false);
                 });
@@ -189,10 +189,10 @@ public sealed class DexEditorPage : IPadPagingHandler
     {
         if (_staged.Count > 0)
         {
-            var choice = await PadMenu.ShowAsync(_host, "Save dex changes?",
-                $"{_staged.Count} species changed.", "Save changes", "Discard changes", "Keep editing");
-            if (choice == "Save changes") { await ApplyAndCloseAsync(); return; }
-            if (choice == "Keep editing" || choice is null) return;
+            var choice = await PadMenu.ShowAsync(_host, "Salvar as mudanças na dex?",
+                $"{_staged.Count} espécies alteradas.", "Salvar mudanças", "Descartar mudanças", "Continuar editando");
+            if (choice == "Salvar mudanças") { await ApplyAndCloseAsync(); return; }
+            if (choice == "Continuar editando" || choice is null) return;
         }
         TearDown();
         _result.TrySetResult(false);
@@ -207,13 +207,13 @@ public sealed class DexEditorPage : IPadPagingHandler
             {
                 foreach (var (species, state) in staged)
                     s.SetDexEntry(species, state.Seen, state.Caught);
-                return new GenerationOutcome(true, $"Dex updated for {staged.Count} species.");
+                return new GenerationOutcome(true, $"Dex atualizada para {staged.Count} espécies.");
             }, Math.Max(0, _viewModel.SelectedSlot), refreshSlot: false, action: SaveAction.EditDex);
             if (!saved)
             {
                 // The write aborted (validation, storage, format refusal): keep the
                 // editor open with the staged changes instead of closing as if it worked.
-                _viewModel.Status = "Dex write failed - changes kept, check status";
+                _viewModel.Status = "A gravação da dex falhou - mudanças mantidas, veja o status";
                 return;
             }
         }
@@ -246,21 +246,21 @@ public sealed class DexEditorPage : IPadPagingHandler
     {
         if (_gapsMode)
         {
-            var gapChoice = await PadMenu.ShowAsync(_host, "Living dex gaps",
-                $"{_missing.Count} species missing from storage. {_fillSelection.Count} selected.",
-                new PadOption($"Generate selected ({_fillSelection.Count})", IconPath: "create",
-                    Detail: "Creates a legal Pokémon of each selected species in your boxes."),
-                new PadOption("Switch to dex editor", IconPath: "pokedex", Detail: "Back to marking species seen and caught."),
-                new PadOption("Close", IconPath: "close"));
-            if (gapChoice == "Switch to dex editor")
+            var gapChoice = await PadMenu.ShowAsync(_host, "Faltando na Living Dex",
+                $"{_missing.Count} espécies faltando no armazenamento. {_fillSelection.Count} selecionadas.",
+                new PadOption($"Gerar selecionadas ({_fillSelection.Count})", IconPath: "create",
+                    Detail: "Cria um Pokémon legal de cada espécie selecionada nas suas boxes."),
+                new PadOption("Ir para o editor da dex", IconPath: "pokedex", Detail: "Volta a marcar espécies vistas e capturadas."),
+                new PadOption("Fechar", IconPath: "close"));
+            if (gapChoice == "Ir para o editor da dex")
             {
                 _gapsMode = false;
                 RefreshView();
                 return;
             }
-            if (gapChoice != $"Generate selected ({_fillSelection.Count})" || _fillSelection.Count == 0) return;
+            if (gapChoice != $"Gerar selecionadas ({_fillSelection.Count})" || _fillSelection.Count == 0) return;
             var species = _fillSelection.OrderBy(x => x).ToList();
-            var overlay = LoadingOverlay.Show(_host, "Generating…", "The legalizer is building each mon offline.");
+            var overlay = LoadingOverlay.Show(_host, "Gerando…", "O legalizador está criando cada Pokémon offline.");
             try
             {
                 await _viewModel.RunMutationAsync(s => _legalizer.FillSpecies(s, species,
@@ -275,31 +275,31 @@ public sealed class DexEditorPage : IPadPagingHandler
             return;
         }
 
-        var choice = await PadMenu.ShowAsync(_host, "Dex actions", null,
-            new PadOption("How to get this one", IconPath: "map", Detail: "Where and how to find the species under the cursor."),
-            new PadOption("Mark everything seen", IconPath: "selectall", Detail: "Every species becomes seen; caught ones stay caught."),
-            new PadOption("Complete the Pokédex", IconPath: "pokedex", Detail: "Every species becomes seen and caught; you choose to save when you leave."),
-            new PadOption("Switch to living dex gaps", IconPath: "storage", Detail: "Species missing from your boxes, ready to create."),
-            new PadOption("Discard staged changes", IconPath: "clear", Detail: "Undoes the changes made since you opened the dex."));
+        var choice = await PadMenu.ShowAsync(_host, "Ações da dex", null,
+            new PadOption("Como obter este", IconPath: "map", Detail: "Onde e como encontrar a espécie sob o cursor."),
+            new PadOption("Marcar tudo como visto", IconPath: "selectall", Detail: "Toda espécie fica como vista; as capturadas continuam capturadas."),
+            new PadOption("Completar a Pokédex", IconPath: "pokedex", Detail: "Toda espécie fica como vista e capturada; você escolhe se salva ao sair."),
+            new PadOption("Ir para o que falta na Living Dex", IconPath: "storage", Detail: "Espécies que faltam nas suas boxes, prontas para criar."),
+            new PadOption("Descartar mudanças pendentes", IconPath: "clear", Detail: "Desfaz as mudanças feitas desde que você abriu a dex."));
         switch (choice)
         {
-            case "How to get this one":
+            case "Como obter este":
                 if (_grid.Cursor < _viewIds.Count)
                     await EncounterGallery.ShowForSpeciesAsync(_host, _viewModel, _session, _viewIds[_grid.Cursor], 0, _grid.Refresh);
                 return;
-            case "Mark everything seen":
+            case "Marcar tudo como visto":
                 foreach (var id in _orderedIds)
                     _staged[id] = (true, StateOf(id).Caught); // caught species stay caught
                 break;
-            case "Complete the Pokédex":
+            case "Completar a Pokédex":
                 foreach (var id in _orderedIds)
                     _staged[id] = (true, true);
                 break;
-            case "Switch to living dex gaps":
+            case "Ir para o que falta na Living Dex":
                 _gapsMode = true;
                 RefreshView();
                 return;
-            case "Discard staged changes":
+            case "Descartar mudanças pendentes":
                 _staged.Clear();
                 break;
         }
@@ -334,7 +334,7 @@ public sealed class DexEditorPage : IPadPagingHandler
 
     private void RefreshChrome()
     {
-        _title.Text = _gapsMode ? $"Living dex gaps · {_missing.Count} missing" : "Pokédex";
+        _title.Text = _gapsMode ? $"Faltando na Living Dex · {_missing.Count}" : "Pokédex";
         var seen = 0;
         var caught = 0;
         foreach (var id in _orderedIds)
@@ -345,7 +345,7 @@ public sealed class DexEditorPage : IPadPagingHandler
         }
         _progress.Text = _gapsMode
             ? $"{_fillSelection.Count} selected"
-            : $"Seen {seen}/{_states.Count} · caught {caught}/{_states.Count} · {_staged.Count} staged";
+            : $"Vistos {seen}/{_states.Count} · capturados {caught}/{_states.Count} · {_staged.Count} pendentes";
         RefreshInfo();
         _grid.Refresh();
     }

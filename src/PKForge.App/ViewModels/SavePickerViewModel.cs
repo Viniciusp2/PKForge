@@ -85,7 +85,7 @@ public static class SaveDescriptions
     {
         var parts = new List<string> { EmulatorName(save.Emulator) };
         if (!string.IsNullOrEmpty(save.FolderHint)) parts.Add(save.FolderHint!);
-        if (save.LastModified is { } modified) parts.Add(modified.ToLocalTime().ToString("MMM d, yyyy"));
+        if (save.LastModified is { } modified) parts.Add(modified.ToLocalTime().ToString("d MMM yyyy"));
         return string.Join(" · ", parts);
     }
 
@@ -94,7 +94,7 @@ public static class SaveDescriptions
     {
         var emulators = saves.Select(s => EmulatorName(s.Emulator)).Distinct().ToArray();
         var parts = new List<string> { emulators.Length <= 2 ? string.Join(", ", emulators) : $"{emulators.Length} emulators" };
-        if (saves.Max(s => s.LastModified) is { } latest) parts.Add(latest.ToLocalTime().ToString("MMM d, yyyy"));
+        if (saves.Max(s => s.LastModified) is { } latest) parts.Add(latest.ToLocalTime().ToString("d MMM yyyy"));
         return string.Join(" · ", parts);
     }
 
@@ -163,10 +163,10 @@ public partial class SavePickerViewModel : ObservableObject
 
     /// <summary>Copyable evidence for folder grants, traversal, candidate bytes and parser outcomes.</summary>
     public string ScanReport => _scanDiagnostics.Count == 0
-        ? "No diagnostic scan has run yet. Use Rescan games, then open Scan report again."
+        ? "Nenhuma varredura de diagnóstico foi feita ainda. Use Procurar jogos de novo e depois abra o Relatório da varredura outra vez."
         : string.Join("\n", _scanDiagnostics);
 
-    [ObservableProperty] private string _status = "Link an emulator's storage to begin.";
+    [ObservableProperty] private string _status = "Vincule o armazenamento de um emulador para começar.";
     [ObservableProperty] private bool _isBusy;
 
     private DateTimeOffset _busySince;
@@ -244,13 +244,13 @@ public partial class SavePickerViewModel : ObservableObject
         var roots = _roots.GetRoots();
         if (roots.Count == 0)
         {
-            Status = "No storage units linked yet. Open Link and choose your platform and emulator.";
+            Status = "Nenhuma unidade de armazenamento vinculada ainda. Abra Vincular e escolha sua plataforma e emulador.";
             return;
         }
 
         try
         {
-            _busyWith = "a scan";
+            _busyWith = "uma varredura";
             IsBusy = true;
             Saves.Clear();
             Groups.Clear();
@@ -268,7 +268,7 @@ public partial class SavePickerViewModel : ObservableObject
                 _scanDiagnostics.Add($"ROOT kind={root.Kind} name={root.DisplayName}");
                 _scanDiagnostics.Add($"TREE URI {root.TreeId}");
                 _scanningRoot = root.TreeId;
-                Status = $"Scanning {SaveDescriptions.EmulatorName(root.Kind)} unit · {root.DisplayName}…";
+                Status = $"Varrendo a unidade {SaveDescriptions.EmulatorName(root.Kind)} · {root.DisplayName}…";
                 try
                 {
                     if (_detection is IIncrementalEmulatorDetectionService incremental)
@@ -309,15 +309,15 @@ public partial class SavePickerViewModel : ObservableObject
                 catch (Exception error)
                 {
                     _scanDiagnostics.Add($"ROOT FAILED {error}");
-                    Status = $"Scan of {SaveDescriptions.EmulatorName(root.Kind)} failed: {error.Message}";
+                    Status = $"A varredura do {SaveDescriptions.EmulatorName(root.Kind)} falhou: {error.Message}";
                 }
             }
             _scanningRoot = null;
             AppLog.Info("scan", $"{roots.Count} linked folder(s): {Saves.Count} save(s), {filesSeen} file(s) scanned, {_rejectedCandidates.Count} rejected");
             RebuildGroups();
             Status = Saves.Count == 0
-                ? $"No games found. Scanned {filesSeen} file(s), {_rejectedCandidates.Count} looked like saves but did not parse."
-                : $"{Saves.Count} save(s) on the shelf. Scanned {filesSeen} file(s).";
+                ? $"Nenhum jogo encontrado. {filesSeen} arquivo(s) varrido(s); {_rejectedCandidates.Count} pareciam saves, mas não puderam ser lidos."
+                : $"{Saves.Count} save(s) na estante. {filesSeen} arquivo(s) varrido(s).";
         }
         finally
         {
@@ -378,7 +378,7 @@ public partial class SavePickerViewModel : ObservableObject
     /// <summary>Caption of the active shelf filter, for the home screen chip.</summary>
     public partial class FilterState : ObservableObject
     {
-        [ObservableProperty] private string _caption = "All";
+        [ObservableProperty] private string _caption = "Todos";
     }
 
     public FilterState Filter { get; } = new();
@@ -485,17 +485,17 @@ public partial class SavePickerViewModel : ObservableObject
         OpenedSave = false;
         try
         {
-            _busyWith = "opening a save file";
+            _busyWith = "abrindo um arquivo de save";
             IsBusy = true;
-            Status = "Select the save file to link…";
+            Status = "Selecione o arquivo de save para vincular…";
             var document = await _filePicker.PickSaveAsync();
-            if (document is null) { Status = "Link cancelled."; return; }
-            Status = $"Linking {document.DisplayName}…";
+            if (document is null) { Status = "Vinculação cancelada."; return; }
+            Status = $"Vinculando {document.DisplayName}…";
             await _sessions.OpenAsync(document);
             _boxBrowser.RefreshFromCurrentSession();
             OpenedSave = true;
             CompleteSetup();
-            Status = "Storage linked.";
+            Status = "Armazenamento vinculado.";
         }
         catch (Exception error)
         {
@@ -503,7 +503,7 @@ public partial class SavePickerViewModel : ObservableObject
             // to the copyable scan report so a player can send it.
             _scanDiagnostics.Add($"OPEN FAILED (single file) {error}");
             AppLog.Error("open", "Linking a single save file failed", error);
-            Status = $"Could not link save: {error.Message}";
+            Status = $"Não foi possível vincular o save: {error.Message}";
         }
         finally
         {
@@ -532,25 +532,25 @@ public partial class SavePickerViewModel : ObservableObject
         if (found > 0)
         {
             LinkReported?.Invoke($"{emulator} linked",
-                $"Found {found} Pokémon save{(found == 1 ? "" : "s")} in {folder.DisplayName}.");
+                $"Encontrei {found} save{(found == 1 ? "" : "s")} de Pokémon em {folder.DisplayName}.");
             return;
         }
         var rejected = _rejectedCandidates.Count(r => r.StartsWith($"{kind}:", StringComparison.Ordinal));
-        LinkReported?.Invoke($"No saves found in {folder.DisplayName}",
-            (rejected > 0 ? $"{rejected} file(s) looked like saves but could not be read. " : "")
-            + WhereToPoint(kind) + " The folder stays linked; unlink it from Manage linked storage.");
+        LinkReported?.Invoke($"Nenhum save encontrado em {folder.DisplayName}",
+            (rejected > 0 ? $"{rejected} arquivo(s) pareciam saves, mas não puderam ser lidos. " : "")
+            + WhereToPoint(kind) + " A pasta continua vinculada; desvincule-a em Gerenciar armazenamento vinculado.");
     }
 
     /// <summary>Which folder to pick, per emulator, for the "nothing found" message.</summary>
     private static string WhereToPoint(EmulatorKind kind) => kind switch
     {
         EmulatorKind.Azahar or EmulatorKind.CitraMmj =>
-            "Pick the emulator's user folder, the one that contains sdmc (sdmc or Nintendo 3DS work too). Saves live in sdmc/Nintendo 3DS/…/title/00040000/<game>/data/00000001/main.",
+            "Escolha a pasta user do emulador, a que contém sdmc (sdmc ou Nintendo 3DS também funcionam). Os saves ficam em sdmc/Nintendo 3DS/…/title/00040000/<jogo>/data/00000001/main.",
         EmulatorKind.MelonDS =>
-            "Pick the folder that holds your .sav files: next to your ROMs by default, or the save folder set in melonDS's settings.",
-        EmulatorKind.DraStic => "Pick DraStic's backup folder (its .dsv battery saves) or the DraStic data folder.",
-        EmulatorKind.Eden => "Pick Eden's files root, the folder that contains its emulated storage.",
-        _ => "Pick the folder that holds your save files.",
+            "Escolha a pasta que guarda seus arquivos .sav: ao lado das suas ROMs por padrão, ou a pasta de saves definida nas configurações do melonDS.",
+        EmulatorKind.DraStic => "Escolha a pasta backup do DraStic (com os saves de bateria .dsv) ou a pasta de dados do DraStic.",
+        EmulatorKind.Eden => "Escolha a raiz de arquivos do Eden, a pasta que contém o armazenamento emulado dele.",
+        _ => "Escolha a pasta que guarda seus arquivos de save.",
     };
 
     public async Task OpenAsync(DetectedSave save)
@@ -561,20 +561,20 @@ public partial class SavePickerViewModel : ObservableObject
         {
             _busyWith = $"opening {save.GameLabel}";
             IsBusy = true;
-            Status = $"Connecting to {save.GameLabel}…";
+            Status = $"Conectando ao {save.GameLabel}…";
             // EngineHint carries the chosen game (FireRed vs LeafGreen), never the custom
             // name; the session service reads the chosen engine route from the store.
             await _sessions.OpenAsync(new PickedDocument(save.DocumentId, save.EngineHint));
             _boxBrowser.RefreshFromCurrentSession();
             OpenedSave = true;
             AppLog.Info("open", $"Opened {save.GameLabel} ({save.Emulator}, gen {save.Generation})");
-            Status = "Connected.";
+            Status = "Conectado.";
         }
         catch (Exception error)
         {
             _scanDiagnostics.Add($"OPEN FAILED {save.FileName} {error}");
             AppLog.Error("open", $"Opening {save.GameLabel} ({save.Emulator}, {save.FileName}) failed", error);
-            Status = $"Could not connect: {error.Message}";
+            Status = $"Não foi possível conectar: {error.Message}";
         }
         finally
         {

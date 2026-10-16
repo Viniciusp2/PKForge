@@ -12,13 +12,13 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class SaveBlockEditor
 {
-    private const string Title = "Save blocks";
+    private const string Title = "Blocos do save";
 
     public static async Task ShowAsync(Grid host, ISaveEngineSession session, BoxBrowserViewModel viewModel)
     {
         if (!SaveBlockEditorService.IsSupported(session))
         {
-            await EditorMenu.ShowAsync(host, Title, "Block editing is for Sword/Shield, Legends: Arceus, Scarlet/Violet and Legends: Z-A.", "OK");
+            await EditorMenu.ShowAsync(host, Title, "A edição de blocos é para Sword/Shield, Legends: Arceus, Scarlet/Violet e Legends: Z-A.", "OK");
             return;
         }
 
@@ -35,14 +35,14 @@ public static class SaveBlockEditor
 
             if (!block.Editable)
             {
-                await EditorMenu.ShowAsync(host, $"Block {block.Key:X8}",
-                    $"{block.Name ?? "Unnamed block"}\n{block.Type} · {block.Size} bytes\n\nRead-only here: only bool and single-number blocks can be edited.", "Back");
+                await EditorMenu.ShowAsync(host, $"Bloco {block.Key:X8}",
+                    $"{block.Name ?? "Bloco sem nome"}\n{block.Type} · {block.Size} bytes\n\nSomente leitura aqui: só blocos bool e de número único podem ser editados.", "Voltar");
                 continue;
             }
 
             if (HardcoreMode.Blocks(SaveAction.WriteRawBytes, out var blocked))
             {
-                await EditorMenu.ShowAsync(host, "Hardcore mode", blocked, "OK");
+                await EditorMenu.ShowAsync(host, "Modo Hardcore", blocked, "OK");
                 continue;
             }
 
@@ -50,16 +50,16 @@ public static class SaveBlockEditor
             if (block.Type == "Bool")
             {
                 var next = block.Value != "true";
-                var confirmed = await PadMenu.ConfirmAsync(host, $"Block {block.Key:X8}",
-                    $"{block.Name ?? "Unnamed block"}\nSet {block.Value} → {(next ? "true" : "false")}? A restore point is created first.",
-                    next ? "Set true" : "Set false");
+                var confirmed = await PadMenu.ConfirmAsync(host, $"Bloco {block.Key:X8}",
+                    $"{block.Name ?? "Bloco sem nome"}\nMudar {block.Value} → {(next ? "true" : "false")}? Um ponto de restauração é criado antes.",
+                    next ? "Definir true" : "Definir false");
                 if (!confirmed) continue;
                 write = s => SaveBlockEditorService.SetBool(s, block.Key, next);
             }
             else
             {
-                var text = await TextPopup.ShowLineAsync(host, $"Block {block.Key:X8}",
-                    $"{block.Type} value (e.g. 12 or 1.5)", block.Value ?? "");
+                var text = await TextPopup.ShowLineAsync(host, $"Bloco {block.Key:X8}",
+                    $"Valor {block.Type} (ex.: 12 ou 1.5)", block.Value ?? "");
                 if (string.IsNullOrWhiteSpace(text) || text.Trim() == block.Value) continue;
                 write = s => SaveBlockEditorService.SetNumber(s, block.Key, text);
             }

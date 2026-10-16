@@ -49,7 +49,7 @@ public sealed class PokeparkEventOverlay : IPadHandler
             _evolution = new(into.Frame, evolving.Shiny, highlight.StopsEvolving, highlight.Before ?? "");
         }
         // A moment that needs the player (Snorlax across the bridge, Psyduck in the water) says so.
-        _choices = highlight.Text.Contains("Talk to it", StringComparison.Ordinal) ? ["Go there", "Leave it"] : ["Watch", "Leave it"];
+        _choices = highlight.Text.Contains("Talk to it", StringComparison.Ordinal) ? ["Ir até lá", "Deixar pra lá"] : ["Assistir", "Deixar pra lá"];
         _router = IPlatformApplication.Current?.Services.GetService<GamepadRouter>();
         _view.BackgroundColor = Colors.Transparent;
         _view.PaintSurface += Paint;

@@ -15,12 +15,12 @@ public sealed partial class BoxBrowserPage
 {
     // ── Bulk actions (multi-select) ──
 
-    private const string BulkLegalize = "Legalize selection";
-    private const string BulkShiny = "Make shiny";
-    private const string BulkUnshiny = "Remove shiny";
-    private const string BulkHandler = "Set me as handler";
-    private const string BulkHeal = "Heal selection";
-    private const string BulkClones = "Delete clones";
+    private const string BulkLegalize = "Legalizar seleção";
+    private const string BulkShiny = "Tornar shiny";
+    private const string BulkUnshiny = "Remover shiny";
+    private const string BulkHandler = "Tornar-me o treinador atual";
+    private const string BulkHeal = "Curar seleção";
+    private const string BulkClones = "Apagar clones";
 
     /// <summary>The bulk entries for the organizer menu, without the ones Hardcore refuses.</summary>
     private IEnumerable<PadOption> BulkOptions()
@@ -28,12 +28,12 @@ public sealed partial class BoxBrowserPage
         var session = _sessionsFor();
         var stock = session is SaveEngineSession && session.SupportsLegalityAnalysis;
         return Menu(
-            stock ? Allowed(SaveAction.BatchEdit, new(BulkLegalize, IconPath: "fix", Detail: "Rewrite the illegal marked Pokémon to their closest legal version.")) : null,
-            stock ? Allowed(SaveAction.BatchEdit, new(BulkShiny, IconPath: "shiny", Detail: "Only when a legal shiny version exists, unless HaX mode is on.")) : null,
-            stock ? Allowed(SaveAction.BatchEdit, new(BulkUnshiny, IconPath: "shiny", Detail: "Only when a legal version exists, unless HaX mode is on.")) : null,
-            stock && session!.Generation >= 6 ? Allowed(SaveAction.BatchEdit, new(BulkHandler, IconPath: "trainer", Detail: "You become their current trainer, as after a real trade.")) : null,
-            session is SaveEngineSession ? Allowed(SaveAction.BatchEdit, new(BulkHeal, IconPath: "heal", Detail: "Full HP, status and PP in the party; boxed Pokémon get PP back.")) : null,
-            Allowed(SaveAction.Release, new(BulkClones, IconPath: "release", Detail: "Keep one of each identical Pokémon and release the copies.")));
+            stock ? Allowed(SaveAction.BatchEdit, new(BulkLegalize, IconPath: "fix", Detail: "Reescreve os Pokémon marcados ilegais para a versão legal mais próxima.")) : null,
+            stock ? Allowed(SaveAction.BatchEdit, new(BulkShiny, IconPath: "shiny", Detail: "Só quando existe uma versão shiny legal, a não ser que o modo HaX esteja ligado.")) : null,
+            stock ? Allowed(SaveAction.BatchEdit, new(BulkUnshiny, IconPath: "shiny", Detail: "Só quando existe uma versão legal, a não ser que o modo HaX esteja ligado.")) : null,
+            stock && session!.Generation >= 6 ? Allowed(SaveAction.BatchEdit, new(BulkHandler, IconPath: "trainer", Detail: "Você vira o treinador atual deles, como depois de uma troca de verdade.")) : null,
+            session is SaveEngineSession ? Allowed(SaveAction.BatchEdit, new(BulkHeal, IconPath: "heal", Detail: "HP, status e PP completos na equipe; os Pokémon das boxes recuperam o PP.")) : null,
+            Allowed(SaveAction.Release, new(BulkClones, IconPath: "release", Detail: "Mantém um de cada Pokémon idêntico e solta as cópias.")));
     }
 
     /// <summary>Runs a bulk entry; false when <paramref name="choice"/> is not one.</summary>
@@ -45,8 +45,8 @@ public sealed partial class BoxBrowserPage
             {
                 var legalizer = IPlatformApplication.Current?.Services.GetService<ILegalizerService>();
                 if (legalizer is null) return true;
-                await RunBulkAsync(BulkLegalize, "Every illegal marked Pokémon is rewritten to its closest legal version; legal ones are left alone.",
-                    "Legalizing…", (s, slots, report) => legalizer.LegalizeSlots(s, slots, report));
+                await RunBulkAsync(BulkLegalize, "Cada Pokémon marcado ilegal é reescrito para a versão legal mais próxima; os legais ficam como estão.",
+                    "Legalizando…", (s, slots, report) => legalizer.LegalizeSlots(s, slots, report));
                 return true;
             }
             case BulkShiny or BulkUnshiny:
@@ -54,22 +54,22 @@ public sealed partial class BoxBrowserPage
                 var shiny = choice == BulkShiny;
                 var hax = HaXMode.IsOn;
                 await RunBulkAsync(choice, (shiny
-                        ? "Marked Pokémon become shiny. "
-                        : "Marked Pokémon lose their shininess. ") +
-                    (hax ? "HaX mode: the PID is rewritten even when that breaks legality."
-                        : "A legal Pokémon is only changed when a legal version of it exists (shiny-locked ones stay as they are)."),
-                    shiny ? "Making shiny…" : "Removing shiny…",
+                        ? "Os Pokémon marcados ficam shiny. "
+                        : "Os Pokémon marcados perdem o shiny. ") +
+                    (hax ? "Modo HaX: o PID é reescrito mesmo quando isso quebra a legalidade."
+                        : "Um Pokémon legal só é alterado quando existe uma versão legal dele (os que têm shiny bloqueado ficam como estão)."),
+                    shiny ? "Tornando shiny…" : "Removendo shiny…",
                     (s, slots, report) => BulkBoxActions.SetShiny(s, slots, shiny, keepLegal: !hax, report)
-                        .ToOutcome(shiny ? "Made shiny:" : "Removed shiny from"));
+                        .ToOutcome(shiny ? "Ficaram shiny:" : "Shiny removido de"));
                 return true;
             }
             case BulkHandler:
-                await RunBulkAsync(BulkHandler, "Your trainer becomes the current handler of the marked Gen 6+ Pokémon, as a real trade does (name, gender, friendship, trade memory). Your own Pokémon return to you as OT; any handover that would break legality is skipped.",
-                    null, (s, slots, _) => BulkBoxActions.SetCurrentTrainerAsHandler(s, slots).ToOutcome("Handed over"));
+                await RunBulkAsync(BulkHandler, "Seu treinador vira o treinador atual dos Pokémon marcados da Gen 6+, como numa troca de verdade (nome, gênero, amizade, memória de troca). Seus próprios Pokémon voltam para você como TO; qualquer passagem que quebraria a legalidade é ignorada.",
+                    null, (s, slots, _) => BulkBoxActions.SetCurrentTrainerAsHandler(s, slots).ToOutcome("Passados para você"));
                 return true;
             case BulkHeal:
-                await RunBulkAsync(BulkHeal, "Party members get full HP, status and PP; boxed Pokémon get their PP back.",
-                    null, (s, slots, _) => BulkBoxActions.Heal(s, slots).ToOutcome("Healed"));
+                await RunBulkAsync(BulkHeal, "Os membros da equipe recebem HP, status e PP completos; os Pokémon das boxes recuperam o PP.",
+                    null, (s, slots, _) => BulkBoxActions.Heal(s, slots).ToOutcome("Curados"));
                 return true;
             case BulkClones:
                 await DeleteClonesAsync();
@@ -86,15 +86,15 @@ public sealed partial class BoxBrowserPage
         var marked = _viewModel.MarkedSlots.ToList();
         if (marked.Count == 0) return;
         var confirmed = await PadMenu.ConfirmAsync(_hostGrid, $"{verb}?",
-            $"{explanation}\n{marked.Count} marked. The current state stays available as a restore point.", verb);
+            $"{explanation}\n{marked.Count} marcados. O estado atual continua disponível como ponto de restauração.", verb);
         if (!confirmed) return;
 
-        var overlay = overlayTitle is null ? null : LoadingOverlay.Show(_hostGrid, overlayTitle, $"{marked.Count} Pokémon, one backed-up write.");
+        var overlay = overlayTitle is null ? null : LoadingOverlay.Show(_hostGrid, overlayTitle, $"{marked.Count} Pokémon, uma única gravação, com backup.");
         try
         {
             var ok = await _viewModel.RunMutationAsync(s => operation(s, marked, (done, total) => overlay?.Report(done, total)),
                 Math.Max(0, _viewModel.SelectedSlot), refreshSlot: false,
-                changeDescription: $"{verb} ({marked.Count} marked)", action: SaveAction.BatchEdit);
+                changeDescription: $"{verb} ({marked.Count} marcados)", action: SaveAction.BatchEdit);
             _viewModel.RefreshAllSlots();
             _canvas.InvalidateSurface();
             if (!ok) await PadMenu.ShowAsync(_hostGrid, verb, _viewModel.Status, "OK");
@@ -119,13 +119,13 @@ public sealed partial class BoxBrowserPage
         var targets = extras.Except(locked).ToList();
         if (targets.Count == 0)
         {
-            _viewModel.Status = extras.Count == 0 ? "No clones among the marked Pokémon." : "Every extra clone is locked against release.";
+            _viewModel.Status = extras.Count == 0 ? "Nenhum clone entre os Pokémon marcados." : "Todos os clones extras estão travados contra soltura.";
             return;
         }
-        var lockedNote = locked.Count > 0 ? $" {locked.Count} locked clone(s) stay." : "";
-        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Delete clones?",
-            $"{targets.Count} duplicate(s) share an identity (EC + PID, or PID + OT + TID) with another marked Pokémon. One of each is kept (a party member first).{lockedNote} The current state stays available as a restore point.",
-            "Delete clones");
+        var lockedNote = locked.Count > 0 ? $" {locked.Count} clone(s) travado(s) ficam." : "";
+        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Apagar clones?",
+            $"{targets.Count} repetido(s) têm a mesma identidade (EC + PID, ou PID + TO + TID) de outro Pokémon marcado. Um de cada é mantido (primeiro os da equipe).{lockedNote} O estado atual continua disponível como ponto de restauração.",
+            "Apagar clones");
         if (!confirmed) return;
         await _viewModel.BulkReleaseAsync(targets);
         _canvas.InvalidateSurface();
@@ -133,10 +133,10 @@ public sealed partial class BoxBrowserPage
 
     // ── Showdown team / box import ──
 
-    private const string ImportThisBox = "This box";
-    private const string ImportOnward = "This box and the next ones";
-    private const string ImportPickBox = "Choose a box…";
-    private const string ImportParty = "The party";
+    private const string ImportThisBox = "Esta box";
+    private const string ImportOnward = "Esta box e as seguintes";
+    private const string ImportPickBox = "Escolher uma box…";
+    private const string ImportParty = "A equipe";
 
     /// <summary>
     /// Paste many sets, see each one's legality after an offline dry run, choose which to
@@ -149,12 +149,12 @@ public sealed partial class BoxBrowserPage
         var legalizer = IPlatformApplication.Current?.Services.GetService<ILegalizerService>();
         if (session is null || legalizer is null) return;
         var text = await TextPopup.ShowAsync(_hostGrid, title,
-            "Paste a whole team or box: one Showdown set per Pokémon, a blank line between sets.");
+            "Cole um time ou uma box inteira: um set do Showdown por Pokémon, com uma linha em branco entre os sets.");
         if (string.IsNullOrWhiteSpace(text)) return;
 
         var hax = HaXMode.IsOn;
         IReadOnlyList<ShowdownSetPreview> previews;
-        var overlay = LoadingOverlay.Show(_hostGrid, "Reading the sets…", "Each set is legalized offline as a dry run; nothing is placed yet.");
+        var overlay = LoadingOverlay.Show(_hostGrid, "Lendo os sets…", "Cada set é legalizado offline como teste; nada é colocado ainda.");
         try
         {
             previews = await Task.Run(() => ShowdownTeamService.Preview(session, legalizer, text, hax,
@@ -169,7 +169,7 @@ public sealed partial class BoxBrowserPage
         finally { overlay.Close(); }
         if (previews.Count == 0)
         {
-            await PadMenu.ShowAsync(_hostGrid, title, "No Showdown set was found in that text.", "OK");
+            await PadMenu.ShowAsync(_hostGrid, title, "Nenhum set do Showdown foi encontrado nesse texto.", "OK");
             return;
         }
 
@@ -178,20 +178,20 @@ public sealed partial class BoxBrowserPage
         while (true)
         {
             var count = chosen.Count(c => c);
-            var importLabel = $"Import {count} set(s)…";
+            var importLabel = $"Importar {count} set(s)…";
             var options = new List<PadOption>();
-            if (count > 0) options.Add(new PadOption(importLabel, Glyph: "●", Accent: UiTokens.Green, Detail: "Choose where they go next"));
+            if (count > 0) options.Add(new PadOption(importLabel, Glyph: "●", Accent: UiTokens.Green, Detail: "Escolha para onde eles vão em seguida"));
             for (var i = 0; i < previews.Count; i++)
                 options.Add(SetRow(previews[i], chosen[i]));
             var choice = await PadMenu.ShowAsync(_hostGrid, $"{title} · {previews.Count} set(s)",
-                Note("A: include or leave out a set. Legality comes from the offline dry run."), options.ToArray());
+                Note("A: inclui ou deixa de fora um set. A legalidade vem do teste offline."), options.ToArray());
             if (choice is null) return;
             if (choice == importLabel) break;
             var index = options.FindIndex(o => o.Label == choice) - (count > 0 ? 1 : 0);
             if ((uint)index >= (uint)previews.Count) continue;
             if (stock && !previews[index].Generated)
             {
-                await PadMenu.ShowAsync(_hostGrid, previews[index].Title, $"{previews[index].Verdict}. This set cannot be imported.", "OK");
+                await PadMenu.ShowAsync(_hostGrid, previews[index].Title, $"{previews[index].Verdict}. Este set não pode ser importado.", "OK");
                 continue;
             }
             chosen[index] = !chosen[index];
@@ -202,21 +202,21 @@ public sealed partial class BoxBrowserPage
         if (targets is null) return;
         if (targets.Count == 0)
         {
-            await PadMenu.ShowAsync(_hostGrid, title, "There is no empty slot there.", "OK");
+            await PadMenu.ShowAsync(_hostGrid, title, "Não há slot vazio ali.", "OK");
             return;
         }
         var fits = Math.Min(picked.Count, targets.Count);
-        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Import sets?",
-            $"{fits} Pokémon go into empty slots" + (picked.Count > targets.Count ? $"; {picked.Count - targets.Count} do not fit and are skipped" : "") +
-            ". Nothing is overwritten. The current state stays available as a restore point.", "Import");
+        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Importar sets?",
+            $"{fits} Pokémon vão para slots vazios" + (picked.Count > targets.Count ? $"; {picked.Count - targets.Count} não cabem e são ignorados" : "") +
+            ". Nada é sobrescrito. O estado atual continua disponível como ponto de restauração.", "Importar");
         if (!confirmed) return;
 
-        var place = LoadingOverlay.Show(_hostGrid, "Placing the sets…", "One backed-up write.");
+        var place = LoadingOverlay.Show(_hostGrid, "Colocando os sets…", "Uma única gravação, com backup.");
         try
         {
             await _viewModel.RunMutationAsync(s => ShowdownTeamService.Place(s, legalizer, picked, targets, hax),
                 Math.Max(0, _viewModel.SelectedSlot), refreshSlot: false,
-                changeDescription: $"Import {fits} Showdown set(s)", action: SaveAction.CreateMon);
+                changeDescription: $"Importar {fits} set(s) do Showdown", action: SaveAction.CreateMon);
             _viewModel.RefreshAllSlots(includeEmptyPartySlots: targets.Any(t => t.Box == -1));
             _canvas.InvalidateSurface();
         }
@@ -227,9 +227,9 @@ public sealed partial class BoxBrowserPage
     {
         var accent = !set.Generated ? set.Candidate.IsEmpty && set.Verdict.StartsWith("Checked", StringComparison.Ordinal) ? UiTokens.Blueprint : UiTokens.Bad
             : set.Legal ? UiTokens.Green : UiTokens.Warn;
-        var problems = set.ParseProblems.Count > 0 ? $" · {set.ParseProblems.Count} unread line(s): {set.ParseProblems[0]}" : "";
+        var problems = set.ParseProblems.Count > 0 ? $" · {set.ParseProblems.Count} linha(s) não lida(s): {set.ParseProblems[0]}" : "";
         return new PadOption($"{set.Index + 1}. {set.Title}", Glyph: included ? "●" : "○", Accent: accent,
-            Detail: (included ? "" : "Left out · ") + set.Verdict + problems);
+            Detail: (included ? "" : "Deixado de fora · ") + set.Verdict + problems);
     }
 
     private async Task<IReadOnlyList<SlotRef>?> PickImportTargetsAsync(ISaveEngineSession session, int needed)
@@ -238,8 +238,8 @@ public sealed partial class BoxBrowserPage
         if (box == -1)
         {
             var party = ShowdownTeamService.EmptySlots(session, -1, onlyThisBox: true);
-            var partyChoice = await PadMenu.ShowAsync(_hostGrid, "Import where?", null,
-                new PadOption($"{ImportParty} · {party.Count} free", IconPath: "party"),
+            var partyChoice = await PadMenu.ShowAsync(_hostGrid, "Importar para onde?", null,
+                new PadOption($"{ImportParty} · {party.Count} livres", IconPath: "party"),
                 new PadOption($"{ImportPickBox}", IconPath: "box"));
             if (partyChoice is null) return null;
             if (partyChoice.StartsWith(ImportParty, StringComparison.Ordinal)) return party;
@@ -248,9 +248,9 @@ public sealed partial class BoxBrowserPage
 
         var here = ShowdownTeamService.EmptySlots(session, box, onlyThisBox: true);
         var onward = ShowdownTeamService.EmptySlots(session, box, onlyThisBox: false);
-        var choice = await PadMenu.ShowAsync(_hostGrid, "Import where?", $"{needed} set(s) to place into empty slots.",
-            new PadOption($"{ImportThisBox} · {here.Count} empty", IconPath: "box", Detail: $"Box {box + 1:00} only"),
-            new PadOption($"{ImportOnward} · {onward.Count} empty", IconPath: "all", Detail: $"From box {box + 1:00} onward"),
+        var choice = await PadMenu.ShowAsync(_hostGrid, "Importar para onde?", $"{needed} set(s) para colocar em slots vazios.",
+            new PadOption($"{ImportThisBox} · {here.Count} vazios", IconPath: "box", Detail: $"Só a box {box + 1:00}"),
+            new PadOption($"{ImportOnward} · {onward.Count} vazios", IconPath: "all", Detail: $"Da box {box + 1:00} em diante"),
             new PadOption(ImportPickBox, IconPath: "move"));
         if (choice is null) return null;
         if (choice.StartsWith(ImportOnward, StringComparison.Ordinal)) return onward;
@@ -263,7 +263,7 @@ public sealed partial class BoxBrowserPage
         var boxes = Enumerable.Range(0, _viewModel.BoxCount)
             .Select(b => new PadOption($"Box {b + 1:00}", Detail: $"{ShowdownTeamService.EmptySlots(session, b, onlyThisBox: true).Count} empty"))
             .ToArray();
-        var target = await PadMenu.ShowAsync(_hostGrid, "Import into which box?", null, boxes);
+        var target = await PadMenu.ShowAsync(_hostGrid, "Importar para qual box?", null, boxes);
         if (target is null) return null;
         var index = Array.FindIndex(boxes, b => b.Label == target);
         return index < 0 ? null : ShowdownTeamService.EmptySlots(session, index, onlyThisBox: true);
@@ -277,7 +277,7 @@ public sealed partial class BoxBrowserPage
     {
         var session = _sessionsFor();
         if (HardcoreMode.IsOn || session is null || !session.SupportsLegalityAnalysis) return false;
-        await RunSubEditorAsync(LegalityReportEditor.ShowAsync, "Legality fixes applied");
+        await RunSubEditorAsync(LegalityReportEditor.ShowAsync, "Correções de legalidade aplicadas");
         _canvas.InvalidateSurface();
         return true;
     }

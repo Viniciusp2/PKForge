@@ -18,29 +18,29 @@ public static class PokeBeansEditor
             var beans = session.GetPokeBeans();
             if (beans.Count == 0)
             {
-                await EditorMenu.ShowAsync(host, "POKé BEANS", "This game has no Poké Pelago Bean storage.", "OK");
+                await EditorMenu.ShowAsync(host, "POKé BEANS", "Este jogo não tem armazenamento de Beans do Poké Pelago.", "OK");
                 return;
             }
 
             var options = beans.Select(bean => new PadOption($"{bean.Name} · {bean.Count}/{bean.MaxCount}"))
-                .Append(new PadOption("Fill every Bean stack", IconPath: "fill", Detail: "Every Bean goes to its maximum; a restore point is made first."))
-                .Append(new PadOption("Clear every Bean stack", IconPath: "clear", Detail: "Every Bean goes to 0; a restore point is made first."))
+                .Append(new PadOption("Encher todas as pilhas de Beans", IconPath: "fill", Detail: "Todos os Beans vão para o máximo; um ponto de restauração é criado antes."))
+                .Append(new PadOption("Limpar todas as pilhas de Beans", IconPath: "clear", Detail: "Todos os Beans vão para 0; um ponto de restauração é criado antes."))
                 .ToArray();
-            var choice = await EditorMenu.ShowAsync(host, "POKé BEANS", "Poké Pelago storage", options);
+            var choice = await EditorMenu.ShowAsync(host, "POKé BEANS", "Armazenamento do Poké Pelago", options);
             if (choice is null) return;
 
-            if (choice == "Fill every Bean stack" || choice == "Clear every Bean stack")
+            if (choice == "Encher todas as pilhas de Beans" || choice == "Limpar todas as pilhas de Beans")
             {
-                var filling = choice.StartsWith("Fill", StringComparison.Ordinal);
-                var verb = filling ? "Fill" : "Clear";
-                var confirmed = await PadMenu.ConfirmAsync(host, $"{verb} all beans?",
-                    filling ? "Every Poké Bean stack becomes 255. A restore point is created first." : "Every Poké Bean stack becomes 0. A restore point is created first.",
-                    filling ? "Fill" : "Clear");
+                var filling = choice.StartsWith("Encher", StringComparison.Ordinal);
+                var verb = filling ? "Encher" : "Limpar";
+                var confirmed = await PadMenu.ConfirmAsync(host, $"{verb} todos os Beans?",
+                    filling ? "Todas as pilhas de Poké Beans vão para 255. Um ponto de restauração é criado antes." : "Todas as pilhas de Poké Beans vão para 0. Um ponto de restauração é criado antes.",
+                    filling ? "Encher" : "Limpar");
                 if (!confirmed) continue;
                 var success = await viewModel.RunMutationAsync(s =>
                 {
                     foreach (var bean in s.GetPokeBeans()) s.SetPokeBeanCount(bean.Id, filling ? bean.MaxCount : 0);
-                    return new GenerationOutcome(true, filling ? "Every Poké Bean stack is full." : "Every Poké Bean stack was cleared.");
+                    return new GenerationOutcome(true, filling ? "Todas as pilhas de Poké Beans estão cheias." : "Todas as pilhas de Poké Beans foram limpas.");
                 }, slot, refreshSlot: false, action: SaveAction.EditInventory);
                 if (!success) return;
                 continue;

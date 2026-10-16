@@ -52,7 +52,7 @@ public static class InfoPickers
             items.Add(MoveRow(move, NameOf(data.MoveNames, move.Id), hasLearnData));
 
         var filter = hasLearnData
-            ? new PickerFilter("Legal", "Show all", item => item.Id == 0 || !item.Muted, StartOn: !Services.HaXMode.IsOn)
+            ? new PickerFilter("Legal", "Mostrar tudo", item => item.Id == 0 || !item.Muted, StartOn: !Services.HaXMode.IsOn)
             : null;
         return await PickerMenu.ShowAsync(host, title, items, current, MovePreview(byId, hasLearnData), filter);
     }
@@ -67,7 +67,7 @@ public static class InfoPickers
         {
             TypeId = move.Type,
             Category = move.Category,
-            Tag = move.Learn.IsLegal ? $"✓ {move.Learn.Label}" : hasLearnData ? "Illegal" : null,
+            Tag = move.Learn.IsLegal ? $"✓ {move.Learn.Label}" : hasLearnData ? "Ilegal" : null,
             TagColor = move.Learn.IsLegal ? InfoKit.LearnColor(move.Learn.Kind) : UiTokens.Bad,
             Muted = hasLearnData && !move.Learn.IsLegal,
             Keywords = $"{TypeFacts.Name(move.Type)} {TypeFacts.CategoryName(move.Category)} {move.Learn.Label}" + (move.Learn.IsLegal ? " legal" : ""),
@@ -94,16 +94,16 @@ public static class InfoPickers
             {
                 heading.Text = item?.Name ?? "";
                 badges.IsVisible = numbers.IsVisible = learn.IsVisible = false;
-                effect.Text = item?.Id == 0 ? "Leaves the move slot empty." : "";
+                effect.Text = item?.Id == 0 ? "Deixa o slot de golpe vazio." : "";
                 return;
             }
             badges.IsVisible = true;
             heading.Text = item.Name;
             InfoKit.SetType(badge, move.Type);
             category.Category = move.Category;
-            numbers.Text = $"{TypeFacts.CategoryName(move.Category)} · Power {InfoKit.Power(move.Power)} · Accuracy {InfoKit.Accuracy(move.Accuracy)} · PP {move.PP}";
+            numbers.Text = $"{TypeFacts.CategoryName(move.Category)} · Poder {InfoKit.Power(move.Power)} · Precisão {InfoKit.Accuracy(move.Accuracy)} · PP {move.PP}";
             numbers.IsVisible = true;
-            effect.Text = move.Effect.Length > 0 ? move.Effect : "No description available.";
+            effect.Text = move.Effect.Length > 0 ? move.Effect : "Nenhuma descrição disponível.";
             learn.IsVisible = hasLearnData;
             learn.Text = move.Learn.Sentence;
             learn.TextColor = InfoKit.ToneColor(move.Learn.IsLegal ? InfoKit.NoteTone.Good : InfoKit.NoteTone.Bad);
@@ -151,7 +151,7 @@ public static class InfoPickers
         }
         if (card.Gender is { } gender)
             children.Add(InfoKit.HeaderRow(
-                new Label { Text = "Gender", FontFamily = DsChrome.PixelFont, FontSize = UiTokens.TextSmall, TextColor = UiTokens.InkSoft, VerticalTextAlignment = TextAlignment.Center },
+                new Label { Text = "Gênero", FontFamily = DsChrome.PixelFont, FontSize = UiTokens.TextSmall, TextColor = UiTokens.InkSoft, VerticalTextAlignment = TextAlignment.Center },
                 new Label { Text = gender.Label, FontSize = UiTokens.TextSmall, FontAttributes = FontAttributes.Bold, TextColor = UiTokens.Ink0 }));
         return InfoKit.Card([.. children]);
     }
@@ -204,7 +204,7 @@ public static class InfoPickers
         var names = session?.GetItemNames() is { Count: > 0 } n ? n : modern;
         var legal = session is not null ? Info?.GetHeldItems(session).ToHashSet() ?? [] : [];
 
-        var items = new List<PickItem>(names.Count) { new(0, "(none)", Detail: "Holds nothing.") };
+        var items = new List<PickItem>(names.Count) { new(0, "(none)", Detail: "Não segura nada.") };
         var rows = new List<PickItem>();
         for (var id = 1; id < names.Count; id++)
         {
@@ -215,7 +215,7 @@ public static class InfoPickers
         // Holdable first, in the game's id order (it groups balls, berries, plates…).
         items.AddRange(rows.OrderBy(r => r.Muted ? 1 : 0));
         var filter = legal.Count > 0
-            ? new PickerFilter("Holdable", "Show all", item => item.Id == 0 || !item.Muted, StartOn: !Services.HaXMode.IsOn)
+            ? new PickerFilter("Seguráveis", "Mostrar tudo", item => item.Id == 0 || !item.Muted, StartOn: !Services.HaXMode.IsOn)
             : null;
         return PickerMenu.ShowAsync(host, title, items, current, filter: filter);
     }
@@ -234,7 +234,7 @@ public static class InfoPickers
             return new PickItem(c.Id, c.Name, Detail: TeraDetail(c.Id, own))
             {
                 TypeId = c.Id,
-                Tag = own ? "Own type" : c.Id == current ? "Now" : null,
+                Tag = own ? "Tipo próprio" : c.Id == current ? "Atual" : null,
                 TagColor = own ? UiTokens.Green : UiTokens.Blueprint,
             };
         }).ToList();
@@ -243,10 +243,10 @@ public static class InfoPickers
 
     /// <summary>What the Tera type does for this Pokémon, in one line.</summary>
     public static string TeraDetail(int type, bool matchesOwnType) => type == TypeFacts.Stellar
-        ? "One boost per move type: 1.2×, or 2× on its own types"
+        ? "Um bônus por tipo de golpe: 1.2×, ou 2× nos tipos próprios dele"
         : matchesOwnType
-            ? $"Matches its own type: {TypeFacts.Name(type)} STAB rises to 2×"
-            : $"{TypeFacts.Name(type)} moves gain 1.5× STAB; keeps its own STAB";
+            ? $"Igual ao tipo próprio: o STAB de {TypeFacts.Name(type)} sobe para 2×"
+            : $"Golpes {TypeFacts.Name(type)} ganham 1.5× de STAB; mantém o próprio STAB";
 
     /// <summary>
     /// Hidden Power type chooser (types Fighting-Dark). Each row previews the IVs the
@@ -257,14 +257,14 @@ public static class InfoPickers
         var items = Enumerable.Range(1, 16).Select(type =>
         {
             var ivs = ivsFor(type);
-            return new PickItem(type, TypeFacts.Name(type), Detail: ivs is null ? "Not reachable from these IVs" : $"IVs {string.Join("/", ivs)}")
+            return new PickItem(type, TypeFacts.Name(type), Detail: ivs is null ? "Não dá para alcançar com estes IVs" : $"IVs {string.Join("/", ivs)}")
             {
                 TypeId = type,
-                Tag = type == current ? "NOW" : null,
+                Tag = type == current ? "ATUAL" : null,
                 Muted = ivs is null,
             };
         }).ToList();
-        return PickerMenu.ShowAsync(host, "Hidden power", items, current);
+        return PickerMenu.ShowAsync(host, "Hidden Power", items, current);
     }
 
     private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text;

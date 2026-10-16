@@ -12,10 +12,10 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class ClockRepairEditor
 {
-    private const string Reset = "Reset both clocks (recommended)";
-    private const string BerryFix = "Berry fix (move past the 1-year bug)";
-    private const string ArmReset = "Let the game ask for the time again";
-    private const string Explain = "What do these do?";
+    private const string Reset = "Zerar os dois relógios (recomendado)";
+    private const string BerryFix = "Berry fix (passar do bug de 1 ano)";
+    private const string ArmReset = "Deixar o jogo perguntar a hora de novo";
+    private const string Explain = "O que isso faz?";
 
     private const SaveAction Action = SaveAction.RepairRtc;
 
@@ -25,19 +25,19 @@ public static class ClockRepairEditor
         {
             var state = ClockRepairService.GetState(session);
             var detail =
-                $"Clock start: {state.Initial}{Environment.NewLine}" +
-                $"Last berry/event update: {state.Elapsed}{Environment.NewLine}" +
-                (state.ResetArmed ? "The in-game clock reset is armed." : "The in-game clock reset is not armed.") +
-                Environment.NewLine + "Your emulator's own clock (mGBA's RTC data) is not changed.";
-            if (await WorldEventsMenu.BlockedAsync(host, "Clock repair", detail, Action)) return;
+                $"Início do relógio: {state.Initial}{Environment.NewLine}" +
+                $"Última atualização de berries/eventos: {state.Elapsed}{Environment.NewLine}" +
+                (state.ResetArmed ? "O reset do relógio no jogo está ativado." : "O reset do relógio no jogo não está ativado.") +
+                Environment.NewLine + "O relógio do próprio emulador (os dados de RTC do mGBA) não é alterado.";
+            if (await WorldEventsMenu.BlockedAsync(host, "Conserto do relógio", detail, Action)) return;
 
-            var choice = await EditorMenu.ShowAsync(host, "Clock repair", detail,
+            var choice = await EditorMenu.ShowAsync(host, "Conserto do relógio", detail,
                 new PadOption(Reset, Accent: UiTokens.Green, IconPath: "restore",
-                    Detail: "Berries and daily events restart from now; use after a dead battery."),
+                    Detail: "As berries e os eventos diários recomeçam a partir de agora; use depois de uma bateria descarregada."),
                 new PadOption(BerryFix, IconPath: "fix", Accent: WorldEventsMenu.Good(state.BerryFixApplied),
-                    Detail: "For Ruby and Sapphire berries that stopped growing after a year."),
+                    Detail: "Para as berries de Ruby e Sapphire que pararam de crescer depois de um ano."),
                 new PadOption(ArmReset, IconPath: "calendar", Accent: WorldEventsMenu.Good(state.ResetArmed),
-                    Detail: "The game shows its own clock setting screen on next start."),
+                    Detail: "O jogo mostra a própria tela de ajuste do relógio na próxima vez que iniciar."),
                 new PadOption(Explain, IconPath: "info"));
             switch (choice)
             {
@@ -45,32 +45,32 @@ public static class ClockRepairEditor
                     if (!await WorldEventsMenu.WriteAsync(viewModel, s =>
                         {
                             ClockRepairService.ResetClocks(s);
-                            return "Clocks reset: berries and daily events restart from now.";
+                            return "Relógios zerados: as berries e os eventos diários recomeçam a partir de agora.";
                         }, Action)) return;
                     break;
                 case BerryFix:
                     if (!await WorldEventsMenu.WriteAsync(viewModel, s =>
-                        $"Berry fix applied: {ClockRepairService.ApplyBerryFix(s).Elapsed}.", Action)) return;
+                        $"Berry fix aplicado: {ClockRepairService.ApplyBerryFix(s).Elapsed}.", Action)) return;
                     break;
                 case ArmReset:
                     if (!await WorldEventsMenu.WriteAsync(viewModel, s =>
                         {
                             ClockRepairService.ArmInGameReset(s);
-                            return "Clock reset armed: the game offers to set the time on next boot.";
+                            return "Reset do relógio ativado: o jogo vai oferecer o ajuste da hora na próxima inicialização.";
                         }, Action)) return;
                     break;
                 case Explain:
-                    await EditorMenu.ShowAsync(host, "About the clock",
-                        "The game stores two times: when the clock started, and when berries and daily events last updated. " +
-                        "Time only moves forward in the game when the cartridge clock runs past that last update." +
+                    await EditorMenu.ShowAsync(host, "Sobre o relógio",
+                        "O jogo guarda dois horários: quando o relógio começou e quando as berries e os eventos diários foram atualizados pela última vez. " +
+                        "O tempo só avança no jogo quando o relógio do cartucho passa dessa última atualização." +
                         Environment.NewLine + Environment.NewLine +
-                        "Reset both clocks: sets both to zero, so the game starts counting again from the cartridge clock. " +
-                        "Use this after a dead battery or after moving the save to another device or emulator." +
+                        "Zerar os dois relógios: coloca os dois em zero, para o jogo voltar a contar a partir do relógio do cartucho. " +
+                        "Use isso depois de uma bateria descarregada ou ao mover o save para outro aparelho ou emulador." +
                         Environment.NewLine + Environment.NewLine +
-                        "Berry fix: Ruby and Sapphire stop updating berries after the clock has run for a year. " +
-                        "This moves the last-update counter past day 734, as PKHeX's Berry fix does." +
+                        "Berry fix: Ruby e Sapphire param de atualizar as berries depois que o relógio passa de um ano. " +
+                        "Isso move o contador da última atualização para depois do dia 734, como faz o Berry fix do PKHeX." +
                         Environment.NewLine + Environment.NewLine +
-                        "Ask for the time again: turns on the game's own clock reset screen.",
+                        "Perguntar a hora de novo: liga a própria tela de reset do relógio do jogo.",
                         "OK");
                     break;
                 default:

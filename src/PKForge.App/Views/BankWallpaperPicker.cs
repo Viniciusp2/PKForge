@@ -200,7 +200,7 @@ public sealed class BankWallpaperPicker : IPadPagingHandler
         canvas.Restore();
 
         var hintBar = new SKRect(0, info.Height - hint, info.Width, info.Height);
-        (string, string)[] prompts = [("A", "Choose"), ("R", "Next game"), ("B", "Cancel")];
+        (string, string)[] prompts = [("A", "Escolher"), ("R", "Next game"), ("B", "Cancelar")];
         PksmPaint.HintBar(canvas, hintBar, prompts, small);
         PadButton[] buttons = [PadButton.A, PadButton.R, PadButton.B];
         _hintHits = [.. PksmPaint.HintBarHitRects(hintBar, prompts, small).Select((r, i) => (r, buttons[i]))];

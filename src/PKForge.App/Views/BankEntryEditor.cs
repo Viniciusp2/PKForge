@@ -32,8 +32,8 @@ public static class BankEntryEditor
         // rewrite it. Its Summary stays available.
         if (PKForge.Engine.EntityBytes.RomHackGame(entry.Info.Format) is { } hack)
         {
-            await EditorMenu.ShowAsync(host, "Can't edit",
-                $"Pokémon from {hack} can only be edited in their own game.", "OK");
+            await EditorMenu.ShowAsync(host, "Não dá para editar",
+                $"Pokémon de {hack} só podem ser editados no próprio jogo.", "OK");
             return false;
         }
 
@@ -45,13 +45,13 @@ public static class BankEntryEditor
         }
         catch (Exception error)
         {
-            await EditorMenu.ShowAsync(host, "Can't edit", error.Message, "OK");
+            await EditorMenu.ShowAsync(host, "Não dá para editar", error.Message, "OK");
             return false;
         }
         if (session is null)
         {
-            await EditorMenu.ShowAsync(host, "Can't edit",
-                "The stored bytes aren't a Pokémon PKForge can edit.", "OK");
+            await EditorMenu.ShowAsync(host, "Não dá para editar",
+                "Os bytes guardados não são um Pokémon que o PKForge consegue editar.", "OK");
             return false;
         }
 
@@ -64,14 +64,14 @@ public static class BankEntryEditor
             }
             catch (Exception error)
             {
-                await EditorMenu.ShowAsync(host, "Edit error", error.Message, "OK");
+                await EditorMenu.ShowAsync(host, "Erro na edição", error.Message, "OK");
                 return false;
             }
 
             var saved = await window.Completion;
             if (window.Failure is { } failure)
             {
-                await EditorMenu.ShowAsync(host, "Edit error", failure.Message, "OK");
+                await EditorMenu.ShowAsync(host, "Erro na edição", failure.Message, "OK");
                 return false;
             }
             return saved;
@@ -199,18 +199,18 @@ public static class BankEntryEditor
 
             // ── Info: the identity rows, then the quick tools.
             var identity = new VerticalStackLayout();
-            AddRow(identity, _infoSlots, "nickname", "Nickname", EditNicknameAsync);
-            AddRow(identity, _infoSlots, "species", "Species", EditSpeciesAsync);
-            AddRow(identity, _infoSlots, "level", "Level", EditLevelAsync);
-            AddRow(identity, _infoSlots, "nature", "Nature", EditNatureAsync);
-            AddRow(identity, _infoSlots, "ability", "Ability", EditAbilityAsync);
-            AddRow(identity, _infoSlots, "item", "Held item", EditItemAsync);
-            AddRow(identity, _infoSlots, "ball", "Ball", EditBallAsync);
-            AddRow(identity, _infoSlots, "gender", "Gender", EditGenderAsync);
-            AddRow(identity, _infoSlots, "friendship", "Friendship", EditFriendshipAsync);
-            AddRow(identity, _infoSlots, "ot", "Trainer", EditOtAsync);
+            AddRow(identity, _infoSlots, "nickname", "Apelido", EditNicknameAsync);
+            AddRow(identity, _infoSlots, "species", "Espécie", EditSpeciesAsync);
+            AddRow(identity, _infoSlots, "level", "Nível", EditLevelAsync);
+            AddRow(identity, _infoSlots, "nature", "Natureza", EditNatureAsync);
+            AddRow(identity, _infoSlots, "ability", "Habilidade", EditAbilityAsync);
+            AddRow(identity, _infoSlots, "item", "Item segurado", EditItemAsync);
+            AddRow(identity, _infoSlots, "ball", "Bola", EditBallAsync);
+            AddRow(identity, _infoSlots, "gender", "Gênero", EditGenderAsync);
+            AddRow(identity, _infoSlots, "friendship", "Amizade", EditFriendshipAsync);
+            AddRow(identity, _infoSlots, "ot", "Treinador", EditOtAsync);
             AddRow(identity, _infoSlots, "shiny", "Shiny", ToggleShinyAsync);
-            identity.Add(ToolRow(_infoSlots, ("Lv 100", Level100Async), ("Make mine", MakeMineAsync), ("QR", QrAsync)));
+            identity.Add(ToolRow(_infoSlots, ("Lv 100", Level100Async), ("Tornar meu", MakeMineAsync), ("QR", QrAsync)));
             _infoPage = identity;
 
             // ── Stats: its own page, the table drawn, then the spread editors.
@@ -225,7 +225,7 @@ public static class BankEntryEditor
             var stats = new VerticalStackLayout { Children = { _statsTable } };
             AddRow(stats, _statsSlots, "ivs", classicTraining ? "DVs" : "IVs", EditIvsAsync);
             AddRow(stats, _statsSlots, "evs", classicTraining ? "Stat exp" : "EVs", EditEvsAsync);
-            stats.Add(ToolRow(_statsSlots, (classicTraining ? "Max DV" : "Max IV", MaxIvsAsync), (classicTraining ? "0 Exp" : "0 EV", ClearEvsAsync)));
+            stats.Add(ToolRow(_statsSlots, (classicTraining ? "DV máx." : "IV máx.", MaxIvsAsync), (classicTraining ? "0 Exp" : "0 EV", ClearEvsAsync)));
             _statsPage = stats;
             _statsPage.IsVisible = false;
             _scroll.Content = new Grid { Children = { _infoPage, _statsPage } };
@@ -233,15 +233,15 @@ public static class BankEntryEditor
             // ── The side list: the two pages, then every sub-editor.
             var side = new VerticalStackLayout { Spacing = EditorRows.Design(10) };
             _infoTab = SideItem(side, "Info", "info", () => { ShowPage(stats: false); return Task.CompletedTask; });
-            _statsTab = SideItem(side, "Stats", "stats", () => { ShowPage(stats: true); return Task.CompletedTask; });
+            _statsTab = SideItem(side, "Atributos", "stats", () => { ShowPage(stats: true); return Task.CompletedTask; });
             side.Add(new BoxView { HeightRequest = EditorRows.Design(12), Color = Colors.Transparent });
-            SideItem(side, "Moves", "moves", EditMovesAsync);
-            SideItem(side, "Met / origin", "map", EditMetAsync);
-            SideItem(side, "Potential", "stats", EditPotentialAsync);
-            SideItem(side, "Awards", "ribbons", EditAwardsAsync);
-            SideItem(side, "Legalize", "fix", LegalizeAsync);
-            SideItem(side, "Form & shiny", "shiny", () => SubEditorAsync(MonFieldsEditor.FormAndShinyAsync));
-            SideItem(side, "Trainers", "trainer", () => SubEditorAsync(MonFieldsEditor.TrainersAsync));
+            SideItem(side, "Golpes", "moves", EditMovesAsync);
+            SideItem(side, "Encontro / origem", "map", EditMetAsync);
+            SideItem(side, "Potencial", "stats", EditPotentialAsync);
+            SideItem(side, "Prêmios", "ribbons", EditAwardsAsync);
+            SideItem(side, "Legalizar", "fix", LegalizeAsync);
+            SideItem(side, "Forma e shiny", "shiny", () => SubEditorAsync(MonFieldsEditor.FormAndShinyAsync));
+            SideItem(side, "Treinadores", "trainer", () => SubEditorAsync(MonFieldsEditor.TrainersAsync));
             SideItem(side, "Tech records", "moves", () => SubEditorAsync(MonFieldsEditor.TechRecordsAsync));
 
             var right = new Grid
@@ -265,10 +265,10 @@ public static class BankEntryEditor
                 RowDefinitions = [new(GridLength.Auto), new(GridLength.Star), new(GridLength.Auto)],
                 HeightRequest = host.Height > 0 ? host.Height - 60 : -1,
             };
-            content.Add(EditorRows.EditorSection("Pokémon information"));
+            content.Add(EditorRows.EditorSection("Informações do Pokémon"));
             content.Add(body);
             Grid.SetRow(body, 1);
-            var hints = Kit.WindowHints(("A", "Open", () => OnPadButton(PadButton.A)), ("X", "Save", () => Run(SaveAsync)), ("B", "Close", RequestClose));
+            var hints = Kit.WindowHints(("A", "Abrir", () => OnPadButton(PadButton.A)), ("X", "Salvar", () => Run(SaveAsync)), ("B", "Fechar", RequestClose));
             content.Add(hints);
             Grid.SetRow(hints, 2);
 
@@ -333,7 +333,7 @@ public static class BankEntryEditor
             var d = _detail;
             var species = NameOf(_data.SpeciesNames, d.Species);
             var name = string.IsNullOrWhiteSpace(d.Nickname) ? species : d.Nickname;
-            var from = string.IsNullOrWhiteSpace(_entry.Info.SourceName) ? null : $"From {_entry.Info.SourceName}";
+            var from = string.IsNullOrWhiteSpace(_entry.Info.SourceName) ? null : $"De {_entry.Info.SourceName}";
             var unit = Math.Min(args.Info.Width / EditorPaint.DesignWidth, args.Info.Height / EditorPaint.DesignHeaderHeight);
             var accent = d.Types is { Count: > 0 } types ? InfoKit.TypeColor(types[0]).ToSKColor() : (SKColor?)null;
             EditorPaint.PaintHeader(canvas, new SKRect(0, 0, EditorPaint.DesignWidth * unit, args.Info.Height),
@@ -368,7 +368,7 @@ public static class BankEntryEditor
             string[] names = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
             float[] columns = [250, 450, 650, 850, 1030];
             const float rowH = 60, text = 32;
-            var head = new[] { "Base", classic ? "DV" : "IV", classic ? "Exp" : "EV", "Value" };
+            var head = new[] { "Base", classic ? "DV" : "IV", classic ? "Exp" : "EV", "Valor" };
             using (var band = new SKPaint { Color = EditorPaint.ChipTop }) c.DrawRoundRect(new SKRect(200, 0, 1100, rowH), 10, 10, band);
             for (var i = 0; i < head.Length; i++)
                 SummaryInk.Draw(c, head[i], (columns[i] + columns[i + 1]) / 2 - 100 + 100, SummaryInk.Center(rowH / 2, text), text, EditorPaint.ChipInk, align: SKTextAlign.Center);
@@ -412,7 +412,7 @@ public static class BankEntryEditor
                     3 => Pksm.Legal,
                     _ => Pksm.SignalBlue,
                 };
-                SummaryInk.Draw(c, "IV rank", 600, SummaryInk.Center(extraY, text), text, EditorPaint.Label);
+                SummaryInk.Draw(c, "Rank de IV", 600, SummaryInk.Center(extraY, text), text, EditorPaint.Label);
                 SummaryInk.Draw(c, new string('★', stars) + new string('☆', 4 - stars), 760, SummaryInk.Center(extraY, 38), 38, color);
             }
         }
@@ -435,19 +435,19 @@ public static class BankEntryEditor
             _rows["nickname"].Value = d.Nickname;
             _rows["species"].Value = NameOf(_data.SpeciesNames, d.Species);
             _rows["level"].Value = d.Level.ToString();
-            _rows["nature"].Value = _session.Generation <= 2 ? "none (Gen 1/2)"
+            _rows["nature"].Value = _session.Generation <= 2 ? "nenhuma (Gen 1/2)"
                 : $"{NameOf(_data.NatureNames, d.Nature)}  {NatureFacts.EffectLabel(d.Nature)}";
             _rows["ability"].Value = NameOf(_data.AbilityNames, d.Ability);
             _rows["item"].Value = d.HeldItem == 0 ? "none" : NameOf(_data.ItemNames, d.HeldItem);
             _rows["ball"].Value = NameOf(_data.BallNames, d.Ball);
-            _rows["gender"].Value = d.Gender switch { 0 => "♂ Male", 1 => "♀ Female", _ => "Genderless" };
+            _rows["gender"].Value = d.Gender switch { 0 => "♂ Macho", 1 => "♀ Fêmea", _ => "Sem gênero" };
             _rows["friendship"].Value = d.Friendship.ToString();
             _rows["ot"].Value = d.OriginalTrainer;
-            _rows["shiny"].Value = d.IsShiny ? "★ Yes" : "☆ No";
+            _rows["shiny"].Value = d.IsShiny ? "★ Sim" : "☆ Não";
             var caps = _session.GetTrainingCaps();
             _rows["ivs"].Value = $"Total {d.IVs.Sum()}";
             _rows["evs"].Value = caps.EvMax == 65535
-                ? "Max 65535 per stat"
+                ? "Máx. 65535 por atributo"
                 : $"Total {d.EVs.Sum()}/510";
             _header.InvalidateSurface();
             _statsTable.InvalidateSurface();
@@ -494,9 +494,9 @@ public static class BankEntryEditor
                 Close(false);
                 return;
             }
-            const string save = "Save", discard = "Discard", keep = "Keep editing";
-            var choice = await EditorMenu.ShowAsync(_host, "Save your changes?",
-                "This Pokémon has edits that are not in the bank yet.", save, discard, keep);
+            const string save = "Salvar", discard = "Descartar", keep = "Continuar editando";
+            var choice = await EditorMenu.ShowAsync(_host, "Salvar suas mudanças?",
+                "Este Pokémon tem edições que ainda não estão no banco.", save, discard, keep);
             if (choice == save) Run(SaveAsync);
             else if (choice == discard) Close(false);
         }
@@ -565,7 +565,7 @@ public static class BankEntryEditor
 
         private async Task EditNicknameAsync()
         {
-            var text = await TextPopup.ShowAsync(_host, "Nickname", "Rename this Pokémon.");
+            var text = await TextPopup.ShowAsync(_host, "Apelido", "Renomeie este Pokémon.");
             if (!string.IsNullOrWhiteSpace(text)) { _session.ApplyEdit(0, 0, new EntityEdit(Nickname: text.Trim())); _dirty = true; }
         }
 
@@ -577,7 +577,7 @@ public static class BankEntryEditor
 
         private async Task EditLevelAsync()
         {
-            var lv = await StatsPopup.ShowSingleAsync(_host, "Level", _detail.Level, 100);
+            var lv = await StatsPopup.ShowSingleAsync(_host, "Nível", _detail.Level, 100);
             if (lv is { } v) { _session.ApplyEdit(0, 0, new EntityEdit(Level: Math.Max(1, v))); _dirty = true; }
         }
 
@@ -595,50 +595,50 @@ public static class BankEntryEditor
                     ? Enumerable.Range(0, _data.AbilityNames.Count).ToList()
                     : _session.GetAbilityChoices(_detail.Species, _detail.Form))
                 .Select(id => new PickItem(id, NameOf(_data.AbilityNames, id))).ToList();
-            var pick = await PickerMenu.ShowAsync(_host, "Ability", choices, _detail.Ability);
+            var pick = await PickerMenu.ShowAsync(_host, "Habilidade", choices, _detail.Ability);
             if (pick is not null)
             {
                 _session.ApplyEdit(0, 0, new EntityEdit(Ability: pick.Id));
                 var applied = _session.ReadEntity(0, 0).Ability;
                 _dirty = true;
                 if (applied != pick.Id)
-                    await EditorMenu.ShowAsync(_host, "Ability did not stick",
-                        $"Asked for {NameOf(_data.AbilityNames, pick.Id)}, the mon holds {NameOf(_data.AbilityNames, applied)}. " +
-                        "Tell the developer: this is the diagnostic he asked for.", "OK");
+                    await EditorMenu.ShowAsync(_host, "A habilidade não foi aplicada",
+                        $"Pedido {NameOf(_data.AbilityNames, pick.Id)}, o Pokémon tem {NameOf(_data.AbilityNames, applied)}. " +
+                        "Avise o desenvolvedor: esta é a informação de diagnóstico que ele pediu.", "OK");
             }
         }
 
         private async Task EditItemAsync()
         {
-            var pick = await PickerMenu.ShowAsync(_host, "Held item", ItemIcons(_data.ItemNames), _detail.HeldItem);
+            var pick = await PickerMenu.ShowAsync(_host, "Item segurado", ItemIcons(_data.ItemNames), _detail.HeldItem);
             if (pick is not null) { _session.ApplyEdit(0, 0, new EntityEdit(HeldItem: pick.Id)); _dirty = true; }
         }
 
         private async Task EditBallAsync()
         {
-            var pick = await PickerMenu.ShowAsync(_host, "Ball", BallIcons(_data.BallNames), _detail.Ball);
+            var pick = await PickerMenu.ShowAsync(_host, "Bola", BallIcons(_data.BallNames), _detail.Ball);
             if (pick is not null) { _session.ApplyEdit(0, 0, new EntityEdit(Ball: pick.Id)); _dirty = true; }
         }
 
         private async Task EditGenderAsync()
         {
-            var g = await EditorMenu.ShowAsync(_host, "Gender", null,
-                new PadOption("Male", IconPath: "male"),
-                new PadOption("Female", IconPath: "female"),
-                new PadOption("Genderless", IconPath: "genderless"));
-            var gender = g switch { "Male" => 0, "Female" => 1, "Genderless" => 2, _ => (int?)null };
+            var g = await EditorMenu.ShowAsync(_host, "Gênero", null,
+                new PadOption("Macho", IconPath: "male"),
+                new PadOption("Fêmea", IconPath: "female"),
+                new PadOption("Sem gênero", IconPath: "genderless"));
+            var gender = g switch { "Macho" => 0, "Fêmea" => 1, "Sem gênero" => 2, _ => (int?)null };
             if (gender is { } value) { _session.ApplyEdit(0, 0, new EntityEdit(Gender: value)); _dirty = true; }
         }
 
         private async Task EditFriendshipAsync()
         {
-            var f = await StatsPopup.ShowSingleAsync(_host, "Friendship", _detail.Friendship, 255);
+            var f = await StatsPopup.ShowSingleAsync(_host, "Amizade", _detail.Friendship, 255);
             if (f is { } v) { _session.ApplyEdit(0, 0, new EntityEdit(Friendship: v)); _dirty = true; }
         }
 
         private async Task EditOtAsync()
         {
-            var text = await TextPopup.ShowAsync(_host, "Original trainer", "The OT name shown on this Pokémon.");
+            var text = await TextPopup.ShowAsync(_host, "Treinador original", "O nome do TO mostrado neste Pokémon.");
             if (!string.IsNullOrWhiteSpace(text)) { _session.ApplyEdit(0, 0, new EntityEdit(OriginalTrainer: text.Trim())); _dirty = true; }
         }
 
@@ -683,25 +683,25 @@ public static class BankEntryEditor
 
             var labels = new List<string>();
             if (current is not null)
-                labels.Add($"Current trainer · {current.Name} · {current.TID}/{current.SID}");
+                labels.Add($"Treinador atual · {current.Name} · {current.TID}/{current.SID}");
             labels.AddRange(profiles.Select(p => $"{p.DisplayName} · {p.OriginalTrainer} · {p.TID}/{p.SID}"));
             if (labels.Count == 0)
             {
-                await EditorMenu.ShowAsync(_host, "Make mine",
-                    "Open a game and save its trainer as a profile first.", "OK");
+                await EditorMenu.ShowAsync(_host, "Tornar meu",
+                    "Abra um jogo e salve o treinador dele como perfil primeiro.", "OK");
                 return;
             }
 
-            var choice = await PadMenu.ShowAsync(_host, "Make mine", null, labels.ToArray());
+            var choice = await PadMenu.ShowAsync(_host, "Tornar meu", null, labels.ToArray());
             if (choice is null) return;
             var index = labels.IndexOf(choice);
             var profile = index == 0 && current is not null
-                ? new TrainerProfile("current", "Current trainer", current.Name, current.TID, current.SID, current.Gender)
+                ? new TrainerProfile("current", "Treinador atual", current.Name, current.TID, current.SID, current.Gender)
                 : profiles[index - (current is not null ? 1 : 0)];
             var outcome = _session.MakeMine(0, 0, profile);
             if (!outcome.Success)
             {
-                await EditorMenu.ShowAsync(_host, "Make mine", outcome.Message, "OK");
+                await EditorMenu.ShowAsync(_host, "Tornar meu", outcome.Message, "OK");
                 return;
             }
 
@@ -729,7 +729,7 @@ public static class BankEntryEditor
         {
             string MoveName(int id) => id == 0 ? "(none)" : (uint)id < (uint)_data.MoveNames.Count ? _data.MoveNames[id] : $"#{id}";
             var current = new[] { _detail.Move1, _detail.Move2, _detail.Move3, _detail.Move4 };
-            var slot = await EditorMenu.ShowAsync(_host, "Which move?", null,
+            var slot = await EditorMenu.ShowAsync(_host, "Qual golpe?", null,
                 new PadOption($"Move 1 · {MoveName(current[0])}", "1", UiTokens.MenuBlue),
                 new PadOption($"Move 2 · {MoveName(current[1])}", "2", UiTokens.MenuBlue),
                 new PadOption($"Move 3 · {MoveName(current[2])}", "3", UiTokens.MenuBlue),
@@ -738,7 +738,7 @@ public static class BankEntryEditor
             var which = slot[5] - '1';
             if ((uint)which >= 4) return;
 
-            var pick = await PickerMenu.ShowAsync(_host, $"Move {which + 1}",
+            var pick = await PickerMenu.ShowAsync(_host, $"Golpe {which + 1}",
                 NameItems(_data.MoveNames, includeZero: true, zeroLabel: "(none)"), current[which]);
             if (pick is null) return;
             _session.ApplyEdit(0, 0, which switch
@@ -775,19 +775,19 @@ public static class BankEntryEditor
         {
             var legalizer = _legalizer;
             if (legalizer is null) return;
-            var overlay = LoadingOverlay.Show(_host, "Legalizing…", "Finding the closest real, legal version.");
+            var overlay = LoadingOverlay.Show(_host, "Legalizando…", "Procurando a versão real e legal mais próxima.");
             try
             {
                 var outcome = await Task.Run(() => legalizer.LegalizeSlot(_session, 0, 0));
                 _dirty = true;
                 overlay.Close();
                 if (!outcome.Success)
-                    await EditorMenu.ShowAsync(_host, "Legalize", outcome.Message, "OK");
+                    await EditorMenu.ShowAsync(_host, "Legalizar", outcome.Message, "OK");
             }
             catch (Exception error)
             {
                 overlay.Close();
-                await EditorMenu.ShowAsync(_host, "Legalize", error.Message, "OK");
+                await EditorMenu.ShowAsync(_host, "Legalizar", error.Message, "OK");
             }
         }
 
@@ -796,7 +796,7 @@ public static class BankEntryEditor
             // Hardcore mode: the stored mon may be inspected here but never rewritten.
             if (HardcoreMode.Blocks(SaveAction.EditMon, out var status))
             {
-                await EditorMenu.ShowAsync(_host, "Hardcore mode", status, "OK");
+                await EditorMenu.ShowAsync(_host, "Modo Hardcore", status, "OK");
                 return;
             }
             var export = _session.ExportSlot(0, 0);
@@ -810,11 +810,11 @@ public static class BankEntryEditor
         /// <summary>PKF1 .pk QR: show this mon as a scannable code, or receive one in its place.</summary>
         private async Task QrAsync()
         {
-            var choice = await EditorMenu.ShowAsync(_host, "QR transfer", null,
-                new PadOption("Show as .pk QR", IconPath: "qr", Detail: "Shows this Pokémon as a QR code to scan on another device."),
-                new PadOption("Scan a .pk QR", IconPath: "scan", Detail: "Pick a picture of a QR code; its Pokémon replaces this one."));
-            if (choice == "Show as .pk QR") await ShowEntityQrAsync();
-            else if (choice == "Scan a .pk QR") await ScanEntityQrAsync();
+            var choice = await EditorMenu.ShowAsync(_host, "Transferência por QR", null,
+                new PadOption("Mostrar como .pk QR", IconPath: "qr", Detail: "Mostra este Pokémon como um QR code para escanear em outro aparelho."),
+                new PadOption("Escanear um .pk QR", IconPath: "scan", Detail: "Escolha uma foto de um QR code; o Pokémon dele substitui este."));
+            if (choice == "Mostrar como .pk QR") await ShowEntityQrAsync();
+            else if (choice == "Escanear um .pk QR") await ScanEntityQrAsync();
         }
 
         private async Task ShowEntityQrAsync()
@@ -834,11 +834,11 @@ public static class BankEntryEditor
             // A scan over this entry fabricates its replacement: creation, not a move.
             if (HardcoreMode.Blocks(SaveAction.CreateMon, out var status))
             {
-                await EditorMenu.ShowAsync(_host, "Hardcore mode", status, "OK");
+                await EditorMenu.ShowAsync(_host, "Modo Hardcore", status, "OK");
                 return;
             }
             var received = await QrEntityService.ScanAsync(_host, _engine,
-                "It replaces the Pokémon open in this editor.");
+                "Ele substitui o Pokémon aberto neste editor.");
             if (received is null) return;
             _bank.Replace(_entry.Id, received.Data, received.Info);
             Close(true);

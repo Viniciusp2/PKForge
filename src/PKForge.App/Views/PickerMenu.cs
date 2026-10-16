@@ -86,7 +86,7 @@ public sealed class PickerMenu : IPadHandler
         _router = IPlatformApplication.Current?.Services.GetService<GamepadRouter>();
 
         var search = Kit.TextField();
-        search.Placeholder = "Search…";
+        search.Placeholder = "Buscar…";
         search.TextChanged += (_, args) =>
         {
             _query = args.NewTextValue ?? "";
@@ -159,10 +159,10 @@ public sealed class PickerMenu : IPadHandler
             VerticalTextAlignment = TextAlignment.Center,
             LineBreakMode = LineBreakMode.TailTruncation,
         };
-        var hintList = new List<(string, string, Action?)> { ("A", "PICK", livePreview is null ? null : PickHighlighted) };
-        if (_hasTypes) hintList.Add(("X", "Type", () => _ = ChooseTypeAsync()));
-        if (filter is not null) hintList.Add(("Y", "Filter", ToggleFilter));
-        hintList.Add(("B", "Cancel", () => Close(null)));
+        var hintList = new List<(string, string, Action?)> { ("A", "ESCOLHER", livePreview is null ? null : PickHighlighted) };
+        if (_hasTypes) hintList.Add(("X", "Tipo", () => _ = ChooseTypeAsync()));
+        if (filter is not null) hintList.Add(("Y", "Filtro", ToggleFilter));
+        hintList.Add(("B", "Cancelar", () => Close(null)));
         var hints = Kit.WindowHints([.. hintList]);
         var previewBar = Kit.Well(_preview, padding: 4);
         previewBar.Padding = new Thickness(10, 4);
@@ -332,11 +332,11 @@ public sealed class PickerMenu : IPadHandler
     private async Task ChooseTypeAsync()
     {
         if (!_hasTypes) return;
-        const string All = "All types";
+        const string All = "Todos os tipos";
         var types = _all.Where(x => x.TypeId is not null).Select(x => x.TypeId!.Value).Distinct().Order().ToList();
         var options = new List<PadOption> { new(All, IconPath: "all") };
         options.AddRange(types.Select(t => new PadOption(TypeFacts.Name(t), Glyph: "●", Accent: InfoKit.TypeColor(t))));
-        var choice = await PadMenu.ShowAsync(_host, "Move type", null, [.. options]);
+        var choice = await PadMenu.ShowAsync(_host, "Tipo de golpe", null, [.. options]);
         if (choice is null) return;
         var keep = _index >= 0 && _index < _filtered.Count ? _filtered[_index].Id : (int?)null;
         _typeFilter = choice == All ? null : types.FirstOrDefault(t => TypeFacts.Name(t) == choice, -1) is var found and >= 0 ? found : null;
@@ -347,7 +347,7 @@ public sealed class PickerMenu : IPadHandler
     private void PaintTypeChip()
     {
         if (_typeChip is null || _typeLabel is null) return;
-        _typeLabel.Text = _typeFilter is { } t ? $"✓ {TypeFacts.Name(t)}" : "Type: All";
+        _typeLabel.Text = _typeFilter is { } t ? $"✓ {TypeFacts.Name(t)}" : "Tipo: Todos";
         Kit.SetTab(_typeChip, _typeFilter is not null, _typeFilter is { } type ? InfoKit.TypeColor(type) : null);
         _typeLabel.TextColor = _typeFilter is not null ? UiTokens.SelectInk : UiTokens.Ink0;
     }
@@ -434,7 +434,7 @@ public sealed class PickerMenu : IPadHandler
     {
         var current = _index >= 0 && _index < _filtered.Count ? _filtered[_index] : null;
         if (current is not null)
-            _preview.Text = _livePreview is null ? $"A picks: {current.Name}" : $"A or tap again picks: {current.Name}";
+            _preview.Text = _livePreview is null ? $"A escolhe: {current.Name}" : $"A ou tocar de novo escolhe: {current.Name}";
         _livePreview?.OnHighlight(current);
     }
 

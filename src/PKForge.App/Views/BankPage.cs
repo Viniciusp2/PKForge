@@ -56,7 +56,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         _boxViewModel = boxViewModel;
         _facts = new BankFacts(bank, data);
         _data = data;
-        Title = "Bank";
+        Title = "Banco";
         NavigationPage.SetHasNavigationBar(this, false);
 
         _canvas = new SKCanvasView { EnableTouchEvents = true };
@@ -92,10 +92,10 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             ColumnDefinitions = [new(GridLength.Star), new(GridLength.Star), new(new GridLength(1.4, GridUnitType.Star)), new(GridLength.Star), new(GridLength.Star)],
         };
         tools.Add(Tool("Boxes", () => _ = OpenBoxOverviewAsync()), 0, 0);
-        tools.Add(Tool("Search", () => _ = OpenSearchAsync()), 1, 0);
-        tools.Add(Tool("Living dex", () => _ = OpenLivingDexAsync()), 2, 0);
-        tools.Add(Tool("Import", () => _ = ImportArchiveAsync()), 3, 0);
-        tools.Add(Tool("Export", () => _ = ExportArchiveAsync()), 4, 0);
+        tools.Add(Tool("Buscar", () => _ = OpenSearchAsync()), 1, 0);
+        tools.Add(Tool("Living Dex", () => _ = OpenLivingDexAsync()), 2, 0);
+        tools.Add(Tool("Importar", () => _ = ImportArchiveAsync()), 3, 0);
+        tools.Add(Tool("Exportar", () => _ = ExportArchiveAsync()), 4, 0);
 
         var left = new Grid
         {
@@ -129,14 +129,14 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         statusHost.Margin = new Thickness(12, 0, 12, 6);
 
         var footer = DsChrome.Footer(
-            ("A", "Grab", () => OnPadButton(PadButton.A)),
-            ("Y", "Mark", ToggleCursorMark),
-            ("X", "Actions", () => _ = ShowBankActionsAsync()),
-            ("B", "Back", () => OnPadButton(PadButton.B)),
+            ("A", "Pegar", () => OnPadButton(PadButton.A)),
+            ("Y", "Marcar", ToggleCursorMark),
+            ("X", "Ações", () => _ = ShowBankActionsAsync()),
+            ("B", "Voltar", () => OnPadButton(PadButton.B)),
             ("LR", "Box", () => OnPadButton(PadButton.R)),
             // SELECT (-): a dual-screen device turns the inspector's page below; a single
             // screen opens the full-screen summary instead.
-            ("-", HasSecondScreen ? "Page" : "Summary", () => OnPadButton(PadButton.Select)),
+            ("-", HasSecondScreen ? "Página" : "Resumo", () => OnPadButton(PadButton.Select)),
             ("+", "Menu", () => _ = OpenCursorMenuAsync()));
 
         var root = new Grid
@@ -146,7 +146,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
                 new(GridLength.Auto), new(GridLength.Auto),
                 new(GridLength.Star), new(GridLength.Auto), new(GridLength.Auto),
             ],
-            Children = { DsChrome.TitleBar(), DsChrome.StatusStrip("Bank", "Open"), bodyHost, statusHost, footer },
+            Children = { DsChrome.TitleBar(), DsChrome.StatusStrip("Banco", "Abrir"), bodyHost, statusHost, footer },
         };
         Grid.SetRow((View)root.Children[1], 1);
         Grid.SetRow(bodyHost, 2);
@@ -209,7 +209,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         }
         catch (Exception error)
         {
-            _boxViewModel.Status = $"Search closed: {error.Message}";
+            _boxViewModel.Status = $"Busca fechada: {error.Message}";
         }
     }
 
@@ -249,7 +249,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     {
         if (!HardcoreMode.Blocks(action, out var status)) return false;
         _boxViewModel.Status = status;
-        await PadMenu.ShowAsync(_hostGrid, "Hardcore mode", status, "OK");
+        await PadMenu.ShowAsync(_hostGrid, "Modo Hardcore", status, "OK");
         return true;
     }
 
@@ -263,31 +263,31 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
 
     private async Task ExportArchiveAsync()
     {
-        var format = await PadMenu.ShowAsync(_hostGrid, "Export",
-            "A .pk folder is read by PKHeX and PKForge; a PKSM bank goes back to your 3DS.",
-            new PadOption("Folder of .pk files", IconPath: "folder", Detail: "One .pk file per Pokémon, readable by PKHeX and PKForge."),
-            new PadOption("PKSM bank for the 3DS (.bnk)", IconPath: "bank", Detail: "One bank file to copy back to PKSM on your 3DS."));
+        var format = await PadMenu.ShowAsync(_hostGrid, "Exportar",
+            "Uma pasta de .pk é lida pelo PKHeX e pelo PKForge; um banco do PKSM volta para o seu 3DS.",
+            new PadOption("Pasta de arquivos .pk", IconPath: "folder", Detail: "Um arquivo .pk por Pokémon, legível pelo PKHeX e pelo PKForge."),
+            new PadOption("PKSM: banco para o 3DS (.bnk)", IconPath: "bank", Detail: "Um arquivo de banco para copiar de volta para o PKSM no seu 3DS."));
         if (format is null) return;
         if (format.StartsWith("PKSM", StringComparison.Ordinal))
         {
             await ExportPksmAsync(null);
             return;
         }
-        var choice = await PadMenu.ShowAsync(_hostGrid, "Export archive",
-            "A folder of .pk files plus a manifest — readable by PKHeX and PKForge alike.",
-            new PadOption("Whole bank", IconPath: "bank"),
-            new PadOption("This box only", IconPath: "box"));
+        var choice = await PadMenu.ShowAsync(_hostGrid, "Exportar arquivo",
+            "Uma pasta de arquivos .pk mais um manifesto — legível tanto pelo PKHeX quanto pelo PKForge.",
+            new PadOption("Banco inteiro", IconPath: "bank"),
+            new PadOption("Só esta box", IconPath: "box"));
         if (choice is null) return;
 
-        var candidates = choice == "This box only"
+        var candidates = choice == "Só esta box"
             ? _bank.GetAll().Where(e => e.Box == _boxIndex).ToArray()
             : null;
         if (candidates is { Length: 0 })
         {
-            _boxViewModel.Status = "Nothing to export — this box is empty.";
+            _boxViewModel.Status = "Nada para exportar — esta box está vazia.";
             return;
         }
-        await ExportToFolderAsync(candidates, choice == "This box only" ? "this box" : "the whole bank");
+        await ExportToFolderAsync(candidates, choice == "Só esta box" ? "esta box" : "o banco inteiro");
     }
 
     /// <summary>Writes .pk files plus the manifest into a picked folder - the archive path
@@ -301,17 +301,17 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
 
         var folder = await picker.PickFolderAsync();
         if (folder is null) return;
-        var overlay = LoadingOverlay.Show(_hostGrid, "Packing the archive…", $"Writing .pk files to {folder.DisplayName}.");
+        var overlay = LoadingOverlay.Show(_hostGrid, "Empacotando o arquivo…", $"Gravando arquivos .pk em {folder.DisplayName}.");
         try
         {
             var exported = await Task.Run(() => BankArchive.ExportAsync(_bank, files, folder.TreeId, candidates));
             _boxViewModel.Status = exported == 0
-                ? "Nothing to export — the bank is empty."
-                : $"Archive written: {exported} Pokémon from {label} → {folder.DisplayName}.";
+                ? "Nada para exportar — o banco está vazio."
+                : $"Arquivo gravado: {exported} Pokémon de {label} → {folder.DisplayName}.";
         }
         catch (Exception error)
         {
-            _boxViewModel.Status = $"Export failed: {error.Message}";
+            _boxViewModel.Status = $"A exportação falhou: {error.Message}";
         }
         finally
         {
@@ -327,18 +327,18 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         string label;
         if (selection is not null)
         {
-            (entries, layout, label) = (selection, PksmExportLayout.Pack, $"{selection.Count} selected");
+            (entries, layout, label) = (selection, PksmExportLayout.Pack, $"{selection.Count} selecionados");
         }
         else
         {
-            var scope = await PadMenu.ShowAsync(_hostGrid, "Export PKSM bank",
-                "Box layout and box names are kept. Gen 9, BDSP and Legends mons have no PKSM slot and are left out.",
-                new PadOption("Whole bank", IconPath: "bank"),
-                new PadOption("This box only", IconPath: "box"));
+            var scope = await PadMenu.ShowAsync(_hostGrid, "Exportar banco do PKSM",
+                "A disposição e os nomes das boxes são mantidos. Pokémon da Gen 9, BDSP e Legends não têm slot no PKSM e ficam de fora.",
+                new PadOption("Banco inteiro", IconPath: "bank"),
+                new PadOption("Só esta box", IconPath: "box"));
             if (scope is null) return;
-            var box = scope == "This box only";
+            var box = scope == "Só esta box";
             entries = box ? _bank.GetAll().Where(e => e.Box == _boxIndex).ToArray() : _bank.GetAll();
-            (layout, label) = (PksmExportLayout.KeepPositions, box ? $"box {_boxIndex + 1:00}" : "the whole bank");
+            (layout, label) = (PksmExportLayout.KeepPositions, box ? $"box {_boxIndex + 1:00}" : "o banco inteiro");
         }
         var status = await PksmTransferFlow.ExportAsync(_hostGrid, _bank, entries, layout, label);
         if (status is not null) _boxViewModel.Status = status;
@@ -357,10 +357,10 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
 
     private async Task ImportArchiveAsync()
     {
-        var format = await PadMenu.ShowAsync(_hostGrid, "Import",
-            "From a 3DS: copy /3ds/PKSM/banks/ (or /3ds/PKSM/dumps/) off the SD card to this device, then pick the files.",
-            new PadOption("PKSM bank, dumps zip or .pk files", IconPath: "bank", Detail: "Files copied off your 3DS; you see a preview before anything is added."),
-            new PadOption("Folder of .pk files", IconPath: "folder", Detail: "Every .pk file in a folder joins the bank; exact copies are skipped."));
+        var format = await PadMenu.ShowAsync(_hostGrid, "Importar",
+            "De um 3DS: copie /3ds/PKSM/banks/ (ou /3ds/PKSM/dumps/) do cartão SD para este aparelho e depois escolha os arquivos.",
+            new PadOption("PKSM: banco, zip de dumps ou arquivos .pk", IconPath: "bank", Detail: "Arquivos copiados do seu 3DS; você vê uma prévia antes de qualquer coisa ser adicionada."),
+            new PadOption("Pasta de arquivos .pk", IconPath: "folder", Detail: "Todos os arquivos .pk de uma pasta entram no banco; cópias exatas são ignoradas."));
         if (format is null) return;
         if (format.StartsWith("PKSM", StringComparison.Ordinal))
         {
@@ -377,29 +377,29 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         if (await DeniedAsync(SaveAction.CreateMon)) return;
         var folder = await picker.PickFolderAsync();
         if (folder is null) return;
-        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Import from folder?",
-            $"Every recognized .pk file in {folder.DisplayName} joins the bank. Exact copies of mons already stored are skipped.",
-            "Import");
+        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Importar da pasta?",
+            $"Todos os arquivos .pk reconhecidos em {folder.DisplayName} entram no banco. Cópias exatas de Pokémon já guardados são ignoradas.",
+            "Importar");
         if (!confirmed) return;
 
-        var overlay = LoadingOverlay.Show(_hostGrid, "Reading the archive…", $"Scanning {folder.DisplayName}.");
+        var overlay = LoadingOverlay.Show(_hostGrid, "Lendo o arquivo…", $"Varrendo {folder.DisplayName}.");
         try
         {
             var summary = await Task.Run(() => BankArchive.ImportAsync(_bank,
                 (bytes, name) => engine.TryDescribeEntity(bytes, name, name), // the extension names the format
                 files, folder.TreeId, (done, total) => overlay.Report(done, total), overlay.Cancellation.Token));
             _boxViewModel.Status = summary.Imported == 0 && summary.SkippedDuplicates == 0
-                ? "No recognizable Pokémon in that folder."
-                : $"{summary.Imported} imported · {summary.SkippedDuplicates} duplicate(s) skipped"
-                  + (summary.Rejected > 0 ? $" · {summary.Rejected} unreadable" : "") + ".";
+                ? "Nenhum Pokémon reconhecível nessa pasta."
+                : $"{summary.Imported} importados · {summary.SkippedDuplicates} repetido(s) ignorado(s)"
+                  + (summary.Rejected > 0 ? $" · {summary.Rejected} ilegíveis" : "") + ".";
         }
         catch (OperationCanceledException)
         {
-            _boxViewModel.Status = "Import cancelled.";
+            _boxViewModel.Status = "Importação cancelada.";
         }
         catch (Exception error)
         {
-            _boxViewModel.Status = $"Import failed: {error.Message}";
+            _boxViewModel.Status = $"A importação falhou: {error.Message}";
         }
         finally
         {
@@ -460,7 +460,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var state = services?.GetService<SecondScreenState>();
         if (state is null) return;
         _inspectCancel?.Cancel();
-        var caption = $"Bank · Box {_boxIndex + 1:00} · slot {_selectedSlot + 1:00}";
+        var caption = $"Banco · Box {_boxIndex + 1:00} · slot {_selectedSlot + 1:00}";
         var entry = EntryAt(_selectedSlot);
         if (entry is null)
         {
@@ -522,7 +522,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     private async Task OpenSummaryAsync()
     {
         RefreshBoxEntries();
-        if (EntryAt(_selectedSlot) is null) { _boxViewModel.Status = "Nothing to summarize in an empty slot."; return; }
+        if (EntryAt(_selectedSlot) is null) { _boxViewModel.Status = "Nada para resumir num slot vazio."; return; }
         var services = IPlatformApplication.Current!.Services;
         var engine = services.GetRequiredService<ISaveEngine>();
         var summaries = services.GetRequiredService<IMonSummaryService>();
@@ -535,7 +535,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             (slot, legality) => entries.TryGetValue(slot, out var e)
                 ? SummaryLoaders.FromBank(_bank, engine, summaries, e, legality)
                 : Task.FromResult<MonSummary?>(null),
-            $"Bank · Box {box + 1:00}",
+            $"Banco · Box {box + 1:00}",
             CanEdit: Allowed(SaveAction.EditMon),
             Icon: slot => entries.TryGetValue(slot, out var e) ? new SlotIcon(e.Info.Species, e.Info.Form, e.Info.Shiny, _facts.HeldItem(e) != 0, e.Info.Traits ?? default) : null,
             Moved: slot =>
@@ -560,13 +560,13 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     {
         if (_marked.Count > 0)
         {
-            _boxViewModel.Status = $"{_marked.Count} marked · X actions · B clears";
+            _boxViewModel.Status = $"{_marked.Count} marcados · X ações · B limpa";
             return;
         }
         var entry = EntryAt(_selectedSlot);
         _boxViewModel.Status = entry is null
-            ? $"Box {_boxIndex + 1:00} slot {_selectedSlot + 1:00} empty" + (HardcoreMode.IsOn ? $" · {HardcoreMode.Marker}" : " · A adds")
-            : $"{Describe(entry)} · Y mark · X actions";
+            ? $"Box {_boxIndex + 1:00} slot {_selectedSlot + 1:00} vazio" + (HardcoreMode.IsOn ? $" · {HardcoreMode.Marker}" : " · A adiciona")
+            : $"{Describe(entry)} · Y marcar · X ações";
     }
 
     private string Describe(BankEntry entry)
@@ -579,7 +579,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     /// <summary>The cursor slot's mark, as the Y button and the footer chip both do it.</summary>
     private void ToggleCursorMark()
     {
-        if (EntryAt(_selectedSlot) is null) { _boxViewModel.Status = "Nothing to mark in an empty slot."; return; }
+        if (EntryAt(_selectedSlot) is null) { _boxViewModel.Status = "Nada para marcar num slot vazio."; return; }
         if (_marked.Remove((_boxIndex, _selectedSlot))) _anchor = null;
         else { _marked.Add((_boxIndex, _selectedSlot)); _anchor = (_boxIndex, _selectedSlot); }
         UpdateStatus();
@@ -716,39 +716,39 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
 
         // Hardcore mode keeps every move and drops every copy: the read-only Summary is always
         // offered, the editor only when editing is allowed; Duplicate and Copy to game are not offered at all.
-        var options = new List<PadOption> { new("Summary", IconPath: "info", Detail: "A read-only look at this Pokémon.") };
+        var options = new List<PadOption> { new("Resumo", IconPath: "info", Detail: "Uma visão só de leitura deste Pokémon.") };
         if (Allowed(SaveAction.EditMon))
         {
-            options.Add(new PadOption("Edit", IconPath: "editor"));
-            options.Add(new PadOption("Evolve…", IconPath: "evolve", Detail: "Evolves it right here in the bank."));
+            options.Add(new PadOption("Editar", IconPath: "editor"));
+            options.Add(new PadOption("Evoluir…", IconPath: "evolve", Detail: "Evolui o Pokémon aqui mesmo no banco."));
         }
-        options.Add(new PadOption("Send to Poképark", IconPath: "park", Detail: "It joins the Poképark visitors. The bank is not changed."));
-        if (Allowed(SaveAction.Duplicate)) options.Add(new PadOption("Duplicate", IconPath: "copy", Detail: "An exact copy goes into the first free bank slot."));
-        options.Add(new PadOption("Send to game…", IconPath: "send", Detail: "Moves it into a game's boxes and out of the bank."));
-        if (Allowed(SaveAction.Duplicate)) options.Add(new PadOption("Copy to game…", IconPath: "copy", Detail: "Puts a copy in a game's boxes; this one stays in the bank."));
-        options.Add(new PadOption("Move (carry)", IconPath: "move", Detail: "Pick it up and drop it in another slot."));
-        options.Add(new PadOption("Export .pk file", IconPath: "export", Detail: "Saves this Pokémon as a single .pk file."));
-        options.Add(new PadOption("Release from bank", IconPath: "release", Detail: "Removes it from the bank for good; there is no undo."));
-        options.Add(new PadOption("Release to the Wilds", IconPath: "release", Detail: "It leaves the bank and lives on in the wild lands around the Poképark. It may come back to visit."));
+        options.Add(new PadOption("Enviar para o Poképark", IconPath: "park", Detail: "Ele entra para os visitantes do Poképark. O banco não é alterado."));
+        if (Allowed(SaveAction.Duplicate)) options.Add(new PadOption("Duplicar", IconPath: "copy", Detail: "Uma cópia exata vai para o primeiro slot livre do banco."));
+        options.Add(new PadOption("Enviar para jogo…", IconPath: "send", Detail: "Move-o para as boxes de um jogo e tira do banco."));
+        if (Allowed(SaveAction.Duplicate)) options.Add(new PadOption("Copiar para jogo…", IconPath: "copy", Detail: "Coloca uma cópia nas boxes de um jogo; este fica no banco."));
+        options.Add(new PadOption("Mover (carregar)", IconPath: "move", Detail: "Pegue-o e solte-o em outro slot."));
+        options.Add(new PadOption("Exportar arquivo .pk", IconPath: "export", Detail: "Salva este Pokémon como um único arquivo .pk."));
+        options.Add(new PadOption("Soltar do banco", IconPath: "release", Detail: "Remove-o do banco para sempre; não dá para desfazer."));
+        options.Add(new PadOption("Soltar nas Wilds", IconPath: "release", Detail: "Ele sai do banco e passa a viver nas terras selvagens ao redor do Poképark. Pode voltar para visitar."));
         var choice = await PadMenu.ShowAsync(_hostGrid, entry.Info.Nickname,
-            Note($"From {entry.Info.SourceName} · Gen {entry.Info.Generation} · deposited {entry.AddedUtc:yyyy-MM-dd}"),
+            Note($"De {entry.Info.SourceName} · Gen {entry.Info.Generation} · depositado em {entry.AddedUtc:yyyy-MM-dd}"),
             options.ToArray());
         switch (choice)
         {
-            case "Send to Poképark":
+            case "Enviar para o Poképark":
                 _boxViewModel.Status = IPlatformApplication.Current!.Services.GetRequiredService<PokeparkService>().AddBankVisitor(entry.Id);
                 await PadMenu.ShowAsync(_hostGrid, "Poképark", _boxViewModel.Status, new PadOption("OK"));
                 return;
-            case "Summary":
+            case "Resumo":
                 await OpenSummaryAsync();
                 return;
-            case "Edit":
+            case "Editar":
                 await EditEntryAsync(entry);
                 return;
-            case "Evolve…":
+            case "Evoluir…":
                 await EvolveEntryAsync(entry);
                 return;
-            case "Duplicate":
+            case "Duplicar":
                 if (await DeniedAsync(SaveAction.Duplicate)) return;
                 var clone = _bank.Add(_bank.GetData(entry.Id), entry.Info);
                 _boxIndex = clone.Box;
@@ -756,34 +756,34 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
                 RefreshBoxEntries();
                 UpdatePageLabel();
                 UpdatePreview();
-                _boxViewModel.Status = $"{entry.Info.Nickname} cloned in the bank.";
+                _boxViewModel.Status = $"{entry.Info.Nickname} clonado no banco.";
                 _canvas.InvalidateSurface();
                 return;
-            case "Send to game…":
+            case "Enviar para jogo…":
                 await SendToGamePickerAsync(entry);
                 return;
-            case "Copy to game…":
+            case "Copiar para jogo…":
                 if (await DeniedAsync(SaveAction.Duplicate)) return;
                 await SendToGamePickerAsync(entry, keepOriginal: true);
                 return;
-            case "Move (carry)":
+            case "Mover (carregar)":
                 _carryId = entry.Id;
                 _canvas.InvalidateSurface();
                 return;
-            case "Export .pk file":
+            case "Exportar arquivo .pk":
                 await ExportAsync(entry);
                 return;
-            case "Release from bank":
-                var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Release from bank?",
-                    $"Release {entry.Info.Nickname}? Bank releases are permanent (the bank has no restore points yet).",
-                    "Release");
+            case "Soltar do banco":
+                var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Soltar do banco?",
+                    $"Soltar {entry.Info.Nickname}? Soltar do banco é permanente (o banco ainda não tem pontos de restauração).",
+                    "Soltar");
                 if (!confirmed) return;
                 _bank.Remove(entry.Id);
                 RefreshBoxEntries();
                 UpdatePreview();
                 _canvas.InvalidateSurface();
                 return;
-            case "Release to the Wilds":
+            case "Soltar nas Wilds":
                 await ReleaseToWildsAsync(entry);
                 return;
         }
@@ -821,111 +821,111 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     {
         RefreshBoxEntries(); // never decide the menu from a stale slot map
         var selection = Selection();
-        var noun = _marked.Count > 0 ? $"{_marked.Count} marked"
+        var noun = _marked.Count > 0 ? $"{_marked.Count} marcados"
             : selection.Count > 0 ? $"slot {_selectedSlot + 1:00}"
-            : "Nothing selected";
+            : "Nada selecionado";
         var targets = TransferTargets();
 
-        var options = new List<PadOption> { new("Boxes…", IconPath: "box", Detail: "Every box at a glance, to reorder, rename or restyle them.") };
+        var options = new List<PadOption> { new("Boxes…", IconPath: "box", Detail: "Todas as boxes de uma vez, para reordenar, renomear ou mudar o visual.") };
         if (selection.Count > 0)
         {
-            options.Add(new PadOption("Move to another box…", IconPath: "move", Detail: "They fill a box's empty slots, in order."));
-            options.Add(new PadOption("Move to a position…", IconPath: "move", Detail: "They land from a slot you pick; what is there slides back."));
+            options.Add(new PadOption("Mover para outra box…", IconPath: "move", Detail: "Eles preenchem os slots vazios de uma box, em ordem."));
+            options.Add(new PadOption("Mover para uma posição…", IconPath: "move", Detail: "Eles entram a partir de um slot que você escolhe; o que estiver lá é empurrado para trás."));
             if (Allowed(SaveAction.Duplicate))
-                options.Add(new PadOption(selection.Count == 1 ? "Duplicate" : "Duplicate all", IconPath: "copy", Detail: "Each copy goes into the first free bank slot."));
-            options.Add(new PadOption(selection.Count == 1 ? "Export .pk file" : "Export .pk files", IconPath: "export", Detail: "Writes one .pk file each into a folder you pick."));
-            options.Add(new PadOption("Export as a PKSM bank", IconPath: "export", Detail: "Packs them into one bank file for PKSM on the 3DS."));
+                options.Add(new PadOption(selection.Count == 1 ? "Duplicar" : "Duplicar todos", IconPath: "copy", Detail: "Cada cópia vai para o primeiro slot livre do banco."));
+            options.Add(new PadOption(selection.Count == 1 ? "Exportar arquivo .pk" : "Exportar arquivos .pk", IconPath: "export", Detail: "Grava um arquivo .pk para cada um numa pasta que você escolhe."));
+            options.Add(new PadOption("Exportar como banco do PKSM", IconPath: "export", Detail: "Empacota-os num único arquivo de banco para o PKSM no 3DS."));
             if (targets.ConnectedLabel is not null || targets.Detected.Length > 0)
-                options.Add(new PadOption("Send to a game…", IconPath: "send", Detail: "Moves them into a game; only those that arrive leave the bank."));
-            options.Add(new PadOption("Release from bank…", IconPath: "release", Detail: "Removes them from the bank for good; there is no undo."));
+                options.Add(new PadOption("Enviar para um jogo…", IconPath: "send", Detail: "Move-os para um jogo; só os que chegam saem do banco."));
+            options.Add(new PadOption("Soltar do banco…", IconPath: "release", Detail: "Remove-os do banco para sempre; não dá para desfazer."));
         }
         if (_anchor is not null && _anchor != (_boxIndex, _selectedSlot))
-            options.Add(new PadOption("Mark range to here", IconPath: "range", Detail: "Marks every Pokémon from your last mark to the cursor."));
-        options.Add(new PadOption("Mark everything in this box", IconPath: "selectall"));
-        options.Add(new PadOption("Invert marks in this box", IconPath: "invert", Detail: "Marked Pokémon in this box are unmarked, the rest marked."));
-        options.Add(new PadOption("Mark the whole bank", IconPath: "selectall"));
-        options.Add(new PadOption("Mark by filter…", IconPath: "filter", Detail: "Search the bank and mark what matches."));
-        if (_marked.Count > 0) options.Add(new PadOption("Clear marks", IconPath: "deselect"));
-        options.Add(new PadOption($"Sort box {_boxIndex + 1:00}…", IconPath: "sort", Detail: "Reorders this box by dex number, level, type and more."));
-        options.Add(new PadOption("Sort the whole bank…", IconPath: "sort", Detail: "Reorders every Pokémon in the bank by the order you pick."));
-        if (_marked.Count > 1) options.Add(new PadOption("Sort the marked into boxes…", IconPath: "sort", Detail: "The marked move, sorted, into new boxes after the last one used."));
-        options.Add(new PadOption("Compact the bank (close gaps)", IconPath: "compact", Detail: "Fills every empty slot from box 1 on, keeping the order."));
-        options.Add(new PadOption($"Rename box {_boxIndex + 1:00}…", IconPath: "rename"));
-        options.Add(new PadOption($"Wallpaper for box {_boxIndex + 1:00}…", IconPath: "fashion"));
+            options.Add(new PadOption("Marcar intervalo até aqui", IconPath: "range", Detail: "Marca todos os Pokémon da sua última marcação até o cursor."));
+        options.Add(new PadOption("Marcar tudo nesta box", IconPath: "selectall"));
+        options.Add(new PadOption("Inverter marcações nesta box", IconPath: "invert", Detail: "Os Pokémon marcados nesta box são desmarcados, e o resto é marcado."));
+        options.Add(new PadOption("Marcar o banco inteiro", IconPath: "selectall"));
+        options.Add(new PadOption("Marcar por filtro…", IconPath: "filter", Detail: "Busque no banco e marque o que corresponder."));
+        if (_marked.Count > 0) options.Add(new PadOption("Limpar marcações", IconPath: "deselect"));
+        options.Add(new PadOption($"Ordenar box {_boxIndex + 1:00}…", IconPath: "sort", Detail: "Reordena esta box por número da dex, nível, tipo e mais."));
+        options.Add(new PadOption("Ordenar o banco inteiro…", IconPath: "sort", Detail: "Reordena todos os Pokémon do banco pela ordem que você escolher."));
+        if (_marked.Count > 1) options.Add(new PadOption("Ordenar os marcados em boxes…", IconPath: "sort", Detail: "Os marcados vão, ordenados, para novas boxes depois da última usada."));
+        options.Add(new PadOption("Compactar o banco (fechar espaços)", IconPath: "compact", Detail: "Preenche todos os slots vazios a partir da box 1, mantendo a ordem."));
+        options.Add(new PadOption($"Renomear box {_boxIndex + 1:00}…", IconPath: "rename"));
+        options.Add(new PadOption($"Papel de parede da box {_boxIndex + 1:00}…", IconPath: "fashion"));
         if (_bank.BoxCount > 1)
-            options.Add(new PadOption($"Delete box {_boxIndex + 1:00}…", IconPath: "delete", Detail: "Its Pokémon move to free slots in other boxes first."));
+            options.Add(new PadOption($"Apagar box {_boxIndex + 1:00}…", IconPath: "delete", Detail: "Os Pokémon dela vão antes para slots livres em outras boxes."));
 
-        var choice = await PadMenu.ShowAsync(_hostGrid, $"Bank actions · {noun}",
+        var choice = await PadMenu.ShowAsync(_hostGrid, $"Ações do banco · {noun}",
             Note(_marked.Count > 0
-                ? "Marks keep across box pages. Sorting rewrites the bank's own index."
-                : "Y marks slots; with nothing marked X acts on the cursor slot."),
+                ? "As marcações continuam entre as páginas de box. Ordenar reescreve o índice do próprio banco."
+                : "Y marca slots; sem nada marcado, X age no slot do cursor."),
             options.ToArray());
         switch (choice)
         {
             case null:
                 return;
-            case "Move to another box…":
+            case "Mover para outra box…":
                 await MoveSelectionToBoxAsync(selection);
                 return;
-            case "Move to a position…":
+            case "Mover para uma posição…":
                 await MoveSelectionToPositionAsync(selection);
                 return;
-            case "Duplicate" or "Duplicate all":
+            case "Duplicar" or "Duplicar todos":
                 if (await DeniedAsync(SaveAction.Duplicate)) return;
                 DuplicateSelection(selection);
                 return;
-            case "Export .pk file" or "Export .pk files":
-                await ExportToFolderAsync(selection, $"{selection.Count} selected");
+            case "Exportar arquivo .pk" or "Exportar arquivos .pk":
+                await ExportToFolderAsync(selection, $"{selection.Count} selecionados");
                 return;
-            case "Export as a PKSM bank":
+            case "Exportar como banco do PKSM":
                 await ExportPksmAsync(selection);
                 return;
-            case "Send to a game…":
+            case "Enviar para um jogo…":
                 await SendSelectionToGameAsync(selection);
                 return;
-            case "Release from bank…":
+            case "Soltar do banco…":
                 await ReleaseSelectionAsync(selection);
                 return;
-            case "Mark range to here":
+            case "Marcar intervalo até aqui":
                 MarkRangeToCursor();
                 return;
-            case "Mark everything in this box":
+            case "Marcar tudo nesta box":
                 MarkThisBox();
                 return;
-            case "Invert marks in this box":
+            case "Inverter marcações nesta box":
                 InvertThisBox();
                 return;
-            case "Mark the whole bank":
+            case "Marcar o banco inteiro":
                 MarkWholeBank();
                 return;
-            case "Mark by filter…":
+            case "Marcar por filtro…":
                 await OpenSearchAsync();
                 return;
-            case "Clear marks":
+            case "Limpar marcações":
                 ClearMarks();
                 return;
-            case string label when label.StartsWith("Sort box ", StringComparison.Ordinal):
+            case string label when label.StartsWith("Ordenar box ", StringComparison.Ordinal):
                 await SortAsync(_boxIndex);
                 return;
-            case "Sort the whole bank…":
+            case "Ordenar o banco inteiro…":
                 await SortAsync(null);
                 return;
-            case "Sort the marked into boxes…":
+            case "Ordenar os marcados em boxes…":
                 await SortSelectionAsync(selection);
                 return;
-            case "Compact the bank (close gaps)":
+            case "Compactar o banco (fechar espaços)":
                 await CompactAsync();
                 return;
             case "Boxes…":
                 await OpenBoxOverviewAsync();
                 return;
-            case string label when label.StartsWith("Rename box ", StringComparison.Ordinal):
+            case string label when label.StartsWith("Renomear box ", StringComparison.Ordinal):
                 await RenameBoxAsync(_boxIndex);
                 return;
-            case string label when label.StartsWith("Wallpaper for box ", StringComparison.Ordinal):
+            case string label when label.StartsWith("Papel de parede da box ", StringComparison.Ordinal):
                 await PickWallpaperAsync(_boxIndex);
                 return;
-            case string label when label.StartsWith("Delete box ", StringComparison.Ordinal):
+            case string label when label.StartsWith("Apagar box ", StringComparison.Ordinal):
                 await DeleteBoxAsync(_boxIndex);
                 return;
         }
@@ -935,22 +935,22 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     private async Task MoveSelectionToBoxAsync(List<BankEntry> selection)
     {
         var boxes = Enumerable.Range(1, _bank.BoxCount).Select(n => $"Box {n:00}").ToArray();
-        var target = await PadMenu.ShowAsync(_hostGrid, "Move to which box?",
-            $"{selection.Count} selected · the box's empty slots take them in order.", boxes);
+        var target = await PadMenu.ShowAsync(_hostGrid, "Mover para qual box?",
+            $"{selection.Count} selecionados · os slots vazios da box os recebem em ordem.", boxes);
         if (target is null) return;
         var box = Array.IndexOf(boxes, target);
         var before = _bank.GetAll();
         var placements = BankPlacement.IntoBox(selection.Select(e => e.Id).ToArray(), box, before);
         if (placements.Count == 0)
         {
-            _boxViewModel.Status = $"Nothing moved: box {box + 1:00} is full.";
+            _boxViewModel.Status = $"Nada foi movido: a box {box + 1:00} está cheia.";
             return;
         }
         var moved = _bank.Place(placements);
         RemapMarks(before, placements);
         var waiting = selection.Count(e => e.Box != box) - moved;
-        FinishOrganizer($"{moved} moved into box {box + 1:00}"
-            + (waiting > 0 ? $" · {waiting} stayed (no room)." : "."));
+        FinishOrganizer($"{moved} movidos para a box {box + 1:00}"
+            + (waiting > 0 ? $" · {waiting} ficaram (sem espaço)." : "."));
     }
 
     /// <summary>Bulk move to an exact spot: the selection fills forward from a chosen slot
@@ -958,12 +958,12 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     private async Task MoveSelectionToPositionAsync(List<BankEntry> selection)
     {
         var boxes = Enumerable.Range(1, _bank.BoxCount).Select(n => $"Box {n:00}").ToArray();
-        var target = await PadMenu.ShowAsync(_hostGrid, "Move to which box?", $"{selection.Count} selected.", boxes);
+        var target = await PadMenu.ShowAsync(_hostGrid, "Mover para qual box?", $"{selection.Count} selecionados.", boxes);
         if (target is null) return;
         var box = Array.IndexOf(boxes, target);
         var slots = Enumerable.Range(1, IBankService.SlotsPerBox).Select(n => $"Slot {n:00}").ToArray();
-        var startChoice = await PadMenu.ShowAsync(_hostGrid, $"Fill forward from slot? (box {box + 1:00})",
-            "The selection lands here in order; whatever is already there slides back.", slots);
+        var startChoice = await PadMenu.ShowAsync(_hostGrid, $"Preencher a partir de qual slot? (box {box + 1:00})",
+            "A seleção entra aqui em ordem; o que já estiver lá é empurrado para trás.", slots);
         if (startChoice is null) return;
         var start = Array.IndexOf(slots, startChoice);
 
@@ -971,15 +971,15 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var placements = BankPlacement.InsertRun(selection.Select(e => e.Id).ToArray(), box, start, before);
         if (placements.Count == 0)
         {
-            _boxViewModel.Status = $"No room in box {box + 1:00} from slot {start + 1:00}.";
+            _boxViewModel.Status = $"Sem espaço na box {box + 1:00} a partir do slot {start + 1:00}.";
             return;
         }
         var ids = selection.Select(e => e.Id).ToHashSet();
         var landed = placements.Count(p => ids.Contains(p.Id));
         var moved = _bank.Place(placements);
         RemapMarks(before, placements);
-        FinishOrganizer($"{landed} placed from box {box + 1:00} slot {start + 1:00} · {moved} slots changed"
-            + (landed < selection.Count ? $" · {selection.Count - landed} had no room." : "."));
+        FinishOrganizer($"{landed} colocados a partir da box {box + 1:00} slot {start + 1:00} · {moved} slots alterados"
+            + (landed < selection.Count ? $" · {selection.Count - landed} ficaram sem espaço." : "."));
     }
 
     /// <summary>Keepsakes: the selection is copied, each copy landing in the first gap.</summary>
@@ -989,24 +989,24 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         try { _bank.AddMany([.. selection.Select(e => new BankDeposit(_bank.GetData(e.Id), e.Info))]); }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
-            _boxViewModel.Status = $"Nothing was cloned: {error.Message}";
+            _boxViewModel.Status = $"Nada foi clonado: {error.Message}";
             return;
         }
         FinishOrganizer(selection.Count == 1
-            ? $"{selection[0].Info.Nickname} cloned in the bank."
-            : $"{selection.Count} Pokémon cloned in the bank.");
+            ? $"{selection[0].Info.Nickname} clonado no banco."
+            : $"{selection.Count} Pokémon clonados no banco.");
     }
 
     private async Task ReleaseSelectionAsync(List<BankEntry> selection)
     {
-        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Release from the bank?",
+        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Soltar do banco?",
             selection.Count == 1
-                ? $"Release {selection[0].Info.Nickname}? Bank releases are permanent (the bank has no restore points yet)."
-                : $"Release all {selection.Count} selected Pokémon? Bank releases are permanent (the bank has no restore points yet).",
-            selection.Count == 1 ? "Release" : "Release all");
+                ? $"Soltar {selection[0].Info.Nickname}? Soltar do banco é permanente (o banco ainda não tem pontos de restauração)."
+                : $"Soltar todos os {selection.Count} Pokémon selecionados? Soltar do banco é permanente (o banco ainda não tem pontos de restauração).",
+            selection.Count == 1 ? "Soltar" : "Soltar todos");
         if (!confirmed) return;
         var released = _bank.RemoveMany(selection.Select(e => e.Id).ToArray());
-        FinishOrganizer($"Released {released} Pokémon from the bank.");
+        FinishOrganizer($"{released} Pokémon soltos do banco.");
     }
 
     /// <summary>
@@ -1021,7 +1021,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var transfer = services?.GetService<Services.TransferService>();
         if (transfer is null) return;
 
-        var picked = await PickDestinationAsync($"{selection.Count} selected → pick the destination");
+        var picked = await PickDestinationAsync($"{selection.Count} selecionados → escolha o destino");
         if (picked is not { } destinationPick) return;
 
         var items = selection.Select(e => new PKForge.Engine.TransferItem(_bank.GetData(e.Id), e.Info.Format, e.Info.Nickname)).ToArray();
@@ -1030,11 +1030,11 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         PKForge.Engine.BatchTransferOutcome outcome;
         if (destinationPick.Other is null)
         {
-            const string destination = "the connected game";
+            const string destination = "o jogo conectado";
             var open = SlotPlanning.FreeSlotsFrom(_boxViewModel.Save?.Slots ?? [], null).ToArray();
             if (open.Length == 0)
             {
-                _boxViewModel.Status = "No empty slot in the connected game.";
+                _boxViewModel.Status = "Nenhum slot vazio no jogo conectado.";
                 return;
             }
             // Same trust step as a game-to-game send: the first mon's diff and warnings
@@ -1047,16 +1047,16 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
                 async () => await _boxViewModel.RunMutationAsync(session =>
                     PKForge.Engine.BankTransfers.ImportAll(session, items, rooms, out var refusal) is var failed and >= 0
                         ? new GenerationOutcome(false, failed >= items.Length
-                            ? $"the connected game has room for {rooms.Length} of {items.Length} Pokémon."
+                            ? $"o jogo conectado tem espaço para {rooms.Length} de {items.Length} Pokémon."
                             : refusal is null
                                 ? Services.TransferService.Refusal(items[failed].Data, items[failed].Nickname, session.Snapshot, destination, items[failed].Format)
-                                : $"{items[failed].Nickname} cannot go to {destination}. {refusal}")
-                        : new GenerationOutcome(true, $"{subject} joined the game."),
+                                : $"{items[failed].Nickname} não pode ir para {destination}. {refusal}")
+                        : new GenerationOutcome(true, $"{subject} entrou no jogo."),
                     Math.Max(0, _selectedSlot), refreshSlot: false, action: SaveAction.Move) ? null : _boxViewModel.Status,
                 async () => await _boxViewModel.RunMutationAsync(session =>
                 {
                     foreach (var room in rooms) session.ReleaseSlot(room.Box, room.Slot);
-                    return new GenerationOutcome(true, $"{subject} went back to the bank.");
+                    return new GenerationOutcome(true, $"{subject} voltou para o banco.");
                 }, Math.Max(0, _selectedSlot), refreshSlot: false, action: SaveAction.Move) ? null : _boxViewModel.Status);
         }
         else
@@ -1069,12 +1069,12 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             outcome = await PKForge.Engine.BankTransfers.WithdrawAsync(_bank, ids, target.GameLabel,
                 async () =>
                 {
-                    (var refusal, landed) = await transfer.SendManyToGameAsync(items, target, $"{subject} arrived from the bank");
+                    (var refusal, landed) = await transfer.SendManyToGameAsync(items, target, $"{subject} chegou do banco");
                     return refusal;
                 },
                 async () =>
                 {
-                    await transfer.ReleaseFromGameAsync(target, landed, $"{subject} went back to the bank");
+                    await transfer.ReleaseFromGameAsync(target, landed, $"{subject} voltou para o banco");
                     return null;
                 });
         }
@@ -1091,8 +1091,8 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     private async Task SortAsync(int? box)
     {
         var picked = await BankSearchPage.PickSortAsync(_hostGrid,
-            box is null ? "Sort the whole bank" : $"Sort box {box.Value + 1:00}",
-            "A real reorder of the bank's slots - stored bytes never move.");
+            box is null ? "Ordenar o banco inteiro" : $"Ordenar box {box.Value + 1:00}",
+            "Uma reordenação de verdade dos slots do banco - os bytes guardados nunca se movem.");
         if (picked is null) return;
         var (order, reverse, label) = picked.Value;
 
@@ -1100,10 +1100,10 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var scope = box is { } target ? before.Where(e => e.Box == target).ToList() : before.ToList();
         if (scope.Count < 2)
         {
-            _boxViewModel.Status = "Nothing to sort there yet.";
+            _boxViewModel.Status = "Nada para ordenar ali ainda.";
             return;
         }
-        var where = box is { } sorted ? $"box {sorted + 1:00}" : "the whole bank";
+        var where = box is { } sorted ? $"box {sorted + 1:00}" : "o banco inteiro";
         await ApplyLayoutAsync(before, BankPlacement.Reorder(box, BankSorting.Order(scope, order, _facts, reverse)),
             label, where, scope.Count);
     }
@@ -1115,8 +1115,8 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     /// </summary>
     private async Task SortSelectionAsync(List<BankEntry> selection)
     {
-        var picked = await BankSearchPage.PickSortAsync(_hostGrid, $"Sort {selection.Count} marked",
-            "They move, in order, into new boxes after the last one in use.");
+        var picked = await BankSearchPage.PickSortAsync(_hostGrid, $"Ordenar {selection.Count} marcados",
+            "Eles vão, em ordem, para novas boxes depois da última em uso.");
         if (picked is null) return;
         var (order, reverse, label) = picked.Value;
 
@@ -1169,11 +1169,11 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     {
         var inside = _bank.GetAll().Where(e => e.Box == box).OrderBy(e => e.Slot).ToList();
         var later = _bank.BoxCount - box - 1;
-        var shift = later > 0 ? $" The {later} box{(later == 1 ? "" : "es")} after it move{(later == 1 ? "s" : "")} down one." : "";
+        var shift = later > 0 ? $" {(later == 1 ? "A box seguinte" : "As boxes seguintes")} ({later}) desce{(later == 1 ? "" : "m")} uma posição." : "";
         var message = inside.Count == 0
-            ? $"It is empty.{shift}"
-            : $"Its {inside.Count} Pokémon move to free spaces in your other boxes first, so none are lost.{shift}";
-        if (!await PadMenu.ConfirmAsync(_hostGrid, $"Delete {BankBoxDecor.Label(box)}?", message, "Delete"))
+            ? $"Ela está vazia.{shift}"
+            : $"Os {inside.Count} Pokémon dela vão antes para espaços livres nas suas outras boxes, então nenhum se perde.{shift}";
+        if (!await PadMenu.ConfirmAsync(_hostGrid, $"Apagar {BankBoxDecor.Label(box)}?", message, "Apagar"))
             return false;
 
         if (inside.Count > 0)
@@ -1198,13 +1198,13 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             }
         }
         if (!ApplyBoxRemap(BankBoxRemap.Remove(_bank.BoxCount, box))) return false;
-        _boxViewModel.Status = inside.Count == 0 ? "Box deleted." : $"Box deleted; its {inside.Count} Pokémon moved to free spaces.";
+        _boxViewModel.Status = inside.Count == 0 ? "Box apagada." : $"Box apagada; os {inside.Count} Pokémon dela foram para espaços livres.";
         return true;
     }
 
     public async Task<bool> RenameBoxAsync(int box)
     {
-        var name = await TextPopup.ShowLineAsync(_hostGrid, $"Rename box {box + 1:00}", "Up to 24 characters · empty for its number",
+        var name = await TextPopup.ShowLineAsync(_hostGrid, $"Renomear box {box + 1:00}", "Até 24 caracteres · vazio para usar o número",
             BankBoxDecor.Names.Get(box) ?? "");
         if (name is null) return false;
         name = name.Trim();
@@ -1212,13 +1212,13 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         BankBoxDecor.Names.SetMany([(box, name)]);
         UpdatePageLabel();
         _canvas.InvalidateSurface(); // the side panel shows the box name on empty slots
-        _boxViewModel.Status = name.Length == 0 ? $"Box {box + 1:00} shows its number again." : $"Box {box + 1:00} is now \"{name}\".";
+        _boxViewModel.Status = name.Length == 0 ? $"A box {box + 1:00} mostra o número dela de novo." : $"A box {box + 1:00} agora se chama \"{name}\".";
         return true;
     }
 
     public async Task<bool> PickWallpaperAsync(int box)
     {
-        var chosen = await BankWallpaperPicker.ShowAsync(_hostGrid, $"Wallpaper · {BankBoxDecor.Label(box)}", BankBoxArt.Of(box));
+        var chosen = await BankWallpaperPicker.ShowAsync(_hostGrid, $"Papel de parede · {BankBoxDecor.Label(box)}", BankBoxArt.Of(box));
         if (chosen is null) return false;
         BankBoxDecor.Wallpapers.Set(box, chosen);
         _canvas.InvalidateSurface();
@@ -1242,7 +1242,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
     {
         var before = _bank.GetAll();
         var ordered = before.OrderBy(e => e.Box).ThenBy(e => e.Slot).ToList();
-        await ApplyLayoutAsync(before, BankPlacement.Reorder(null, ordered), "Compact", "the whole bank", ordered.Count);
+        await ApplyLayoutAsync(before, BankPlacement.Reorder(null, ordered), "Compactar", "o banco inteiro", ordered.Count);
     }
 
     /// <summary>
@@ -1256,13 +1256,13 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var moving = BankPlacement.ChangedCount(placements, before);
         if (moving == 0)
         {
-            _boxViewModel.Status = $"Nothing to do: {where} is already in that order.";
+            _boxViewModel.Status = $"Nada a fazer: {where} já está nessa ordem.";
             return;
         }
-        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Rearrange now?",
-            $"{label} across {where}: {moving} of {scopeCount} Pokémon change slot. "
-            + "The bank's index is rewritten in one go and the marks follow their Pokémon.",
-            "Sort");
+        var confirmed = await PadMenu.ConfirmAsync(_hostGrid, "Reorganizar agora?",
+            $"{label} em {where}: {moving} de {scopeCount} Pokémon mudam de slot. "
+            + "O índice do banco é reescrito de uma vez e as marcações acompanham seus Pokémon.",
+            "Ordenar");
         if (!confirmed) return;
 
         var cursorId = before.FirstOrDefault(e => e.Box == _boxIndex && e.Slot == _selectedSlot)?.Id;
@@ -1276,7 +1276,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             _selectedSlot = slot;
             break;
         }
-        FinishOrganizer($"{label} · {where} · {moved} moved.");
+        FinishOrganizer($"{label} · {where} · {moved} movidos.");
     }
 
     /// <summary>Marks are slot references: a rearrangement has to carry them to the mon's
@@ -1303,7 +1303,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         RefreshBoxEntries();
         UpdatePageLabel();
         UpdatePreview();
-        _boxViewModel.Status = _marked.Count > 0 ? $"{status} · {_marked.Count} still marked" : status;
+        _boxViewModel.Status = _marked.Count > 0 ? $"{status} · {_marked.Count} ainda marcados" : status;
         _canvas.InvalidateSurface();
     }
 
@@ -1318,7 +1318,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         // The connected save by the player's own name when the shelf knows it.
         var connectedName = detected.FirstOrDefault(s => s.DocumentId == connected.Document.DocumentId)?.GameLabel
             ?? connected.Document.DisplayName;
-        return ($"{connectedName} (connected)",
+        return ($"{connectedName} (conectado)",
             detected.Where(s => s.DocumentId != connected.Document.DocumentId).ToArray());
     }
 
@@ -1333,7 +1333,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var (connectedLabel, detected) = TransferTargets();
         if (connectedLabel is null && detected.Length == 0)
         {
-            _boxViewModel.Status = "No games linked. Link an emulator on Home first.";
+            _boxViewModel.Status = "Nenhum jogo vinculado. Vincule um emulador no Início primeiro.";
             return null;
         }
 
@@ -1359,12 +1359,12 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         if (connectedLabel is not null) options.Add(new PadOption(connectedLabel, IconPath: "game"));
         options.AddRange(labels.Select((label, i) => new PadOption(label, Glyph: "●",
             Accent: SaveColors.For(detected[i].Identity?.ColorKey, detected[i].Generation))));
-        var choice = await PadMenu.ShowAsync(_hostGrid, "Send to game", subtitle, options.ToArray());
+        var choice = await PadMenu.ShowAsync(_hostGrid, "Enviar para jogo", subtitle, options.ToArray());
         if (choice is null) return null;
         var index = options.FindIndex(o => o.Label == choice);
         if (connectedLabel is not null)
         {
-            if (index == 0) return ("the connected game", null);
+            if (index == 0) return ("o jogo conectado", null);
             index--;
         }
         if (index < 0 || index >= detected.Length) return null;
@@ -1379,7 +1379,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         if (await DeniedAsync(SaveAction.EditMon)) return;
         if (PKForge.Engine.EntityBytes.RomHackGame(entry.Info.Format) is { } hack)
         {
-            await PadMenu.ShowAsync(_hostGrid, "Evolution", $"Pokémon from {hack} can only be evolved in their own game.", "OK");
+            await PadMenu.ShowAsync(_hostGrid, "Evolução", $"Pokémon de {hack} só podem evoluir no próprio jogo.", "OK");
             return;
         }
         var services = IPlatformApplication.Current!.Services;
@@ -1388,7 +1388,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         using var session = engine.OpenEntitySession(_bank.GetData(entry.Id), entry.Info.Nickname, entry.Info.Format);
         if (session is null)
         {
-            await PadMenu.ShowAsync(_hostGrid, "Evolution", "This Pokémon's data could not be read.", "OK");
+            await PadMenu.ShowAsync(_hostGrid, "Evolução", "Não foi possível ler os dados deste Pokémon.", "OK");
             return;
         }
         var request = await EvolutionCard.RunAsync(_hostGrid, session, 0, 0);
@@ -1405,7 +1405,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             _canvas.InvalidateSurface();
         }
         _boxViewModel.Status = outcome.Message;
-        await PadMenu.ShowAsync(_hostGrid, outcome.Success ? "Congratulations!" : "Evolution failed", outcome.Message, "OK");
+        await PadMenu.ShowAsync(_hostGrid, outcome.Success ? "Parabéns!" : "A evolução falhou", outcome.Message, "OK");
     }
 
     private async Task EditEntryAsync(BankEntry entry)
@@ -1417,7 +1417,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             RefreshBoxEntries();
             ForgetPanelSummary(); // same id, edited bytes: the panel must read it again
             UpdatePreview();
-            _boxViewModel.Status = $"{EntryAt(_selectedSlot)?.Info.Nickname ?? "Pokémon"} updated in the bank.";
+            _boxViewModel.Status = $"{EntryAt(_selectedSlot)?.Info.Nickname ?? "Pokémon"} atualizado no banco.";
             _canvas.InvalidateSurface();
         }
     }
@@ -1428,71 +1428,71 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         // Every way into an empty bank slot fabricates a mon from outside the games; Hardcore
         // mode fills the vault only by moving mons in from a save.
         if (await DeniedAsync(SaveAction.CreateMon)) return;
-        var choice = await PadMenu.ShowAsync(_hostGrid, "Add to bank", null,
-            new PadOption("Create a Pokémon", IconPath: "create", Detail: "Build a legal Pokémon step by step."),
-            new PadOption("Paste a Showdown set", IconPath: "script", Detail: "Turns a Pokémon Showdown text set into a Pokémon."),
-            new PadOption("Import .pk file", IconPath: "import", Detail: "Adds Pokémon from .pk files you pick."),
-            new PadOption("Scan a .pk QR", IconPath: "scan", Detail: "Pick a picture of a .pk QR code to add its Pokémon."));
+        var choice = await PadMenu.ShowAsync(_hostGrid, "Adicionar ao banco", null,
+            new PadOption("Criar um Pokémon", IconPath: "create", Detail: "Monte um Pokémon legal passo a passo."),
+            new PadOption("Colar um set do Showdown", IconPath: "script", Detail: "Transforma um set em texto do Pokémon Showdown em um Pokémon."),
+            new PadOption("Importar arquivo .pk", IconPath: "import", Detail: "Adiciona Pokémon a partir dos arquivos .pk que você escolher."),
+            new PadOption("Escanear um .pk QR", IconPath: "scan", Detail: "Escolha uma foto de um .pk QR code para adicionar o Pokémon dele."));
         switch (choice)
         {
-            case "Create a Pokémon" or "Paste a Showdown set" when session is null:
+            case "Criar um Pokémon" or "Colar um set do Showdown" when session is null:
             {
                 // No game connected: pick the format, generate against a blank save with
                 // a placeholder identity (OT "PKForge", editable afterwards in the editor).
-                var eras = new[] { "Generation I", "Generation II", "Generation III", "Generation IV", "Generation V",
-                    "Generation VI", "Generation VII", "Generation VIII", "Generation IX" };
-                var era = await PadMenu.ShowAsync(_hostGrid, "Create for which game era?",
-                    "No save connected. The mon gets a placeholder identity in the format you pick; edit it after.",
+                var eras = new[] { "Geração I", "Geração II", "Geração III", "Geração IV", "Geração V",
+                    "Geração VI", "Geração VII", "Geração VIII", "Geração IX" };
+                var era = await PadMenu.ShowAsync(_hostGrid, "Criar para qual geração de jogos?",
+                    "Nenhum save conectado. O Pokémon recebe uma identidade provisória no formato que você escolher; edite depois.",
                     eras);
                 if (era is null) return;
                 var generation = Array.IndexOf(eras, era) + 1;
                 var engine = IPlatformApplication.Current!.Services.GetRequiredService<ISaveEngine>();
                 session = engine.OpenBlankSession(generation);
-                if (choice == "Create a Pokémon") goto case "Create a Pokémon";
-                goto case "Paste a Showdown set";
+                if (choice == "Criar um Pokémon") goto case "Criar um Pokémon";
+                goto case "Colar um set do Showdown";
             }
-            case "Create a Pokémon":
+            case "Criar um Pokémon":
             {
                 var services = IPlatformApplication.Current!.Services;
                 var data = services.GetRequiredService<IGameDataService>();
                 var request = await GenerateWizard.RunAsync(_hostGrid, data, session!);
                 if (request is null) return;
                 var legalizer = services.GetRequiredService<ILegalizerService>();
-                var overlay = LoadingOverlay.Show(_hostGrid, "Creating for the bank…", "The offline legalizer is at work.");
+                var overlay = LoadingOverlay.Show(_hostGrid, "Criando para o banco…", "O legalizador offline está trabalhando.");
                 try
                 {
                     var generated = await Task.Run(() => legalizer.GenerateData(session!, request));
-                    if (generated is null) { _boxViewModel.Status = "No legal combination found."; return; }
+                    if (generated is null) { _boxViewModel.Status = "Nenhuma combinação legal encontrada."; return; }
                     Deposit(generated);
                 }
                 finally { overlay.Close(); }
                 return;
             }
-            case "Paste a Showdown set":
+            case "Colar um set do Showdown":
             {
-                var text = await TextPopup.ShowAsync(_hostGrid, "Paste a Showdown set", "The set becomes a legal mon stored in the bank.");
+                var text = await TextPopup.ShowAsync(_hostGrid, "Colar um set do Showdown", "O set vira um Pokémon legal guardado no banco.");
                 if (string.IsNullOrWhiteSpace(text)) return;
                 var legalizer = IPlatformApplication.Current!.Services.GetRequiredService<ILegalizerService>();
-                var overlay = LoadingOverlay.Show(_hostGrid, "Reading the set…", "The offline legalizer is at work.");
+                var overlay = LoadingOverlay.Show(_hostGrid, "Lendo o set…", "O legalizador offline está trabalhando.");
                 try
                 {
                     var generated = await Task.Run(() => legalizer.GenerateDataFromShowdown(session!, text, Services.HaXMode.IsOn));
-                    if (generated is null) { _boxViewModel.Status = "Could not build a legal mon from that set."; return; }
+                    if (generated is null) { _boxViewModel.Status = "Não foi possível montar um Pokémon legal a partir desse set."; return; }
                     Deposit(generated);
                 }
                 finally { overlay.Close(); }
                 return;
             }
-            case "Scan a .pk QR":
+            case "Escanear um .pk QR":
             {
                 var engine = IPlatformApplication.Current!.Services.GetRequiredService<ISaveEngine>();
                 var received = await Services.QrEntityService.ScanAsync(_hostGrid, engine);
                 if (received is null) return;
                 Deposit(new GeneratedEntity(received.Data, received.Info));
-                _boxViewModel.Status = "Received a Pokémon over QR.";
+                _boxViewModel.Status = "Pokémon recebido por QR.";
                 return;
             }
-            case "Import .pk file":
+            case "Importar arquivo .pk":
             {
                 var picker = IPlatformApplication.Current?.Services.GetService<IDocumentPicker>();
                 var access = IPlatformApplication.Current?.Services.GetService<ISaveFileAccess>();
@@ -1507,7 +1507,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
                     var bytes = (await access.ReadAsync(document.DocumentId)).ToArray();
                     if (engine.TryDescribeEntity(bytes, document.DisplayName, document.DisplayName) is not { } parsed) // the extension names the format
                     {
-                        _boxViewModel.Status = $"Nothing was deposited: {document.DisplayName} is not a recognizable Pokémon.";
+                        _boxViewModel.Status = $"Nada foi depositado: {document.DisplayName} não é um Pokémon reconhecível.";
                         return;
                     }
                     deposits.Add(new BankDeposit(bytes, parsed));
@@ -1515,11 +1515,11 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
                 try
                 {
                     _bank.AddMany(deposits);
-                    _boxViewModel.Status = $"Deposited {deposits.Count} Pokémon into the bank.";
+                    _boxViewModel.Status = $"{deposits.Count} Pokémon depositados no banco.";
                 }
                 catch (Exception error) when (error is IOException or UnauthorizedAccessException or InvalidOperationException)
                 {
-                    _boxViewModel.Status = $"Nothing was deposited: {error.Message}";
+                    _boxViewModel.Status = $"Nada foi depositado: {error.Message}";
                 }
                 RefreshBoxEntries();
                 _canvas.InvalidateSurface();
@@ -1536,7 +1536,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         RefreshBoxEntries();
         UpdatePageLabel();
         UpdatePreview();
-        _boxViewModel.Status = $"{generated.Info.Nickname} deposited in the bank.";
+        _boxViewModel.Status = $"{generated.Info.Nickname} depositado no banco.";
         _canvas.InvalidateSurface();
     }
 
@@ -1551,7 +1551,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var transfer = services?.GetService<Services.TransferService>();
         if (transfer is null) return;
 
-        var picked = await PickDestinationAsync($"{entry.Info.Nickname} → pick the destination");
+        var picked = await PickDestinationAsync($"{entry.Info.Nickname} → escolha o destino");
         if (picked is not { } destination) return;
 
         var bytes = _bank.GetData(entry.Id);
@@ -1564,15 +1564,15 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             var landing = _boxViewModel.Save?.Slots.FirstOrDefault(s => s.Species is null);
             if (landing is null)
             {
-                _boxViewModel.Status = "No empty slot in the connected game.";
+                _boxViewModel.Status = "Nenhum slot vazio no jogo conectado.";
                 return;
             }
             var connectedPreview = transfer.PreviewIntoConnected(bytes, nickname, landing.Box, landing.Slot, format);
-            if (!await Services.TransferPreviewPrompt.ConfirmAsync(_hostGrid, connectedPreview, nickname, "the connected game")) return;
+            if (!await Services.TransferPreviewPrompt.ConfirmAsync(_hostGrid, connectedPreview, nickname, "o jogo conectado")) return;
             var ok = await _boxViewModel.RunMutationAsync(session =>
                 Services.TransferService.TryImport(session, landing.Box, landing.Slot, bytes, out var refusal, format)
-                    ? new GenerationOutcome(true, $"{nickname} joined the game (box {landing.Box + 1}).")
-                    : new GenerationOutcome(false, refusal ?? Services.TransferService.Refusal(bytes, nickname, session.Snapshot, "this game", format)), landing.Slot,
+                    ? new GenerationOutcome(true, $"{nickname} entrou no jogo (box {landing.Box + 1}).")
+                    : new GenerationOutcome(false, refusal ?? Services.TransferService.Refusal(bytes, nickname, session.Snapshot, "este jogo", format)), landing.Slot,
                 action: keepOriginal ? SaveAction.Duplicate : SaveAction.Move);
             if (!ok) return;
         }
@@ -1607,7 +1607,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         }
         catch (Exception error)
         {
-            _boxViewModel.Status = $"Export failed: {error.Message}";
+            _boxViewModel.Status = $"A exportação falhou: {error.Message}";
         }
     }
 
@@ -1767,7 +1767,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         {
             var count = _boxEntries.Count;
             EditorPaint.PaintSection(canvas, new SKRect(0, 40, width, 104), _boxTitle, face, 1);
-            SummaryInk.Draw(canvas, count == 0 ? "This box is empty." : $"An empty space · {count} / {IBankService.SlotsPerBox} in this box",
+            SummaryInk.Draw(canvas, count == 0 ? "Esta box está vazia." : $"Um espaço vazio · {count} / {IBankService.SlotsPerBox} nesta box",
                 width / 2, SummaryInk.Center(150, text), text, EditorPaint.ExpInk, align: SKTextAlign.Center);
             canvas.Restore();
             return;
@@ -1788,7 +1788,7 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
             using var paint = new SKPaint { Shader = shader, IsAntialias = true };
             canvas.DrawRoundRect(new SKRect(3, 3, width - 3, height - 3), 25, 25, paint);
         }
-        var from = string.IsNullOrWhiteSpace(info.SourceName) ? $"Gen {info.Generation}" : $"From {info.SourceName}";
+        var from = string.IsNullOrWhiteSpace(info.SourceName) ? $"Gen {info.Generation}" : $"De {info.SourceName}";
         EditorPaint.PaintHeader(canvas, new SKRect(0, 0, width, EditorPaint.DesignHeaderHeight),
             new EditorPaint.Header(name, info.Level, info.Shiny, summary?.Gender ?? -1, species, from, accent), face, 1);
 
@@ -1807,12 +1807,12 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
         var rows = new List<(string Label, Action<float> Value)>();
         const float labelX = 304, valueX = 440;
         void Text(string label, string? value) => rows.Add((label, cy =>
-            SummaryInk.Draw(canvas, SummaryInk.Fit(value ?? "None", text, width - valueX - 24), valueX, SummaryInk.Center(cy, text), text, EditorPaint.Value)));
-        Text($"No.{info.Species:000}", DexFacts.Default.Genus(info.Species) ?? species);
+            SummaryInk.Draw(canvas, SummaryInk.Fit(value ?? "Nenhum", text, width - valueX - 24), valueX, SummaryInk.Center(cy, text), text, EditorPaint.Value)));
+        Text($"Nº {info.Species:000}", DexFacts.Default.Genus(info.Species) ?? species);
         if (summary is not null)
         {
             if (summary.Types.Count > 0)
-                rows.Add(("Type", cy =>
+                rows.Add(("Tipo", cy =>
                 {
                     var x = valueX;
                     foreach (var type in summary.Types)
@@ -1821,11 +1821,11 @@ public sealed class BankPage : ContentPage, IPadPagingHandler
                         x += 134;
                     }
                 }));
-            Text("Nature", summary.NatureName);
-            Text("Ability", summary.AbilityName);
-            Text("Item", summary.HeldItem > 0 ? summary.HeldItemName : "None");
+            Text("Natureza", summary.NatureName);
+            Text("Habilidade", summary.AbilityName);
+            Text("Item", summary.HeldItem > 0 ? summary.HeldItemName : "Nenhum");
             Text("OT", summary.TrainerId is { } tid ? $"{summary.OriginalTrainer} · {tid:00000}" : summary.OriginalTrainer);
-            rows.Add(("Ball", cy =>
+            rows.Add(("Bola", cy =>
             {
                 var x = valueX;
                 if (_sprites.GetBall(summary.Ball) is { } ball)

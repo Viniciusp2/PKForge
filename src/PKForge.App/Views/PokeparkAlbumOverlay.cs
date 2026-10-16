@@ -53,7 +53,7 @@ public sealed class PokeparkAlbumOverlay : IPadHandler
         using var paint = new SKPaint { Color = EditorPaint.Value, IsAntialias = false };
         if (_photos.Count == 0)
         {
-            c.DrawText("No photos yet. Press X in the park to take one.", w / 2f, h / 2f, SKTextAlign.Center, font, paint);
+            c.DrawText("Nenhuma foto ainda. Aperte X no parque para tirar uma.", w / 2f, h / 2f, SKTextAlign.Center, font, paint);
             return;
         }
         if (_shownIndex != _index)
@@ -74,11 +74,11 @@ public sealed class PokeparkAlbumOverlay : IPadHandler
             var y = dest.Bottom + 70 * unit;
             c.DrawText(Fit(photo.Caption, font, w * .9f), w / 2f, y, SKTextAlign.Center, font, paint);
             paint.Color = EditorPaint.Label;
-            c.DrawText($"{photo.TakenAt:d MMM yyyy, HH:mm}   ·   {_index + 1} / {_photos.Count}   ·   L R  photos   X  share   B  close", w / 2f, y + 50 * unit, SKTextAlign.Center, small, paint);
+            c.DrawText($"{photo.TakenAt:d MMM yyyy, HH:mm}   ·   {_index + 1} / {_photos.Count}   ·   L R  fotos   X  compartilhar   B  fechar", w / 2f, y + 50 * unit, SKTextAlign.Center, small, paint);
             // The Share button, bottom right, for a finger.
             _shareButton = SKRect.Create(w - 280 * unit, h - 110 * unit, 240 * unit, 76 * unit);
             ParkCardPaint.Plate(c, _shareButton, true, unit);
-            ParkCardPaint.Centered(c, _sharing ? "Sharing…" : "Share", _shareButton.MidX, _shareButton.MidY, font, EditorPaint.ChipInk);
+            ParkCardPaint.Centered(c, _sharing ? "Compartilhando…" : "Compartilhar", _shareButton.MidX, _shareButton.MidY, font, EditorPaint.ChipInk);
         }
     }
 

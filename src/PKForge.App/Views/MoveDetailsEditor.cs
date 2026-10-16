@@ -11,8 +11,8 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class MoveDetailsEditor
 {
-    private const string SuggestMoves = "Suggest moves";
-    private const string SuggestRelearn = "Suggest relearn moves";
+    private const string SuggestMoves = "Sugerir golpes";
+    private const string SuggestRelearn = "Sugerir golpes reaprendíveis";
 
     public static async Task<bool> ShowAsync(Grid host, ISaveEngineSession session, int box, int slot)
     {
@@ -32,7 +32,7 @@ public static class MoveDetailsEditor
                 var kind = facts is null ? "" : $"{TypeFacts.Name(facts.Type)} · {TypeFacts.CategoryName(facts.Category)} · ";
                 var verdict = legality.Move(i);
                 var typeColor = facts is null ? null : InfoKit.TypeColor(facts.Type);
-                var detail = move.Move == 0 ? "Empty slot" : $"{kind}PP {move.PP}/{move.MaxPP} · PP Ups {move.PPUps}/3";
+                var detail = move.Move == 0 ? "Slot vazio" : $"{kind}PP {move.PP}/{move.MaxPP} · PP Ups {move.PPUps}/3";
                 if (verdict is { Move: > 0 }) detail = verdict.Valid ? $"{detail} · {LegalityAssistUi.VerdictText(verdict)}" : $"{LegalityAssistUi.VerdictText(verdict)} · {detail}";
                 options.Add(new PadOption($"Move {i + 1} · {name}", Accent: LegalityAssistUi.VerdictColor(verdict, typeColor),
                     Glyph: verdict is { Valid: false } ? "!" : facts is null ? null : "●", Detail: detail));
@@ -40,21 +40,21 @@ public static class MoveDetailsEditor
             if (details.SupportsRelearn)
             {
                 var badRelearn = legality.Relearn.Count(v => !v.Valid);
-                options.Add(new PadOption($"Relearn moves · {details.RelearnMoves.Count(move => move != 0)}/4",
+                options.Add(new PadOption($"Golpes reaprendíveis · {details.RelearnMoves.Count(move => move != 0)}/4",
                     Glyph: badRelearn > 0 ? "!" : null, Accent: badRelearn > 0 ? UiTokens.Bad : null,
-                    Detail: !legality.Supported ? null : badRelearn > 0 ? $"{badRelearn} slot(s) not legal" : "All relearn slots legal"));
+                    Detail: !legality.Supported ? null : badRelearn > 0 ? $"{badRelearn} slot(s) não legal(is)" : "Todos os slots reaprendíveis são legais"));
             }
             if (legality.Supported)
             {
                 var badMoves = legality.Moves.Count(v => !v.Valid);
                 options.Add(new PadOption(SuggestMoves, Glyph: "●", Accent: UiTokens.Blueprint,
-                    Detail: badMoves > 0 ? $"A legal moveset for its level ({badMoves} move(s) not legal now)" : "A legal level-up moveset; preview first"));
+                    Detail: badMoves > 0 ? $"Um conjunto de golpes legal para o nível dele ({badMoves} golpe(s) não legal(is) agora)" : "Um conjunto legal de golpes por nível; com prévia antes"));
                 if (details.SupportsRelearn)
                     options.Add(new PadOption(SuggestRelearn, Glyph: "●", Accent: UiTokens.Blueprint,
-                        Detail: "The relearn moves its encounter expects; preview first"));
+                        Detail: "Os golpes reaprendíveis que o encontro dele espera; com prévia antes"));
             }
 
-            var choice = await EditorMenu.ShowAsync(host, "Move details", null, options.ToArray());
+            var choice = await EditorMenu.ShowAsync(host, "Detalhes dos golpes", null, options.ToArray());
             if (choice is null) return dirty;
             if (choice == SuggestMoves)
             {
@@ -69,7 +69,7 @@ public static class MoveDetailsEditor
                 var index = choice[5] - '1';
                 if ((uint)index < 4 && await EditMoveAsync(host, session, box, slot, index)) dirty = true;
             }
-            else if (choice.StartsWith("Relearn moves", StringComparison.Ordinal) && await EditRelearnAsync(host, session, box, slot)) dirty = true;
+            else if (choice.StartsWith("Golpes reaprendíveis", StringComparison.Ordinal) && await EditRelearnAsync(host, session, box, slot)) dirty = true;
         }
     }
 
@@ -81,7 +81,7 @@ public static class MoveDetailsEditor
         var detail = session.GetMoveDetails(box, slot).Moves[index];
         if (detail.Move == 0)
         {
-            await EditorMenu.ShowAsync(host, "Move details", "Choose a move first, then set its PP or PP Ups here.", "OK");
+            await EditorMenu.ShowAsync(host, "Detalhes dos golpes", "Escolha um golpe primeiro e depois ajuste o PP ou os PP Ups aqui.", "OK");
             return false;
         }
 
@@ -90,11 +90,11 @@ public static class MoveDetailsEditor
         var summary = facts is null ? null
             : $"{TypeFacts.Name(facts.Type)} · {TypeFacts.CategoryName(facts.Category)} · {InfoKit.MoveNumbers(facts with { PP = detail.MaxPP })}";
         var choice = await EditorMenu.ShowAsync(host, $"Move {index + 1} · {MoveName(data, detail.Move)}", summary,
-            new PadOption($"PP · {detail.PP}/{detail.MaxPP}", Detail: "Current PP left"),
-            new PadOption($"PP Ups · {detail.PPUps}/3", Detail: $"Max PP {detail.MaxPP}"),
-            new PadOption("Restore PP", Detail: detail.PP == detail.MaxPP ? "Already full" : $"{detail.PP} → {detail.MaxPP}"));
+            new PadOption($"PP · {detail.PP}/{detail.MaxPP}", Detail: "PP restante"),
+            new PadOption($"PP Ups · {detail.PPUps}/3", Detail: $"PP máx. {detail.MaxPP}"),
+            new PadOption("Restaurar PP", Detail: detail.PP == detail.MaxPP ? "Já está cheio" : $"{detail.PP} → {detail.MaxPP}"));
         if (choice is null) return false;
-        if (choice == "Restore PP")
+        if (choice == "Restaurar PP")
         {
             if (detail.PP == detail.MaxPP) return false;
             var pp = session.GetMoveDetails(box, slot).Moves.Select(move => move.PP).ToArray();
@@ -109,7 +109,7 @@ public static class MoveDetailsEditor
             // Each option previews the max PP it gives: "PP Ups 3" over "Max PP 15 → 24".
             var upOptions = Enumerable.Range(0, 4).Select(ups => new PadOption($"PP Ups {ups}",
                 Glyph: ups == detail.PPUps ? "●" : null, Accent: UiTokens.Blueprint,
-                Detail: ups == detail.PPUps ? $"Max PP {byUps[ups]} (current)" : $"Max PP {detail.MaxPP} → {byUps[ups]}")).ToArray();
+                Detail: ups == detail.PPUps ? $"PP máx. {byUps[ups]} (atual)" : $"PP máx. {detail.MaxPP} → {byUps[ups]}")).ToArray();
             var upChoice = await EditorMenu.ShowAsync(host, "PP ups", null, upOptions);
             if (upChoice is null || !int.TryParse(upChoice[^1..], out var chosen) || chosen == detail.PPUps) return false;
             var upsNow = session.GetMoveDetails(box, slot).Moves.Select(move => move.PPUps).ToArray();
@@ -150,17 +150,17 @@ public static class MoveDetailsEditor
             var verdict = legality.RelearnAt(i);
             return new PickItem(i, $"Slot {i + 1} · {Name(move)}", Detail: LegalityAssistUi.VerdictText(verdict) is { Length: > 0 } text ? text : null)
             {
-                Tag = verdict is null || move == 0 ? null : verdict.Valid ? "Legal" : "Illegal",
+                Tag = verdict is null || move == 0 ? null : verdict.Valid ? "Legal" : "Ilegal",
                 TagColor = verdict is { Valid: false } ? UiTokens.Bad : UiTokens.Green,
             };
         }).ToList();
-        var slotChoice = await PickerMenu.ShowAsync(host, "Relearn moves", choices);
+        var slotChoice = await PickerMenu.ShowAsync(host, "Golpes reaprendíveis", choices);
         if (slotChoice is null) return false;
 
         var moves = new List<PickItem> { new(0, "(none)") };
         moves.AddRange(Enumerable.Range(1, data.MoveNames.Count - 1)
             .Where(id => data.MoveNames[id].Length != 0).Select(id => new PickItem(id, data.MoveNames[id])));
-        var picked = await PickerMenu.ShowAsync(host, $"Relearn slot {slotChoice.Id + 1}", moves, details.RelearnMoves[slotChoice.Id]);
+        var picked = await PickerMenu.ShowAsync(host, $"Slot reaprendível {slotChoice.Id + 1}", moves, details.RelearnMoves[slotChoice.Id]);
         if (picked is null || picked.Id == details.RelearnMoves[slotChoice.Id]) return false;
         var relearn = details.RelearnMoves.ToArray();
         relearn[slotChoice.Id] = picked.Id;

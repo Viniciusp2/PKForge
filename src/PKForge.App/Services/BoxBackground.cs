@@ -19,9 +19,9 @@ public static class BoxBackground
 
     public static string Name(StoragePaint.WallpaperStyle style) => style switch
     {
-        StoragePaint.WallpaperStyle.Duotone => "Duotone",
-        StoragePaint.WallpaperStyle.Horizon => "Horizon",
-        StoragePaint.WallpaperStyle.Veiled => "Veiled",
-        _ => "Default",
+        StoragePaint.WallpaperStyle.Duotone => "Duotom",
+        StoragePaint.WallpaperStyle.Horizon => "Horizonte",
+        StoragePaint.WallpaperStyle.Veiled => "Com véu",
+        _ => "Padrão",
     };
 }

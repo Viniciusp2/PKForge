@@ -130,7 +130,7 @@ public sealed class DexEntryView : SKCanvasView
             using var rim = new SKPaint { Color = ColorTheme.Current.SpeciesEdge, IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = 3 };
             c.DrawPath(tab, rim);
         }
-        SummaryInk.Draw(c, $"No. {_species:000}", 52, SummaryInk.Center(cardTop + 39, 42), 42, ColorTheme.Current.SpeciesInk);
+        SummaryInk.Draw(c, $"Nº {_species:000}", 52, SummaryInk.Center(cardTop + 39, 42), 42, ColorTheme.Current.SpeciesInk);
         var types = _types.Where(TypeFacts.IsValid).ToList();
         var x = 307 - (types.Count * 184 + Math.Max(0, types.Count - 1) * 20) / 2f;
         foreach (var type in types)
@@ -142,7 +142,7 @@ public sealed class DexEntryView : SKCanvasView
         {
             using var band = new SKPaint { Color = ColorTheme.Current.CardRow };
             c.DrawRect(new SKRect(27, cardTop + 194, 587, cardTop + 286), band);
-            SummaryInk.Draw(c, "Region", 60, SummaryInk.Center(cardTop + 240, 40), 40, LabelInk);
+            SummaryInk.Draw(c, "Região", 60, SummaryInk.Center(cardTop + 240, 40), 40, LabelInk);
             SummaryInk.Draw(c, $"{region.Name} · Gen {region.Roman}", 560, SummaryInk.Center(cardTop + 240, 40), 40, ValueInk, align: SKTextAlign.Right);
         }
     }
@@ -172,15 +172,15 @@ public sealed class DexEntryView : SKCanvasView
 
         if (_stats is { } stats)
         {
-            Section("Base stats");
-            string[] names = ["HP", "Attack", "Defense", "Sp. Atk", "Sp. Def", "Speed"];
+            Section("Atributos base");
+            string[] names = ["HP", "Ataque", "Defesa", "At. Esp.", "Def. Esp.", "Velocidade"];
             int[] values = [stats.Hp, stats.Atk, stats.Def, stats.SpA, stats.SpD, stats.Spe];
             for (var i = 0; i < 6; i++) Row(names[i], values[i].ToString());
             Row("Total", values.Sum().ToString(), Pksm.Ink);
         }
         if (_card is { } card && y < height - 200)
         {
-            Section("Abilities");
+            Section("Habilidades");
             foreach (var ability in card.Abilities)
             {
                 if (y > height - 80) break;

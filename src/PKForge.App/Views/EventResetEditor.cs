@@ -22,7 +22,7 @@ public static class EventResetEditor
             var options = events.Select(e => new PadOption(e.Title,
                 Accent: e.Done ? null : UiTokens.Green, IconPath: e.Done ? "restore" : "check",
                 Detail: $"{e.Where} · {(e.Done ? "used up - can reset" : "still available")}")).ToArray();
-            var choice = await EditorMenu.ShowAsync(host, "Re-arm one-time encounters", Warning, options);
+            var choice = await EditorMenu.ShowAsync(host, "Reativar encontros únicos", Warning, options);
             var index = Array.FindIndex(options, o => o.Label == choice);
             if (index < 0) return;
             var picked = events[index];
@@ -34,7 +34,7 @@ public static class EventResetEditor
                 await EditorMenu.ShowAsync(host, picked.Title, detail, "OK");
                 continue;
             }
-            if (!await EditorMenu.ConfirmAsync(host, $"Reset {picked.Title}?", detail + Environment.NewLine + Warning, "Reset"))
+            if (!await EditorMenu.ConfirmAsync(host, $"Reset {picked.Title}?", detail + Environment.NewLine + Warning, "Limpar"))
                 continue;
             var ok = await viewModel.RunMutationAsync(s => EventResetService.Reset(s, picked.Id),
                 Math.Max(0, viewModel.SelectedSlot), refreshSlot: false, action: SaveAction.EditWorld);

@@ -22,17 +22,17 @@ public static class LegalityAssistUi
     {
         if (!session.SupportsLegalityAnalysis)
         {
-            await EditorMenu.ShowAsync(host, "Suggest", "This game has no offline legality tables, so there is nothing to suggest.", "OK");
+            await EditorMenu.ShowAsync(host, "Sugerir", "Este jogo não tem tabelas de legalidade offline, então não há nada para sugerir.", "OK");
             return false;
         }
 
-        var overlay = LoadingOverlay.Show(host, "Suggesting…", "Checking the legal options offline.");
+        var overlay = LoadingOverlay.Show(host, "Sugerindo…", "Verificando as opções legais offline.");
         LegalityFixPreview preview;
         try { preview = await Task.Run(() => Assist.Preview(session, box, slot, fix)); }
         catch (Exception error) when (error is ArgumentException or InvalidOperationException or NotSupportedException)
         {
             overlay.Close();
-            await EditorMenu.ShowAsync(host, "Suggest", error.Message, "OK");
+            await EditorMenu.ShowAsync(host, "Sugerir", error.Message, "OK");
             return false;
         }
         overlay.Close();
@@ -44,15 +44,15 @@ public static class LegalityAssistUi
     {
         if (!preview.Available)
         {
-            await EditorMenu.ShowAsync(host, preview.Title, preview.Unavailable ?? "No suggestion.", "OK");
+            await EditorMenu.ShowAsync(host, preview.Title, preview.Unavailable ?? "Nenhuma sugestão.", "OK");
             return false;
         }
 
-        var applyLabel = preview.Safe ? "Apply" : "Apply anyway";
+        var applyLabel = preview.Safe ? "Aplicar" : "Aplicar mesmo assim";
         var choice = await EditorMenu.ShowAsync(host, preview.Title, Describe(preview),
             new PadOption(applyLabel, Glyph: preview.Safe ? "●" : "!", Accent: preview.Safe ? UiTokens.Green : UiTokens.Warn,
                 Detail: preview.Outcome),
-            new PadOption("Cancel", Detail: "Nothing is changed"));
+            new PadOption("Cancelar", Detail: "Nada é alterado"));
         if (choice != applyLabel) return false;
 
         var outcome = Assist.Apply(session, preview);
@@ -66,7 +66,7 @@ public static class LegalityAssistUi
     {
         const int maxLines = 9;
         var lines = preview.Changes.Take(maxLines).Select(c => $"{c.Field}: {c.Before} → {c.After}").ToList();
-        if (preview.Changes.Count > maxLines) lines.Add($"…and {preview.Changes.Count - maxLines} more");
+        if (preview.Changes.Count > maxLines) lines.Add($"…e mais {preview.Changes.Count - maxLines}");
         lines.Add("");
         lines.Add(preview.Outcome);
         return string.Join('\n', lines);
@@ -89,7 +89,7 @@ public static class LegalityAssistUi
 
     /// <summary>The verdict tail for a move row: "Legal · Level Up" or "Illegal · Invalid Move".</summary>
     public static string VerdictText(MoveVerdict? verdict) =>
-        verdict is null || verdict.Move == 0 ? "" : verdict.Valid ? $"Legal · {verdict.Reason}" : $"Illegal · {verdict.Reason}";
+        verdict is null || verdict.Move == 0 ? "" : verdict.Valid ? $"Legal · {verdict.Reason}" : $"Ilegal · {verdict.Reason}";
 }
 
 /// <summary>
@@ -100,7 +100,7 @@ public static class LegalityAssistUi
 /// </summary>
 public static class LegalityReportEditor
 {
-    private const string FixAll = "Fix all safe";
+    private const string FixAll = "Corrigir tudo que é seguro";
 
     public static async Task<bool> ShowAsync(Grid host, ISaveEngineSession session, int box, int slot)
     {
@@ -111,7 +111,7 @@ public static class LegalityReportEditor
             try { report = await Task.Run(() => LegalityAssistUi.Assist.GetReport(session, box, slot)); }
             catch (Exception error) when (error is ArgumentException or InvalidOperationException or NotSupportedException)
             {
-                await EditorMenu.ShowAsync(host, "Legality", error.Message, "OK");
+                await EditorMenu.ShowAsync(host, "Legalidade", error.Message, "OK");
                 return dirty;
             }
 
@@ -119,13 +119,13 @@ public static class LegalityReportEditor
             var fixable = report.Fixes.Count;
             if (!report.Valid && fixable > 0)
                 options.Add(new PadOption(FixAll, Glyph: "●", Accent: UiTokens.Green,
-                    Detail: $"Combines the {fixable} suggestion(s) below, keeping only steps that remove problems"));
+                    Detail: $"Combina as {fixable} sugestão(ões) abaixo, mantendo só os passos que removem problemas"));
             foreach (var group in report.Groups)
                 options.Add(GroupOption(group));
 
-            var verdict = !report.Supported ? "Not analyzed" : report.Valid ? "Legal" : "Illegal";
-            var message = report.Encounter.Length > 0 ? $"{verdict} · matched: {report.Encounter}" : verdict;
-            var choice = await EditorMenu.ShowAsync(host, "Legality report", message, options.ToArray());
+            var verdict = !report.Supported ? "Não analisado" : report.Valid ? "Legal" : "Ilegal";
+            var message = report.Encounter.Length > 0 ? $"{verdict} · correspondência: {report.Encounter}" : verdict;
+            var choice = await EditorMenu.ShowAsync(host, "Relatório de legalidade", message, options.ToArray());
             if (choice is null) return dirty;
 
             if (choice == FixAll)
@@ -155,7 +155,7 @@ public static class LegalityReportEditor
             _ => ("●", UiTokens.Green),
         };
         var first = group.Lines.Count == 0 ? "" : group.Lines[0].Text;
-        var more = group.Lines.Count > 1 ? $" (+{group.Lines.Count - 1} more)" : "";
+        var more = group.Lines.Count > 1 ? $" (+{group.Lines.Count - 1})" : "";
         var action = group.Fix is not null && !group.Valid ? $" · A: {FixName(group.Fix.Value)}" : "";
         return new PadOption(group.Title, Glyph: glyph, Accent: accent, Detail: first + more + action);
     }
@@ -169,14 +169,14 @@ public static class LegalityReportEditor
 
     private static string FixName(LegalityFix fix) => fix switch
     {
-        LegalityFix.MetInfo => "suggest met data",
-        LegalityFix.Ball => "suggest a ball",
-        LegalityFix.EggLocation => "suggest egg data",
-        LegalityFix.RelearnMoves => "suggest relearn moves",
-        LegalityFix.CurrentMoves => "suggest moves",
-        LegalityFix.Memories => "suggest memories",
-        LegalityFix.EffortValues => "cap EVs",
-        LegalityFix.IVs => "fix IVs",
+        LegalityFix.MetInfo => "sugerir dados de encontro",
+        LegalityFix.Ball => "sugerir uma bola",
+        LegalityFix.EggLocation => "sugerir dados do ovo",
+        LegalityFix.RelearnMoves => "sugerir golpes reaprendíveis",
+        LegalityFix.CurrentMoves => "sugerir golpes",
+        LegalityFix.Memories => "sugerir memórias",
+        LegalityFix.EffortValues => "limitar EVs",
+        LegalityFix.IVs => "corrigir IVs",
         _ => "fix",
     };
 }

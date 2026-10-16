@@ -11,31 +11,31 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class EntralinkEditor
 {
-    private const string Areas = "Entree Forest areas";
-    private const string Fill = "Fill the forest with legal Dream World Pokémon";
-    private const string Clear = "Empty the forest";
-    private const string UnlockAreas = "Open every forest area";
-    private const string Levels = "Entralink levels…";
+    private const string Areas = "Áreas do Entree Forest";
+    private const string Fill = "Encher a floresta com Pokémon legais do Dream World";
+    private const string Clear = "Esvaziar a floresta";
+    private const string UnlockAreas = "Abrir todas as áreas da floresta";
+    private const string Levels = "Níveis do Entralink…";
     private const string Powers = "Pass Powers";
-    private const string Missions = "Funfest missions";
+    private const string Missions = "Missões do Funfest";
 
     public static async Task ShowAsync(Grid host, ISaveEngineSession session, BoxBrowserViewModel viewModel)
     {
         while (true)
         {
             var state = EntralinkService.GetState(session);
-            var detail = $"White Forest level {state.WhiteForestLevel} · Black City level {state.BlackCityLevel}" + Environment.NewLine +
-                $"Forest: {state.VisitorCount} Pokémon · areas 1-{state.UnlockedAreas} open{(state.NinthAreaUnlocked ? " + area 9" : "")}" +
-                Environment.NewLine + "Pokémon met in the Entree Forest are Dream World catches; only PKHeX's legal Dream World list is used here.";
+            var detail = $"Nível do White Forest {state.WhiteForestLevel} · Nível da Black City {state.BlackCityLevel}" + Environment.NewLine +
+                $"Floresta: {state.VisitorCount} Pokémon · áreas 1-{state.UnlockedAreas} abertas{(state.NinthAreaUnlocked ? " + área 9" : "")}" +
+                Environment.NewLine + "Pokémon encontrados no Entree Forest são capturas do Dream World; aqui só é usada a lista legal do Dream World do PKHeX.";
             var blocked = PKForge.App.Services.HardcoreMode.Blocks(SaveAction.EditWorld, out var status);
 
-            var options = new List<PadOption> { new(Areas, IconPath: "tree", Detail: "See which Pokémon wait in each forest area.") };
+            var options = new List<PadOption> { new(Areas, IconPath: "tree", Detail: "Veja quais Pokémon esperam em cada área da floresta.") };
             if (!blocked)
             {
-                options.Add(new PadOption(Fill, IconPath: "fill", Accent: UiTokens.Green, Detail: "Every slot gets a random Dream World Pokémon; all areas open."));
+                options.Add(new PadOption(Fill, IconPath: "fill", Accent: UiTokens.Green, Detail: "Cada slot recebe um Pokémon aleatório do Dream World; todas as áreas abrem."));
                 options.Add(new PadOption(UnlockAreas, IconPath: "all"));
                 options.Add(new PadOption(Clear, IconPath: "clear"));
-                options.Add(new PadOption(Levels, IconPath: "level", Detail: "White Forest and Black City levels, 0 to 999."));
+                options.Add(new PadOption(Levels, IconPath: "level", Detail: "Níveis do White Forest e da Black City, de 0 a 999."));
             }
             if (state.IsB2W2)
             {
@@ -51,36 +51,36 @@ public static class EntralinkEditor
                     await ShowAreasAsync(host, state);
                     break;
                 case Fill:
-                    if (await EditorMenu.ConfirmAsync(host, "Refill the forest?",
-                            "Every slot is replaced with a random Pokémon from the Dream World list for this game, each with a move it can have there. All areas open.", "Fill"))
+                    if (await EditorMenu.ConfirmAsync(host, "Encher a floresta de novo?",
+                            "Cada slot é substituído por um Pokémon aleatório da lista do Dream World deste jogo, cada um com um golpe que pode ter lá. Todas as áreas abrem.", "Encher"))
                         ok = await WorldEventsMenu.WriteAsync(viewModel, s =>
-                            $"Entree Forest filled: {EntralinkService.FillForestLegally(s).VisitorCount} legal Dream World Pokémon.");
+                            $"Entree Forest preenchido: {EntralinkService.FillForestLegally(s).VisitorCount} Pokémon legais do Dream World.");
                     break;
                 case UnlockAreas:
                     ok = await WorldEventsMenu.WriteAsync(viewModel, s =>
                     {
                         EntralinkService.UnlockAllAreas(s);
-                        return "Every Entree Forest area is open.";
+                        return "Todas as áreas do Entree Forest estão abertas.";
                     });
                     break;
                 case Clear:
-                    if (await EditorMenu.ConfirmAsync(host, "Empty the forest?", "Every Entree Forest Pokémon leaves.", "Empty"))
+                    if (await EditorMenu.ConfirmAsync(host, "Esvaziar a floresta?", "Todos os Pokémon do Entree Forest vão embora.", "Esvaziar"))
                         ok = await WorldEventsMenu.WriteAsync(viewModel, s =>
                         {
                             EntralinkService.ClearForest(s);
-                            return "Entree Forest emptied.";
+                            return "Entree Forest esvaziado.";
                         });
                     break;
                 case Levels:
                 {
-                    var white = await StatsPopup.ShowSingleAsync(host, "White Forest level", state.WhiteForestLevel, EntralinkService.MaxLevel, "0 - 999");
+                    var white = await StatsPopup.ShowSingleAsync(host, "Nível do White Forest", state.WhiteForestLevel, EntralinkService.MaxLevel, "0 - 999");
                     if (white is not { } w) break;
-                    var black = await StatsPopup.ShowSingleAsync(host, "Black City level", state.BlackCityLevel, EntralinkService.MaxLevel, "0 - 999");
+                    var black = await StatsPopup.ShowSingleAsync(host, "Nível da Black City", state.BlackCityLevel, EntralinkService.MaxLevel, "0 - 999");
                     if (black is not { } b) break;
                     ok = await WorldEventsMenu.WriteAsync(viewModel, s =>
                     {
                         var after = EntralinkService.SetLevels(s, w, b);
-                        return $"Entralink levels: White Forest {after.WhiteForestLevel}, Black City {after.BlackCityLevel}.";
+                        return $"Níveis do Entralink: White Forest {after.WhiteForestLevel}, Black City {after.BlackCityLevel}.";
                     });
                     break;
                 }
@@ -106,7 +106,7 @@ public static class EntralinkEditor
 
     private static async Task<bool> ShowPowersAsync(Grid host, BoxBrowserViewModel viewModel, EntralinkState state, bool blocked)
     {
-        var detail = "Pass Powers are Entralink boosts (encounters, hatching, capture, EXP...) you can switch on in the field.";
+        var detail = "Pass Powers são bônus do Entralink (encontros, chocar ovos, captura, EXP...) que você pode ligar em campo.";
         if (blocked)
         {
             await EditorMenu.ShowAsync(host, "Pass Powers", detail + Environment.NewLine + string.Join(Environment.NewLine, state.PassPowers), "OK");
@@ -121,7 +121,7 @@ public static class EntralinkEditor
             choices.Select(c => new PickItem(c.Value, c.Name)).ToArray());
         if (picked is null) return true;
         return await WorldEventsMenu.WriteAsync(viewModel, s =>
-            $"Pass Power slot {slot + 1}: {EntralinkService.SetPassPower(s, slot, picked.Id).PassPowers[slot]}.");
+            $"Slot de Pass Power {slot + 1}: {EntralinkService.SetPassPower(s, slot, picked.Id).PassPowers[slot]}.");
     }
 
     private static async Task<bool> ShowMissionsAsync(Grid host, BoxBrowserViewModel viewModel, EntralinkState state, bool blocked)
@@ -129,15 +129,15 @@ public static class EntralinkEditor
         var lines = string.Join(Environment.NewLine, state.Missions.Select(m => $"{(m.Unlocked ? "✓" : "·")} {m.Name}"));
         if (blocked)
         {
-            await EditorMenu.ShowAsync(host, "Funfest missions", lines, "OK");
+            await EditorMenu.ShowAsync(host, "Missões do Funfest", lines, "OK");
             return true;
         }
-        const string unlock = "Unlock every mission";
-        var choice = await EditorMenu.ShowAsync(host, "Funfest missions",
-            "Unlocking sets each mission's story prerequisite flags, as PKHeX does." + Environment.NewLine + lines,
+        const string unlock = "Desbloquear todas as missões";
+        var choice = await EditorMenu.ShowAsync(host, "Missões do Funfest",
+            "Desbloquear liga as flags de história que cada missão exige, como o PKHeX faz." + Environment.NewLine + lines,
             new PadOption(unlock, IconPath: "all", Accent: UiTokens.Green));
         if (choice != unlock) return true;
         return await WorldEventsMenu.WriteAsync(viewModel, s =>
-            $"{EntralinkService.UnlockAllMissions(s).Missions.Count(m => m.Unlocked)} Funfest missions unlocked.");
+            $"{EntralinkService.UnlockAllMissions(s).Missions.Count(m => m.Unlocked)} missões do Funfest desbloqueadas.");
     }
 }

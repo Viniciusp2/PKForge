@@ -117,7 +117,7 @@ public sealed partial class BoxBrowserPage
         var gender = EditorBand(new HorizontalStackLayout
         {
             Spacing = 8,
-            Children = { EditorCaption("Gender", Design(144)), genderValue },
+            Children = { EditorCaption("Gênero", Design(144)), genderValue },
         }, dark: true);
         var star = EditorValueLabel();
         var shiny = EditorBand(new HorizontalStackLayout
@@ -271,7 +271,7 @@ public sealed partial class BoxBrowserPage
         var value = EditorValueLabel();
         var report = new Label
         {
-            Text = "Report ›",
+            Text = "Relatório ›",
             FontFamily = DsChrome.PixelFont,
             FontSize = EditorText,
             TextColor = EditorValue,
@@ -291,9 +291,9 @@ public sealed partial class BoxBrowserPage
             (value.Text, value.TextColor) = _viewModel.LegalityBadge switch
             {
                 "✓" => ("Legal", Pksm.Legal.ToMauiColor()),
-                "✗" => ("Illegal", Pksm.Illegal.ToMauiColor()),
-                _ when !supported => ("Not checked for this ROM hack", EditorValue),
-                _ => ("Checking…", EditorValue),
+                "✗" => ("Ilegal", Pksm.Illegal.ToMauiColor()),
+                _ when !supported => ("Não verificado para este ROM hack", EditorValue),
+                _ => ("Verificando…", EditorValue),
             };
             report.IsVisible = _viewModel.LegalityBadge == "✗";
         }
@@ -314,7 +314,7 @@ public sealed partial class BoxBrowserPage
     private Task OpenLegalityReportAsync()
     {
         if (_viewModel.LegalityBadge != "✗") return Task.CompletedTask;
-        var detail = string.IsNullOrWhiteSpace(_viewModel.LegalityText) ? "No legality details were reported." : _viewModel.LegalityText;
+        var detail = string.IsNullOrWhiteSpace(_viewModel.LegalityText) ? "Nenhum detalhe de legalidade foi informado." : _viewModel.LegalityText;
         return ShowLegalityReportAsync(detail);
     }
 

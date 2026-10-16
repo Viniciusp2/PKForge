@@ -13,23 +13,23 @@ public static class RomHackNotice
 {
     private const string FlaggedPrefix = "romhack_flagged_";
 
-    public const string Title = "UNSUPPORTED ROM HACK";
+    public const string Title = "ROM HACK NÃO SUPORTADO";
 
     public const string Warning =
-        "This looks like a ROM hack. PKForge detected it but its engine is not built for this game: " +
-        "Pokémon, moves or items may show wrong and editing can damage the save. Continue at your own risk.";
+        "Isto parece um ROM hack. O PKForge o detectou, mas o motor dele não foi feito para este jogo: " +
+        "Pokémon, golpes ou itens podem aparecer errados, e editar pode danificar o save. Continue por sua conta e risco.";
 
-    public const string ReadOnlyOption = "Browse read-only";
-    public const string EditOption = "Edit at my own risk";
+    public const string ReadOnlyOption = "Navegar somente leitura";
+    public const string EditOption = "Editar por minha conta e risco";
 
     /// <summary>The status-strip marker while such a save is open, like the Hardcore one.</summary>
-    public const string Marker = "ROM HACK · UNSUPPORTED";
+    public const string Marker = "ROM HACK · NÃO SUPORTADO";
 
     /// <summary>The marker plus how to lift read-only, for a save the user has not accepted.</summary>
-    public const string ReadOnlyStatus = Marker + " · READ-ONLY until you edit at your own risk";
+    public const string ReadOnlyStatus = Marker + " · SOMENTE LEITURA até você editar por sua conta e risco";
 
     /// <summary>A corrupting layout is never editable; this explains why nothing is offered.</summary>
-    public const string CorruptingTitle = "SAVE IS READ-ONLY";
+    public const string CorruptingTitle = "O SAVE ESTÁ EM SOMENTE LEITURA";
 
     /// <summary>True once the warning has been shown for this save.</summary>
     public static bool IsFlagged(string documentId) => Preferences.Default.Get(Key(documentId), false);

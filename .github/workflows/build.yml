@@ -2,9 +2,10 @@ name: build
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'traducao-*']
     tags: ['v*']
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test-and-build:
@@ -45,7 +46,8 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.PKFORGE_ANDROID_KEY_PASSWORD }}
         run: |
           configuration="Debug"
-          signing_args=(-p:AndroidKeyStore=false)
+          # Test builds install beside the official app (org.pkforge.app.debug), so its Bank stays untouched.
+          signing_args=(-p:AndroidKeyStore=false -p:DiagnosticBuild=true)
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
             configuration="Release"
             signing_args=(

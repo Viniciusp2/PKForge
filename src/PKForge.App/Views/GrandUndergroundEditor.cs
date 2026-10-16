@@ -15,30 +15,30 @@ public static class GrandUndergroundEditor
             var items = session.GetGrandUndergroundItems();
             if (items.Count == 0)
             {
-                await EditorMenu.ShowAsync(host, "Grand underground", "This game has no Grand Underground inventory.", "OK");
+                await EditorMenu.ShowAsync(host, "Grand Underground", "Este jogo não tem inventário do Grand Underground.", "OK");
                 return;
             }
 
             var options = items.Select(item => new PadOption($"{item.Name} · {item.Count}/{item.MaxCount} · {item.Type}"))
-                .Append(new PadOption("Fill every stack", IconPath: "fill", Detail: "Every item goes to its maximum; a restore point is made first."))
-                .Append(new PadOption("Clear every stack", IconPath: "clear", Detail: "Every item goes to 0; a restore point is made first."))
+                .Append(new PadOption("Encher todas as pilhas", IconPath: "fill", Detail: "Todos os itens vão para o máximo; um ponto de restauração é criado antes."))
+                .Append(new PadOption("Limpar todas as pilhas", IconPath: "clear", Detail: "Todos os itens vão para 0; um ponto de restauração é criado antes."))
                 .ToArray();
-            var choice = await EditorMenu.ShowAsync(host, "Grand underground", "Spheres, treasures, statues, and pedestals", options);
+            var choice = await EditorMenu.ShowAsync(host, "Grand Underground", "Esferas, tesouros, estátuas e pedestais", options);
             if (choice is null) return;
 
-            if (choice is "Fill every stack" or "Clear every stack")
+            if (choice is "Encher todas as pilhas" or "Limpar todas as pilhas")
             {
-                var filling = choice == "Fill every stack";
-                var verb = filling ? "Fill" : "Clear";
-                var confirmed = await PadMenu.ConfirmAsync(host, $"{verb} underground items?",
-                    filling ? "Every Grand Underground stack becomes full. A restore point is created first." : "Every Grand Underground stack becomes 0. A restore point is created first.",
-                    filling ? "Fill" : "Clear");
+                var filling = choice == "Encher todas as pilhas";
+                var verb = filling ? "Encher" : "Limpar";
+                var confirmed = await PadMenu.ConfirmAsync(host, $"{verb} os itens do subterrâneo?",
+                    filling ? "Todas as pilhas do Grand Underground ficam cheias. Um ponto de restauração é criado antes." : "Todas as pilhas do Grand Underground vão para 0. Um ponto de restauração é criado antes.",
+                    filling ? "Encher" : "Limpar");
                 if (!confirmed) continue;
                 var saved = await viewModel.RunMutationAsync(s =>
                 {
                     foreach (var item in s.GetGrandUndergroundItems())
                         s.SetGrandUndergroundItemCount(item.Id, filling ? item.MaxCount : 0);
-                    return new GenerationOutcome(true, filling ? "Every Grand Underground stack is full." : "Every Grand Underground stack was cleared.");
+                    return new GenerationOutcome(true, filling ? "Todas as pilhas do Grand Underground estão cheias." : "Todas as pilhas do Grand Underground foram limpas.");
                 }, slot, refreshSlot: false, action: SaveAction.EditInventory);
                 if (!saved) return;
                 continue;

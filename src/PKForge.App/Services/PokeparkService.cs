@@ -46,7 +46,7 @@ public sealed class PokeparkService(IBankService bank, ISaveSessionService saves
             result.Add(new ParkPokemon($"save:{documentId}:{slot.Box}:{slot.Slot}",
                 species, slot.Form, slot.IsShiny,
                 string.IsNullOrWhiteSpace(slot.Nickname) ? SpeciesName(species) : slot.Nickname,
-                $"{document.DisplayName} · {(slot.Box < 0 ? "Party" : $"Box {slot.Box + 1}")} · Slot {slot.Slot + 1}",
+                $"{document.DisplayName} · {(slot.Box < 0 ? "Equipe" : $"Box {slot.Box + 1}")} · Slot {slot.Slot + 1}",
                 GameName: gameName, TrainerName: trainer, Origin: document.DisplayName));
         }
         return result;
@@ -166,7 +166,7 @@ public sealed class PokeparkService(IBankService bank, ISaveSessionService saves
     public string AddBankVisitor(Guid id)
     {
         var entry = bank.GetAll().FirstOrDefault(e => e.Id == id);
-        if (entry is null || entry.Info.Species <= 0) return "This Pokémon is no longer in the bank.";
+        if (entry is null || entry.Info.Species <= 0) return "Este Pokémon não está mais no banco.";
         return AddVisitor(new ParkPokemon($"bank:{entry.Id:N}", entry.Info.Species, entry.Info.Form,
             entry.Info.Shiny, Name(entry.Info.Nickname, entry.Info.Species),
             $"Bank · Box {entry.Box + 1} · Slot {entry.Slot + 1}",
@@ -177,16 +177,16 @@ public sealed class PokeparkService(IBankService bank, ISaveSessionService saves
     {
         var session = saves.CurrentSession;
         var document = saves.Current?.Document;
-        if (session is null || document is null) return "Open a save to send a Pokémon to Poképark.";
+        if (session is null || document is null) return "Abra um save para enviar um Pokémon ao Poképark.";
         if (!session.Snapshot.Slots.Any(s => s.Box == box && s.Slot == slot && s.Species is > 0))
-            return "Select a Pokémon first.";
-        if (session.GetMetInfo(box, slot).IsEgg) return "Eggs can visit Poképark after they hatch.";
+            return "Selecione um Pokémon primeiro.";
+        if (session.GetMetInfo(box, slot).IsEgg) return "Ovos podem visitar o Poképark depois de chocar.";
         var detail = session.ReadEntity(box, slot);
         var documentId = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(document.DocumentId)))[..16];
         var fingerprint = Convert.ToHexString(SHA256.HashData(session.ExportSlot(box, slot).Data));
         return AddVisitor(new ParkPokemon($"save:{documentId}:{box}:{slot}:{fingerprint}", detail.Species,
             detail.Form, detail.IsShiny, string.IsNullOrWhiteSpace(detail.Nickname) ? detail.SpeciesName : detail.Nickname,
-            $"{document.DisplayName} · {(box < 0 ? "Party" : $"Box {box + 1}")} · Slot {slot + 1}",
+            $"{document.DisplayName} · {(box < 0 ? "Equipe" : $"Box {box + 1}")} · Slot {slot + 1}",
             GameName: $"Gen {session.Generation}", TrainerName: session.GetTrainer().Name, Origin: document.DisplayName));
     }
 
@@ -297,12 +297,12 @@ public sealed class PokeparkService(IBankService bank, ISaveSessionService saves
     private string AddVisitor(ParkPokemon pokemon)
     {
         var roster = LoadRoster();
-        if (roster.Any(p => p.Id == pokemon.Id)) return $"{pokemon.Name} already lives in Poképark.";
+        if (roster.Any(p => p.Id == pokemon.Id)) return $"{pokemon.Name} já mora no Poképark.";
         if (roster.Count >= MaximumResidents)
-            return $"Poképark has {MaximumResidents} residents. Open the park and remove a resident before adding another.";
+            return $"O Poképark tem {MaximumResidents} moradores. Abra o parque e tire um morador antes de adicionar outro.";
         Write(AutoFillSuppressedKey, false);
         SaveRoster(roster.Append(pokemon).ToArray());
-        return $"{pokemon.Name} now lives in Poképark! Your original Pokémon stays in its save or bank.";
+        return $"{pokemon.Name} agora mora no Poképark! Seu Pokémon original continua no save ou no banco.";
     }
 
     private static void SaveRoster(IReadOnlyList<ParkPokemon> roster)

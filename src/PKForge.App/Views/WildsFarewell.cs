@@ -13,7 +13,7 @@ public static class WildsFarewell
     {
         var confirmed = await PadMenu.ConfirmAsync(host, "Release to the Wilds?",
             $"{friend.Name} leaves your {(string.IsNullOrEmpty(friend.Game) ? "box" : friend.Game)} for good and goes to live in the Wilds, the wild lands around the Poképark. It will remember you, and it may come back to visit.",
-            "Release");
+            "Soltar");
         if (!confirmed || !await release()) return false;
         var services = IPlatformApplication.Current?.Services;
         services?.GetService<PokeparkWildsStore>()?.Remember(friend);

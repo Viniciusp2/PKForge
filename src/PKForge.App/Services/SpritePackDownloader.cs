@@ -30,7 +30,7 @@ public sealed class SpritePackDownloader(ISpriteService sprites, IGameDataServic
     }
 
     // The main pack: Showdown animations, HOME renders, item icons. Falls back to per-file downloads.
-    private static readonly Archive Main = new("Sprite pack",
+    private static readonly Archive Main = new("Pacote de sprites",
         "https://github.com/sofianeelhor/PKForge/releases/download/sprites-1/pkforge-sprites.zip",
         625_017_170, "611f384b2475f24946ecd51ba8a726aafffc04736f0cedf47236a1ac00ff6cd7");
 
@@ -153,7 +153,7 @@ public sealed class SpritePackDownloader(ISpriteService sprites, IGameDataServic
             if (!File.Exists(archive))
             {
                 await DownloadArchiveAsync(partial, source, onProgress, cancellationToken).ConfigureAwait(false);
-                onProgress($"{source.Name} · checking the download…", 1);
+                onProgress($"{source.Name} · verificando o download…", 1);
                 if (!await MatchesAsync(partial, source, cancellationToken).ConfigureAwait(false))
                 {
                     File.Delete(partial);
@@ -202,7 +202,7 @@ public sealed class SpritePackDownloader(ISpriteService sprites, IGameDataServic
             if (written - lastReport >= 1 << 20 || written == pack.Bytes)
             {
                 lastReport = written;
-                onProgress($"{pack.Name} · downloading {written >> 20} / {pack.Bytes >> 20} MB", (double)written / pack.Bytes);
+                onProgress($"{pack.Name} · baixando {written >> 20} / {pack.Bytes >> 20} MB", (double)written / pack.Bytes);
             }
         }
     }
@@ -239,7 +239,7 @@ public sealed class SpritePackDownloader(ISpriteService sprites, IGameDataServic
                 }
             }
             if (done % 100 == 0 || done == total)
-                onProgress($"{name} · unpacking {done} / {total}", (double)done / total);
+                onProgress($"{name} · descompactando {done} / {total}", (double)done / total);
         }
     }
 

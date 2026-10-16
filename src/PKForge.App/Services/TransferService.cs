@@ -69,10 +69,10 @@ public sealed class TransferService(
         if (!TryImport(session, landing.Box, landing.Slot, entityBytes.ToArray(), out var refusal, format))
             return new TransferOutcome(false, refusal is null
                 ? Refusal(entityBytes, nickname, snapshot, target.GameLabel, format)
-                : $"{nickname} cannot go to {target.GameLabel}. {refusal}");
+                : $"{nickname} não pode ir para {target.GameLabel}. {refusal}");
 
-        var receipt = await WriteTargetAsync(target, snapshot, session, $"{nickname} arrived from a transfer", cancellationToken).ConfigureAwait(false);
-        return new TransferOutcome(true, $"{nickname} joined {target.GameLabel} (box {landing.Box + 1}).", landing.Box, landing.Slot, receipt.BackupId);
+        var receipt = await WriteTargetAsync(target, snapshot, session, $"{nickname} chegou de uma transferência", cancellationToken).ConfigureAwait(false);
+        return new TransferOutcome(true, $"{nickname} entrou em {target.GameLabel} (box {landing.Box + 1}).", landing.Box, landing.Slot, receipt.BackupId);
     }
 
     /// <summary>
@@ -84,8 +84,8 @@ public sealed class TransferService(
     {
         var live = sessions.CurrentSession;
         if (live is null)
-            return new TransferPreviewOutcome(false, "No game is connected.");
-        const string label = "the connected game";
+            return new TransferPreviewOutcome(false, "Nenhum jogo está conectado.");
+        const string label = "o jogo conectado";
         using var scratch = engine.OpenSession(live.Serialize().ToArray(), sessions.Current?.Document.DisplayName);
         var preview = new TransferPreviewService(legality).Preview(scratch, box, slot, entityBytes.ToArray(), format);
         if (preview is null)
@@ -116,11 +116,11 @@ public sealed class TransferService(
         var failed = BankTransfers.ImportAll(session, items, rooms, out var refusal);
         if (failed >= 0)
         {
-            if (failed >= items.Count) return ($"{target.GameLabel} has room for {rooms.Count} of {items.Count} Pokémon.", []);
+            if (failed >= items.Count) return ($"{target.GameLabel} tem espaço para {rooms.Count} de {items.Count} Pokémon.", []);
             var item = items[failed];
             return (refusal is null
                 ? Refusal(item.Data, item.Nickname, snapshot, target.GameLabel, item.Format)
-                : $"{item.Nickname} cannot go to {target.GameLabel}. {refusal}", []);
+                : $"{item.Nickname} não pode ir para {target.GameLabel}. {refusal}", []);
         }
         await WriteTargetAsync(target, snapshot, session, changeDescription, cancellationToken).ConfigureAwait(false);
         return (null, rooms);
@@ -153,7 +153,7 @@ public sealed class TransferService(
     /// <summary>Why the entity cannot enter the target (the species or file names itself), else the generic refusal.</summary>
     internal static string Refusal(ReadOnlyMemory<byte> entityBytes, string nickname, SaveSnapshot snapshot, string targetLabel, string? format = null) =>
         TransferCompatibility.ExplainRefusal(entityBytes.ToArray(), nickname, snapshot.Format, snapshot.Generation, targetLabel, format)
-            ?? $"{nickname} cannot enter {targetLabel}.";
+            ?? $"{nickname} não pode entrar em {targetLabel}.";
 
     /// <summary>The target save's slots, read fresh, so the player can choose where a batch starts.</summary>
     public async Task<IReadOnlyList<SlotSummary>> ReadSlotsAsync(DetectedSave target, CancellationToken cancellationToken = default)
@@ -166,8 +166,8 @@ public sealed class TransferService(
         SlotPlanning.FreeSlotsFrom(snapshot.Slots, startAt).Select(s => (SlotRef?)s).FirstOrDefault();
 
     private static string NoRoom(DetectedSave target, SlotRef? startAt) => startAt is { } from
-        ? $"{target.GameLabel} has no empty slot from box {from.Box + 1} slot {from.Slot + 1} onward."
-        : $"{target.GameLabel} has no empty slot in any box.";
+        ? $"{target.GameLabel} não tem slot vazio a partir da box {from.Box + 1} slot {from.Slot + 1}."
+        : $"{target.GameLabel} não tem slot vazio em nenhuma box.";
 
     /// <summary>Re-reads the target save and opens it as a throwaway session; the caller disposes it.</summary>
     private async Task<ISaveEngineSession> OpenTargetAsync(DetectedSave target, CancellationToken cancellationToken)

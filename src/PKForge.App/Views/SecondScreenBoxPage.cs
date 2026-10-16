@@ -48,7 +48,7 @@ public sealed class SecondScreenBoxPage : ContentPage
         // The inspector: the Gen-6 summary surface, a light-blue world carrying white panels.
         _inspector = new MonSummaryView(sprites)
         {
-            FixHint = "Press + > Legalize this one to find the closest legal version. Its PID, nature or IVs may change.",
+            FixHint = "Aperte + > Legalizar este para encontrar a versão legal mais próxima. O PID, a natureza ou os IVs podem mudar.",
         };
         if (state is not null)
         {
@@ -112,7 +112,7 @@ public sealed class SecondScreenBoxPage : ContentPage
         async Task ShowBoxSummaryCore(Domain.EntityDetail detail)
         {
             var session = sessions?.CurrentSession;
-            var box = detail.Box == -1 ? "PARTY" : $"BOX {detail.Box + 1:00}";
+            var box = detail.Box == -1 ? "EQUIPE" : $"BOX {detail.Box + 1:00}";
             var caption = $"{box} · SLOT {detail.Slot + 1:00}";
             if (session is null || summaries is null) { _inspector.Show(null, caption: caption); return; }
             var key = (session, _viewModel.MutationGeneration, detail.Box, detail.Slot);
@@ -162,7 +162,7 @@ public sealed class SecondScreenBoxPage : ContentPage
             if (showSummary)
             {
                 if (bankDriven)
-                    _inspector.Show(state!.Inspected?.Summary, state.Inspected?.LegalityPending == true, state.Inspected?.Caption, "EMPTY BANK SLOT");
+                    _inspector.Show(state!.Inspected?.Summary, state.Inspected?.LegalityPending == true, state.Inspected?.Caption, "SLOT DO BANCO VAZIO");
                 else
                     ShowBoxSummary(detail!);
             }
@@ -320,7 +320,7 @@ public sealed class SecondScreenBoxPage : ContentPage
         }
         canvas.Restore();
 
-        PksmPaint.CenterText(canvas, "SUMMARY ON THE TOP SCREEN  ·  L / R  NEXT POKéMON  ·  B  CLOSE",
+        PksmPaint.CenterText(canvas, "RESUMO NA TELA DE CIMA  ·  L / R  PRÓXIMO POKéMON  ·  B  FECHAR",
             info.Width / 2f, info.Height - hintHeight / 2, small, SKColors.White, shadow, SKTextAlign.Center);
     }
 

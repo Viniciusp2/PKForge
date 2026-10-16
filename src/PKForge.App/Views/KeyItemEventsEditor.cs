@@ -13,14 +13,14 @@ namespace PKForge.App.Views;
 /// </summary>
 public static class KeyItemEventsEditor
 {
-    private const string Title = "Key item events";
+    private const string Title = "Eventos de itens-chave";
 
     public static async Task ShowAsync(Grid host, ISaveEngineSession session, BoxBrowserViewModel viewModel)
     {
         if (!KeyItemEventService.IsSupported(session))
         {
             await EditorMenu.ShowAsync(host, Title,
-                "Key-item events are mapped for Crystal, Ruby/Sapphire, Emerald, FireRed/LeafGreen, Diamond/Pearl, Platinum, HeartGold/SoulSilver, Black/White and Omega Ruby/Alpha Sapphire.", "OK");
+                "Os eventos de itens-chave estão mapeados para Crystal, Ruby/Sapphire, Emerald, FireRed/LeafGreen, Diamond/Pearl, Platinum, HeartGold/SoulSilver, Black/White e Omega Ruby/Alpha Sapphire.", "OK");
             return;
         }
 
@@ -35,7 +35,7 @@ public static class KeyItemEventsEditor
                     KeyItemEventState.Partial => UiTokens.GiftRed,
                     _ => null,
                 })).ToArray();
-            var choice = await EditorMenu.ShowAsync(host, Title, "Item + event flags, as the real distribution writes them", options);
+            var choice = await EditorMenu.ShowAsync(host, Title, "Item + flags de evento, como a distribuição real grava", options);
             if (choice is null) return;
 
             var selected = events.FirstOrDefault(e => choice.StartsWith($"{e.Title} ·", StringComparison.Ordinal));
@@ -51,41 +51,41 @@ public static class KeyItemEventsEditor
         {
             $"{status.ItemName} → {status.Destination}",
             status.NeedsItem
-                ? $"Item in bag: {YesNo(status.HasItem)} · Event flags: {YesNo(status.EventArmed)}"
-                : $"Event flags: {YesNo(status.EventArmed)} · the {status.ItemName} is handed over in game",
+                ? $"Item na mochila: {YesNo(status.HasItem)} · Flags de evento: {YesNo(status.EventArmed)}"
+                : $"Flags de evento: {YesNo(status.EventArmed)} · o {status.ItemName} é entregue no jogo",
             StateDetail(status.State),
         };
         if (status.Prerequisite is { } prerequisite)
-            lines.Add($"Note: {prerequisite}");
+            lines.Add($"Observação: {prerequisite}");
 
-        var enable = status.State is KeyItemEventState.Enabled ? null : "Enable event";
-        var disable = status.HasItem || status.EventArmed ? "Disable event" : null;
-        var options = new[] { enable, disable, "Back" }.OfType<string>()
+        var enable = status.State is KeyItemEventState.Enabled ? null : "Ativar evento";
+        var disable = status.HasItem || status.EventArmed ? "Desativar evento" : null;
+        var options = new[] { enable, disable, "Voltar" }.OfType<string>()
             .Select(label => new PadOption(label, Accent: label switch
             {
-                "Enable event" => UiTokens.Green,
-                "Disable event" => UiTokens.GiftRed,
+                "Ativar evento" => UiTokens.Green,
+                "Desativar evento" => UiTokens.GiftRed,
                 _ => null,
             })).ToArray();
         var choice = await EditorMenu.ShowAsync(host, status.Title, string.Join("\n", lines), options);
-        if (choice is not ("Enable event" or "Disable event")) return true;
+        if (choice is not ("Ativar evento" or "Desativar evento")) return true;
 
         if (HardcoreMode.Blocks(SaveAction.InjectEvent, out var blocked))
         {
-            await EditorMenu.ShowAsync(host, "Hardcore mode", blocked, "OK");
+            await EditorMenu.ShowAsync(host, "Modo Hardcore", blocked, "OK");
             return true;
         }
 
-        var enabling = choice == "Enable event";
-        var confirmed = await PadMenu.ConfirmAsync(host, enabling ? "Enable event?" : "Disable event?",
+        var enabling = choice == "Ativar evento";
+        var confirmed = await PadMenu.ConfirmAsync(host, enabling ? "Ativar o evento?" : "Desativar o evento?",
             (enabling, status.NeedsItem) switch
             {
-                (true, true) => $"Adds the {status.ItemName} and sets the event flags. A restore point is created first.",
-                (true, false) => "Sets the event flags. A restore point is created first.",
-                (false, true) => $"Removes the {status.ItemName} and clears the event flags. Shown/caught history is kept. A restore point is created first.",
-                (false, false) => "Clears the event flags. Received/caught history is kept. A restore point is created first.",
+                (true, true) => $"Adiciona o {status.ItemName} e liga as flags de evento. Um ponto de restauração é criado antes.",
+                (true, false) => "Liga as flags de evento. Um ponto de restauração é criado antes.",
+                (false, true) => $"Remove o {status.ItemName} e desliga as flags de evento. O histórico de mostrado/capturado é mantido. Um ponto de restauração é criado antes.",
+                (false, false) => "Desliga as flags de evento. O histórico de recebido/capturado é mantido. Um ponto de restauração é criado antes.",
             },
-            enabling ? "Enable" : "Disable");
+            enabling ? "Ativar" : "Desativar");
         if (!confirmed) return true;
 
         var id = status.Id;
@@ -98,19 +98,19 @@ public static class KeyItemEventsEditor
 
     private static string StateLabel(KeyItemEventState state) => state switch
     {
-        KeyItemEventState.Enabled => "Ready",
-        KeyItemEventState.Partial => "Incomplete",
-        KeyItemEventState.Used => "Used",
-        KeyItemEventState.Completed => "Completed",
-        _ => "Off",
+        KeyItemEventState.Enabled => "Pronto",
+        KeyItemEventState.Partial => "Incompleto",
+        KeyItemEventState.Used => "Usado",
+        KeyItemEventState.Completed => "Concluído",
+        _ => "Desligado",
     };
 
     private static string StateDetail(KeyItemEventState state) => state switch
     {
-        KeyItemEventState.Enabled => "Ready: the event will trigger in game.",
-        KeyItemEventState.Partial => "Incomplete: item and flags disagree, so the game ignores it. Enable to fix.",
-        KeyItemEventState.Used => "Already used in game: the ticket was shown to the sailor, or the GS Ball was received.",
-        KeyItemEventState.Completed => "The event Pokémon was already caught or defeated.",
-        _ => "Not enabled.",
+        KeyItemEventState.Enabled => "Pronto: o evento vai acontecer no jogo.",
+        KeyItemEventState.Partial => "Incompleto: o item e as flags não batem, então o jogo ignora. Ative para corrigir.",
+        KeyItemEventState.Used => "Já usado no jogo: o tíquete foi mostrado ao marinheiro, ou a GS Ball foi recebida.",
+        KeyItemEventState.Completed => "O Pokémon do evento já foi capturado ou derrotado.",
+        _ => "Não ativado.",
     };
 }

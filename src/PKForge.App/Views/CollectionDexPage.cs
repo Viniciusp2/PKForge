@@ -65,7 +65,7 @@ public sealed class CollectionDexPage : IPadPagingHandler
         }
         catch (Exception error)
         {
-            viewModel.Status = $"Collection dex closed: {error.Message}";
+            viewModel.Status = $"A Dex da coleção fechou: {error.Message}";
         }
     }
 
@@ -79,7 +79,7 @@ public sealed class CollectionDexPage : IPadPagingHandler
         _sprites = sprites;
         _router = IPlatformApplication.Current?.Services.GetService<GamepadRouter>();
 
-        _title = new Label { Text = "Living dex", TextColor = UiTokens.Ink0, FontFamily = DsChrome.PixelFont, FontSize = 15 };
+        _title = new Label { Text = "Living Dex", TextColor = UiTokens.Ink0, FontFamily = DsChrome.PixelFont, FontSize = 15 };
         _progress = new Label { TextColor = UiTokens.Ink1, FontFamily = DsChrome.PixelFont, FontSize = UiTokens.TextBody, HorizontalTextAlignment = TextAlignment.End, HorizontalOptions = LayoutOptions.End };
         _cursorInfo = new Label { TextColor = UiTokens.Ink1, FontFamily = DsChrome.PixelFont, FontSize = UiTokens.TextBody };
 
@@ -97,12 +97,12 @@ public sealed class CollectionDexPage : IPadPagingHandler
         _chips = new HorizontalStackLayout { Spacing = 5 };
 
         View hints = Kit.WindowHints(
-            ("A", "Actions", () => _ = ShowActionsAsync()),
-            ("B", "Done", () => Close()),
-            ("LR", "Generation", () => OnPadButton(PadButton.R)),
-            ("X", "Scope", () => _ = ShowScopeMenuAsync()),
-            ("Y", "Missing only", ToggleMissingOnly),
-            ("+", "Autopilot", () => _ = OpenAutopilotAsync()));
+            ("A", "Ações", () => _ = ShowActionsAsync()),
+            ("B", "Pronto", () => Close()),
+            ("LR", "Geração", () => OnPadButton(PadButton.R)),
+            ("X", "Escopo", () => _ = ShowScopeMenuAsync()),
+            ("Y", "Só os que faltam", ToggleMissingOnly),
+            ("+", "Piloto", () => _ = OpenAutopilotAsync()));
 
         var content = new Grid
         {
@@ -135,8 +135,8 @@ public sealed class CollectionDexPage : IPadPagingHandler
         Grid.SetColumnSpan(_overlay, Math.Max(1, _host.ColumnDefinitions.Count));
         Kit.AnimateIn(window);
 
-        var loader = LoadingOverlay.Show(_host, "Counting your collection…",
-            "Reading the bank and every game on your shelf.");
+        var loader = LoadingOverlay.Show(_host, "Contando sua coleção…",
+            "Lendo o banco e todos os jogos da sua estante.");
         _ = Task.Run(async () =>
         {
             var collection = await CollectAsync(_session);
@@ -255,10 +255,10 @@ public sealed class CollectionDexPage : IPadPagingHandler
         if (_progressData is null) return;
         var scope = (_shinyDex, _formsDex) switch
         {
-            (true, true) => "Shiny forms",
-            (false, true) => "Forms",
-            (true, false) => "Shiny living dex",
-            _ => "Living dex",
+            (true, true) => "Formas shiny",
+            (false, true) => "Formas",
+            (true, false) => "Living Dex shiny",
+            _ => "Living Dex",
         };
         var scoped = ScopedProgress();
         _title.Text = scope;
@@ -268,8 +268,8 @@ public sealed class CollectionDexPage : IPadPagingHandler
 
         _chips.Children.Clear();
         _chipBorders.Clear();
-        AddChip("ALL", null);
-        if (_session is not null) AddChip("This game", 0);
+        AddChip("TODOS", null);
+        if (_session is not null) AddChip("Este jogo", 0);
         foreach (var segment in _progressData.Segments)
         {
             var (owned, total) = _formsDex ? Tally(segment.Generation) : (_shinyDex ? segment.Shiny : segment.Owned, segment.Total);
@@ -374,8 +374,8 @@ public sealed class CollectionDexPage : IPadPagingHandler
         var key = _viewIds[Math.Min(_grid.Cursor, Count - 1)];
         var id = SpeciesOf(key);
         var state = IsShinyOwned(key)
-            ? (_shinyDex ? "Shiny owned" : "Owned + shiny")
-            : (_formsDex ? _ownedForms.Contains(key) : _owned.Contains(id)) ? "Owned" : "Missing";
+            ? (_shinyDex ? "Shiny obtido" : "Obtido + shiny")
+            : (_formsDex ? _ownedForms.Contains(key) : _owned.Contains(id)) ? "Obtido" : "Falta";
         _cursorInfo.Text = $"#{id:000} {CellName(key)} · {state}";
     }
 
@@ -400,26 +400,26 @@ public sealed class CollectionDexPage : IPadPagingHandler
 
     private async Task ShowScopeMenuAsync()
     {
-        var options = new List<PadOption> { new("All generations") };
-        if (_session is not null) options.Add(new PadOption("This game", Detail: "Only the species in the open save's game."));
+        var options = new List<PadOption> { new("Todas as gerações") };
+        if (_session is not null) options.Add(new PadOption("Este jogo", Detail: "Só as espécies do jogo do save aberto."));
         options.AddRange(_progressData!.Segments.Select(s => (s.Generation, Counts: _formsDex ? Tally(s.Generation) : (_shinyDex ? s.Shiny : s.Owned, s.Total)))
             .Where(s => s.Counts.Item2 > 0)
             .Select(s => new PadOption($"Gen {Roman(s.Generation)} · {s.Counts.Item1}/{s.Counts.Item2}")));
-        options.Add(new PadOption(_shinyDex ? "View: normal living dex" : "View: SHINY living dex",
-            Detail: _shinyDex ? null : "Only shiny Pokémon count toward each species."));
-        options.Add(new PadOption(_formsDex ? "View: one per species" : "View: every form",
-            Detail: _formsDex ? "Back to one entry per species." : "Lists each form on its own, like Unown letters and Vivillon patterns."));
-        var choice = await PadMenu.ShowAsync(_host, "Scope", null, options.ToArray());
+        options.Add(new PadOption(_shinyDex ? "Visão: Living Dex normal" : "Visão: Living Dex SHINY",
+            Detail: _shinyDex ? null : "Só Pokémon shiny contam para cada espécie."));
+        options.Add(new PadOption(_formsDex ? "Visão: um por espécie" : "Visão: todas as formas",
+            Detail: _formsDex ? "Volta para uma entrada por espécie." : "Lista cada forma separadamente, como as letras de Unown e os padrões de Vivillon."));
+        var choice = await PadMenu.ShowAsync(_host, "Escopo", null, options.ToArray());
         if (choice is null) return;
-        if (choice == "All generations") SetScope(null);
-        else if (choice == "This game") SetScope(0);
-        else if (choice.StartsWith("View: every form", StringComparison.Ordinal) || choice.StartsWith("View: one per", StringComparison.Ordinal))
+        if (choice == "Todas as gerações") SetScope(null);
+        else if (choice == "Este jogo") SetScope(0);
+        else if (choice.StartsWith("Visão: todas as formas", StringComparison.Ordinal) || choice.StartsWith("Visão: um por", StringComparison.Ordinal))
         {
             _formsDex = !_formsDex;
             RefreshView();
             _grid.SetCursor(0);
         }
-        else if (choice.StartsWith("View:", StringComparison.Ordinal)) { _shinyDex = !_shinyDex; RefreshView(); }
+        else if (choice.StartsWith("Visão:", StringComparison.Ordinal)) { _shinyDex = !_shinyDex; RefreshView(); }
         else if (choice.StartsWith("Gen ", StringComparison.Ordinal) && int.TryParse(RomanToNumber(choice[4].ToString()), out var gen))
             SetScope(gen);
     }
@@ -436,9 +436,9 @@ public sealed class CollectionDexPage : IPadPagingHandler
         var key = _viewIds[Math.Min(_grid.Cursor, Count - 1)];
         var id = SpeciesOf(key);
         var choice = await PadMenu.ShowAsync(_host, $"#{id:000} {CellName(key)}", null,
-            new PadOption("How to get", IconPath: "map", Detail: "Where to find this species in each game."),
-            new PadOption("Close", IconPath: "close"));
-        if (choice == "How to get")
+            new PadOption("Como obter", IconPath: "map", Detail: "Onde encontrar esta espécie em cada jogo."),
+            new PadOption("Fechar", IconPath: "close"));
+        if (choice == "Como obter")
         {
             // Straight to the answer for THIS Pokémon: no species wizard, and it works
             // with or without an open save (CATCH is offered only for a game the save can be).

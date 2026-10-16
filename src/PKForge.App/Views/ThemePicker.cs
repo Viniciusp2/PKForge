@@ -152,7 +152,7 @@ public sealed class ThemePicker : IPadPagingHandler
         canvas.Restore();
 
         var hintBar = new SKRect(0, info.Height - hint, info.Width, info.Height);
-        (string, string)[] prompts = [("A", "Choose"), ("B", "Cancel")];
+        (string, string)[] prompts = [("A", "Escolher"), ("B", "Cancelar")];
         PksmPaint.HintBar(canvas, hintBar, prompts, small);
         PadButton[] buttons = [PadButton.A, PadButton.B];
         _hintHits = [.. PksmPaint.HintBarHitRects(hintBar, prompts, small).Select((r, i) => (r, buttons[i]))];

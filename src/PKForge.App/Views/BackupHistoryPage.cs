@@ -17,15 +17,15 @@ public sealed class BackupHistoryPage : ContentPage, IPadHandler
     {
         _viewModel = viewModel;
         BindingContext = viewModel;
-        Title = "Restore points";
+        Title = "Pontos de restauração";
         BackgroundColor = UiTokens.Housing;
         NavigationPage.SetHasNavigationBar(this, false);
 
-        var back = Kit.MiniCapsule("Back", UiTokens.Ink0);
+        var back = Kit.MiniCapsule("Voltar", UiTokens.Ink0);
         back.WidthRequest = 72;
         back.Clicked += async (_, _) => await Navigation.PopAsync();
 
-        var header = Kit.HeaderBar("Restore points");
+        var header = Kit.HeaderBar("Pontos de restauração");
         header.VerticalOptions = LayoutOptions.Center;
         var titleRow = new Grid
         {
@@ -193,7 +193,7 @@ public sealed class BackupHistoryPage : ContentPage, IPadHandler
     {
         if (!_viewModel.CanRestore)
         {
-            await PadMenu.ShowAsync(_hostGrid, "Restore", "Connect to a save first - restoring writes into the connected save.", "OK");
+            await PadMenu.ShowAsync(_hostGrid, "Restaurar", "Conecte-se a um save primeiro - restaurar grava no save conectado.", "OK");
             return;
         }
 
@@ -205,9 +205,9 @@ public sealed class BackupHistoryPage : ContentPage, IPadHandler
         }
 
         var confirmed = await PadMenu.ConfirmAsync(_hostGrid,
-            "Restore this point?",
-            $"Write the {backup.CreatedUtc:yyyy-MM-dd HH:mm} UTC restore point into the connected save? The current state is preserved as a new restore point first.",
-            "Restore");
+            "Restaurar este ponto?",
+            $"Gravar o ponto de restauração de {backup.CreatedUtc:yyyy-MM-dd HH:mm} UTC no save conectado? O estado atual é preservado antes como um novo ponto de restauração.",
+            "Restaurar");
         if (confirmed)
             await _viewModel.RestoreAsync(backup);
     }
@@ -219,43 +219,43 @@ public sealed class BackupHistoryPage : ContentPage, IPadHandler
     /// </summary>
     private async Task<bool> ConfirmHardcoreRestoreAsync(BackupInfo backup)
     {
-        const string Cancel = "Cancel (keep current save)";
-        const string Anyway = "Restore anyway";
+        const string Cancel = "Cancelar (manter o save atual)";
+        const string Anyway = "Restaurar mesmo assim";
         var check = await _viewModel.CheckResurrectionAsync(backup);
         if (check is { IsSafe: true })
-            return await PadMenu.ConfirmAsync(_hostGrid, "Restore this point?",
-                $"Write the {backup.CreatedUtc:yyyy-MM-dd HH:mm} UTC restore point into the connected save? " +
-                "No Pokémon that has left this save since then would come back. The current state is preserved as a new restore point first.",
-                "Restore");
+            return await PadMenu.ConfirmAsync(_hostGrid, "Restaurar este ponto?",
+                $"Gravar o ponto de restauração de {backup.CreatedUtc:yyyy-MM-dd HH:mm} UTC no save conectado? " +
+                "Nenhum Pokémon que saiu deste save desde então voltaria. O estado atual é preservado antes como um novo ponto de restauração.",
+                "Restaurar");
 
         string message;
         if (check is null)
         {
-            message = $"{HardcoreMode.Marker}: this restore point could not be compared with the current save. " +
-                "If any Pokémon was moved to the Bank or sent to another game after it was taken, restoring brings it back here " +
-                "and it would then exist twice - a duplication Hardcore mode does not allow.";
+            message = $"{HardcoreMode.Marker}: este ponto de restauração não pôde ser comparado com o save atual. " +
+                "Se algum Pokémon foi movido para o Banco ou enviado para outro jogo depois que ele foi criado, restaurar o traz de volta aqui " +
+                "e ele passaria a existir duas vezes - uma duplicação que o modo Hardcore não permite.";
         }
         else
         {
             var names = string.Join(", ", check.Reappearing.Take(6).Select(Describe));
-            if (check.Reappearing.Count > 6) names += $" and {check.Reappearing.Count - 6} more";
+            if (check.Reappearing.Count > 6) names += $" e mais {check.Reappearing.Count - 6}";
             var where = new List<string>();
-            if (check.InBank > 0) where.Add($"{check.InBank} now in the Bank");
-            if (check.Elsewhere > 0) where.Add($"{check.Elsewhere} sent to another game or released");
-            message = $"{HardcoreMode.Marker}: restoring would bring back {check.Reappearing.Count} Pokémon that left this save " +
-                $"after this point ({string.Join(", ", where)}): {names}. " +
-                "Any that still exist in the Bank or another game would then exist twice - a duplication Hardcore mode does not allow. " +
-                "Release or withdraw those copies yourself if you restore.";
+            if (check.InBank > 0) where.Add($"{check.InBank} agora no Banco");
+            if (check.Elsewhere > 0) where.Add($"{check.Elsewhere} enviados para outro jogo ou soltos");
+            message = $"{HardcoreMode.Marker}: restaurar traria de volta {check.Reappearing.Count} Pokémon que saíram deste save " +
+                $"depois deste ponto ({string.Join(", ", where)}): {names}. " +
+                "Os que ainda existem no Banco ou em outro jogo passariam a existir duas vezes - uma duplicação que o modo Hardcore não permite. " +
+                "Se restaurar, solte ou retire essas cópias você mesmo.";
         }
 
-        var choice = await PadMenu.ShowAsync(_hostGrid, "Duplication risk", message, Cancel, Anyway);
+        var choice = await PadMenu.ShowAsync(_hostGrid, "Risco de duplicação", message, Cancel, Anyway);
         return choice == Anyway;
     }
 
     private static string Describe(SlotSummary slot)
     {
         var name = slot.Nickname ?? $"#{slot.Species:000}";
-        if (slot.IsEgg) name = $"Egg #{slot.Species:000}";
+        if (slot.IsEgg) name = $"Ovo #{slot.Species:000}";
         return slot.IsShiny ? $"{name} (shiny)" : name;
     }
 }

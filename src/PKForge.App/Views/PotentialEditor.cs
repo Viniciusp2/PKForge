@@ -22,33 +22,33 @@ public static class PotentialEditor
         {
             PotentialInfo p;
             try { p = session.GetPotential(box, slot); }
-            catch (Exception error) { await EditorMenu.ShowAsync(host, "Potential", error.Message, "OK"); return dirty; }
+            catch (Exception error) { await EditorMenu.ShowAsync(host, "Potencial", error.Message, "OK"); return dirty; }
 
             var options = new List<PadOption>();
             if (p.SupportsTera)
-                options.Add(new PadOption($"Tera type · {p.TeraTypeName}{(p.TeraLocked ? " (fixed)" : "")}",
-                    Detail: "The type it turns into when it Terastallizes."));
+                options.Add(new PadOption($"Tera type · {p.TeraTypeName}{(p.TeraLocked ? " (fixo)" : "")}",
+                    Detail: "O tipo em que ele se transforma ao Terastalizar."));
             if (p.SupportsHyperTrain)
                 options.Add(new PadOption($"Hyper Training · {p.HyperTrained.Count(t => t)}/6",
-                    Detail: "Bottle Cap training: a stat acts as if its IV were perfect."));
+                    Detail: "Treino com Bottle Cap: o atributo age como se o IV fosse perfeito."));
             if (p.SupportsAwakening)
                 options.Add(new PadOption($"Awakening Values · {p.Awakening.Sum()}/1200",
-                    Detail: "Let's Go stat boosts from candies, up to 200 per stat."));
+                    Detail: "Bônus de atributos do Let's Go vindos de doces, até 200 por atributo."));
             if (p.SupportsGanbaru)
                 options.Add(new PadOption($"Grit Effort Levels · {p.Ganbaru.Sum()}/{p.GanbaruMaximums.Sum()}",
-                    Detail: "Legends: Arceus stat boosts from Grit items."));
+                    Detail: "Bônus de atributos do Legends: Arceus vindos de itens Grit."));
             if (p.SupportsAbilitySlot)
-                options.Add(new PadOption($"Ability slot · {p.AbilitySlots[p.AbilitySlot].Name}",
-                    Detail: "Which of its abilities it has, as a Capsule or Patch would set."));
+                options.Add(new PadOption($"Slot de habilidade · {p.AbilitySlots[p.AbilitySlot].Name}",
+                    Detail: "Qual das habilidades ele tem, como uma Capsule ou um Patch definiriam."));
 
             if (options.Count == 0)
             {
-                await EditorMenu.ShowAsync(host, "Potential",
-                    "This format has no Tera type, Hyper Training, or ability slot data.", "OK");
+                await EditorMenu.ShowAsync(host, "Potencial",
+                    "Este formato não tem dados de Tera type, Hyper Training nem slot de habilidade.", "OK");
                 return dirty;
             }
 
-            var choice = await EditorMenu.ShowAsync(host, "Potential", null, options.ToArray());
+            var choice = await EditorMenu.ShowAsync(host, "Potencial", null, options.ToArray());
             if (choice is null) return dirty;
 
             if (choice.StartsWith("Tera type", StringComparison.Ordinal))
@@ -56,7 +56,7 @@ public static class PotentialEditor
                 if (p.TeraLocked)
                 {
                     await EditorMenu.ShowAsync(host, "Tera type",
-                        "This Pokémon's Tera Type is fixed by its form and cannot be changed.", "OK");
+                        "O Tera Type deste Pokémon é fixo pela forma dele e não pode ser mudado.", "OK");
                     continue;
                 }
                 var mon = session.ReadEntity(box, slot);
@@ -77,9 +77,9 @@ public static class PotentialEditor
             {
                 if (await EditTrainingAsync(host, session, box, slot, awakening: false)) dirty = true;
             }
-            else if (choice.StartsWith("Ability slot", StringComparison.Ordinal))
+            else if (choice.StartsWith("Slot de habilidade", StringComparison.Ordinal))
             {
-                var pick = await PickChoiceAsync(host, "Ability slot (capsule / patch)", p.AbilitySlots, p.AbilitySlot);
+                var pick = await PickChoiceAsync(host, "Slot de habilidade (capsule / patch)", p.AbilitySlots, p.AbilitySlot);
                 if (pick is { } v) { session.ApplyPotentialEdit(box, slot, new PotentialEdit(AbilitySlot: v)); dirty = true; }
             }
         }
@@ -92,13 +92,13 @@ public static class PotentialEditor
         var maximums = awakening ? Enumerable.Repeat((int)AwakeningUtil.AwakeningMax, 6).ToArray() : p.GanbaruMaximums.ToArray();
         var title = awakening ? "Awakening values" : "Grit effort levels";
         var options = StatNames.Select((name, i) => new PadOption($"{name} · {values[i]}/{maximums[i]}"))
-            .Append(new PadOption("Max all", IconPath: "fill"))
-            .Append(new PadOption("Clear all", IconPath: "clear"))
+            .Append(new PadOption("Maximizar tudo", IconPath: "fill"))
+            .Append(new PadOption("Limpar tudo", IconPath: "clear"))
             .ToArray();
         var choice = await EditorMenu.ShowAsync(host, title, null, options);
         if (choice is null) return false;
-        if (choice == "Max all") values = maximums;
-        else if (choice == "Clear all") values = new int[6];
+        if (choice == "Maximizar tudo") values = maximums;
+        else if (choice == "Limpar tudo") values = new int[6];
         else
         {
             var index = Array.FindIndex(StatNames, name => choice.StartsWith(name, StringComparison.Ordinal));
@@ -125,18 +125,18 @@ public static class PotentialEditor
                 var trained = p.HyperTrained[i];
                 options.Add(new PadOption($"{StatNames[i]} · {(trained ? "trained" : "-")}"));
             }
-            options.Add(new PadOption("Train all", IconPath: "train"));
-            options.Add(new PadOption("Clear all", IconPath: "clear"));
+            options.Add(new PadOption("Treinar todos", IconPath: "train"));
+            options.Add(new PadOption("Limpar tudo", IconPath: "clear"));
 
             var choice = await EditorMenu.ShowAsync(host, "Hyper training", null, options.ToArray());
             if (choice is null) return dirty;
 
-            if (choice.StartsWith("Train all", StringComparison.Ordinal))
+            if (choice.StartsWith("Treinar todos", StringComparison.Ordinal))
             {
                 session.ApplyPotentialEdit(box, slot, new PotentialEdit(HyperTrained: [true, true, true, true, true, true]));
                 dirty = true;
             }
-            else if (choice.StartsWith("Clear all", StringComparison.Ordinal))
+            else if (choice.StartsWith("Limpar tudo", StringComparison.Ordinal))
             {
                 session.ApplyPotentialEdit(box, slot, new PotentialEdit(HyperTrained: [false, false, false, false, false, false]));
                 dirty = true;
